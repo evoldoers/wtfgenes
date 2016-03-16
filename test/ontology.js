@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+// for use with mocha test framework
 
 var Ontology = require('../ontology'),
     assert = require('assert')
