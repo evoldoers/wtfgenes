@@ -11,10 +11,9 @@
         return json
     }
 
-    function toposortTermIndex() {
+    function toposortTermIndex (onto) {
         // Kahn, Arthur B. (1962), "Topological sorting of large networks", Communications of the ACM 5 (11): 558–562, doi:10.1145/368996.369025
         // https://en.wikipedia.org/wiki/Topological_sorting
-        var onto = this
         var S = [], L = []
         var nParents = [], edges = 0
         for (var c = 0; c < onto.terms(); ++c) {
@@ -39,14 +38,14 @@
     }
 
     function isCyclic() {
-        var L = this._toposortTermIndex()
+        var L = toposortTermIndex(this)
         return typeof(L) === 'undefined'
     }
 
     function toposort() {
         var onto = this
 
-        var L = onto._toposortTermIndex()
+        var L = toposortTermIndex(onto)
         if (typeof(L) === 'undefined')
             throw new Error ("Ontology graph is not a DAG")
         
@@ -65,7 +64,6 @@
                   'children': [],
                   'terms': function() { return this.termName.length },
                   'toJSON': toJSON,
-                  '_toposortTermIndex': toposortTermIndex,
                   'isCyclic': isCyclic,
                   'toposort': toposort })
         var extTermParents = []
