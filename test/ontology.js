@@ -23,9 +23,27 @@ describe('Ontology', function() {
 
     var cyclicJson = [["l'etat","moi"],["moi","l'etat"]];
 
-    var onto = new Ontology (json)
-    var fullOnto = new Ontology (fullJson)
-    var topOnto = new Ontology (topJson)
+    var compressedJson = [
+        ["arachnid", 7],
+        ["mammal", 7],
+        ["spider", 0],
+        ["primate",1],
+        ["man", 3],
+        ["spiderman", 2, 4],
+        ["kingkong", 3],
+        ["animal"]
+    ]
+
+    var subJson = [
+        ["arachnid", "animal"],
+        ["mammal", "animal"],
+        ["spider", "arachnid"]
+    ]
+
+    var onto = new Ontology ({ "termParents": json })
+    var fullOnto = new Ontology ({ "termParents": fullJson })
+    var topOnto = new Ontology ({ "termParents": topJson })
+    var subOnto = new Ontology ({ "termParents": subJson })
 
     describe('#constructor', function() {
         it('should parse explicitly declared terms', function() {
@@ -61,12 +79,25 @@ describe('Ontology', function() {
 
             assert (fullOnto.children[5].length == 0)
         })
+        it('should interpret list argument as termParents', function() {
+            var autoOnto = new Ontology (json)
+            assert (autoOnto.equals (onto))
+        })
     })
 
     describe('#toJSON', function() {
         var fullOntoJson = fullOnto.toJSON()
-        it('should be idempotent when composed with constructor', function() {
-            assert (JSON.stringify(fullOntoJson) == JSON.stringify(fullJson))
+        var fullOntoCompressedJson = fullOnto.toJSON({'compress':true})
+        it('should be idempotent with constructor', function() {
+            assert (JSON.stringify(fullOntoJson.termParents) == JSON.stringify(fullJson))
+        })
+        it('should be able to generate compressed output', function() {
+            assert (JSON.stringify(fullOntoCompressedJson.termParents) == JSON.stringify(compressedJson))
+        })
+        it('should be idempotent with constructor for compressed output', function() {
+            var compressedOnto = new Ontology (fullOntoCompressedJson)
+            var compressedOntoJson = compressedOnto.toJSON()
+            assert (JSON.stringify(compressedOntoJson.termParents) == JSON.stringify(fullJson))
         })
     })
 
@@ -87,22 +118,31 @@ describe('Ontology', function() {
                 sortOnto.parents[i].forEach (function(p) { assert (p < i) })
         })
         it('should yield Kahn\'s ordering', function() {
-            assert (JSON.stringify(sortOntoJson) == JSON.stringify(topJson))
+            assert (JSON.stringify(sortOntoJson.termParents) == JSON.stringify(topJson))
         })
         it('should be idempotent', function() {
             var sortSortOnto = sortOnto.toposort()
             var sortSortOntoJson = sortSortOnto.toJSON()
-            assert (JSON.stringify(sortOntoJson) == JSON.stringify(sortSortOntoJson))
+            assert (JSON.stringify(sortSortOntoJson) == JSON.stringify(sortOntoJson))
         })
     })
 
     describe('#isCyclic', function() {
         it('should return true for a cyclic ontology', function() {
-            var cyclicOnto = new Ontology (cyclicJson)
+            var cyclicOnto = new Ontology ({ "termParents": cyclicJson })
             assert (cyclicOnto.isCyclic())
         })
         it('should return false for a DAG', function() {
             assert (!fullOnto.isCyclic())
+        })
+    })
+
+    describe('#equals', function() {
+        it('should return true for same ontology', function() {
+            assert (onto.equals(onto))
+        })
+        it('should return false for different ontologies', function() {
+            assert (!onto.equals(subOnto))
         })
     })
 
