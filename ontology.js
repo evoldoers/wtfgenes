@@ -46,16 +46,21 @@
         return typeof(L) === 'undefined'
     }
 
+    function toposortTermIndexOrDie (onto) {
+        var L = toposortTermIndex(onto)
+        if (typeof(L) === 'undefined')
+            throw new Error ("Ontology graph is not a DAG")
+        
+        return L
+    }
+
     function toposort() {
         var onto = this
 
         if (onto.isToposorted())
             return onto
         
-        var L = toposortTermIndex(onto)
-        if (typeof(L) === 'undefined')
-            throw new Error ("Ontology graph is not a DAG")
-        
+        var L = toposortTermIndexOrDie (onto)
         var json = onto.toJSON().termParents
         var toposortedJson = L.map (function(idx) { return json[idx] })
 
@@ -80,7 +85,29 @@
     function equals (onto) {
         return JSON.stringify (this.toJSON({'compress':true})) == JSON.stringify (onto.toJSON({'compress':true}));
     }
-    
+
+    function transitiveClosure() {
+        var onto = this
+        if (!('_closure' in onto)) {
+            var clos = []
+            var L = toposortTermIndexOrDie (onto)
+            L.forEach (function(n) {
+                var closIndex = {}
+                onto.parents[n].forEach (function(p) {
+                    clos[p].forEach (function(c) {
+                        closIndex[c] = 1
+                    })
+                })
+                closIndex[n] = 1
+                clos[n] = Object.keys(closIndex)
+                    .map (function(n) { return parseInt(n) })
+                    .sort (function(a,b) { return a-b })
+            })
+            onto._closure = clos
+        }
+        return onto._closure
+    }
+
     function Ontology (conf) {
         var onto = this
         extend (onto,
@@ -93,7 +120,8 @@
                   'isCyclic': isCyclic,
                   'isToposorted': isToposorted,
                   'toposort': toposort,
-                  'equals': equals })
+                  'equals': equals,
+                  'transitiveClosure': transitiveClosure })
 
         if (Object.prototype.toString.call(conf) === '[object Array]')
             conf = { 'termParents': conf }
