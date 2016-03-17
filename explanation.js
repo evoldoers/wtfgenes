@@ -4,7 +4,25 @@
     util = require('./util'),
     extend = util.extend
 
-    function getCounts (explan) {
+    function getTermState(t) { return this._termState[t] },
+
+    function setTermState(t,val) {
+	var explan = this
+	if (explan._termState[t] != val) {
+	    var delta = val ? +1 : -1
+	    explan.assocs.genesByTerm[t].forEach (function(g) {
+		explan._nActiveTermsByGene[g] += delta
+	    })
+	    if (val)
+		explan._isActiveTerm[t] = 1
+	    else
+		delete explan._isActiveTerm[t]
+	}
+	explan._termState[t] = val
+    }
+
+    function getCounts() {
+	var explan = this
 	var counts = explan.params.newCounts()
 	var param = explan.param
 	explan._termState.forEach (function (state, t) {
@@ -22,6 +40,28 @@
 	    ++(isFalse ? counts.pos : counts.neg)[isActive ? param.falsePos || param.falseNeg)[g]
 	})
 	return counts
+    }
+
+    function getCountDelta(t,val) {
+	var explan = this
+	var param = explan.param
+	var cd = {}
+	if (explan._termState[t] != val) {
+	    var delta = val ? +1 : -1
+	    explan.assocs.genesByTerm[t].forEach (function(g) {
+		var activeTerms = explan._nActiveTermsByGene[g]
+		var oldActive = activeTerms > 0
+		var newActive = (activeTerms + delta) > 0
+		if (oldActive != newActive) {
+		    var inGeneSet = explan._inGeneSet[g]
+		    var oldFalse = oldActive ? !inGeneSet : inGeneSet
+		    var newFalse = !oldFalse
+		    ++(newFalse ? cd.pos : cd.neg)[newActive ? param.falsePos || param.falseNeg)[g]
+		    --(oldFalse ? cd.pos : cd.neg)[oldActive ? param.falsePos || param.falseNeg)[g]
+		}
+	    })
+	}
+	return cd
     }
 
     function Explanation (conf) {
@@ -62,44 +102,11 @@
 		      return termList.concat (assocs.termsByGene[g])
 		  }, [])).map(parseInt).sort(util.numCmp),
 
-		  getTermState: function(t) { return this._termState[t] },
+		  getTermState: getTermState,
+		  setTermState: setTermState,
 
-		  setTermState: function(t,val) {
-		      var explan = this
-		      if (explan._termState[t] != val) {
-			  var delta = val ? +1 : -1
-			  explan.assocs.genesByTerm[t].forEach (function(g) {
-			      explan._nActiveTermsByGene[g] += delta
-			  })
-			  if (val)
-			      explan._isActiveTerm[t] = 1
-			  else
-			      delete explan._isActiveTerm[t]
-		      }
-		      explan._termState[t] = val
-		  },
-
-		  termStateCountDelta: function(t,val) {
-		      var explan = this
-		      var param = explan.param
-		      var cd = {}
-		      if (explan._termState[t] != val) {
-			  var delta = val ? +1 : -1
-			  explan.assocs.genesByTerm[t].forEach (function(g) {
-			      var activeTerms = explan._nActiveTermsByGene[g]
-			      var oldActive = activeTerms > 0
-			      var newActive = (activeTerms + delta) > 0
-			      if (oldActive != newActive) {
-				  var inGeneSet = explan._inGeneSet[g]
-				  var oldFalse = oldActive ? !inGeneSet : inGeneSet
-				  var newFalse = !oldFalse
-				  ++(newFalse ? cd.pos : cd.neg)[newActive ? param.falsePos || param.falseNeg)[g]
-				  --(oldFalse ? cd.pos : cd.neg)[oldActive ? param.falsePos || param.falseNeg)[g]
-			      }
-			  })
-		      }
-		      return cd
-		  },
+		  getCounts: getCounts,
+		  getCountDelta: getCountDelta,
 
 		  param: {
 		      termPrior: termName.map (conf.termPrior),
