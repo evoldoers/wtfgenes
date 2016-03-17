@@ -25,6 +25,7 @@ describe('Ontology', function() {
 
     var onto = new Ontology (json)
     var fullOnto = new Ontology (fullJson)
+    var topOnto = new Ontology (topJson)
 
     describe('#constructor', function() {
         it('should parse explicitly declared terms', function() {
@@ -76,17 +77,22 @@ describe('Ontology', function() {
     })
 
     describe('#toposort', function() {
-        var topOnto = fullOnto.toposort()
+        var sortOnto = fullOnto.toposort()
+        var sortOntoJson = sortOnto.toJSON()
         it('should preserve the number of terms', function() {
-            assert (topOnto.terms() == fullOnto.terms())
+            assert (sortOnto.terms() == fullOnto.terms())
         })
         it('should topologically sort the ontology graph', function() {
-            for (var i = 0; i < topOnto.terms(); ++i)
-                topOnto.parents[i].forEach (function(p) { assert (p < i) })
+            for (var i = 0; i < sortOnto.terms(); ++i)
+                sortOnto.parents[i].forEach (function(p) { assert (p < i) })
         })
         it('should yield Kahn\'s ordering', function() {
-            var topOntoJson = topOnto.toJSON()
-            assert (JSON.stringify(topOntoJson) == JSON.stringify(topJson))
+            assert (JSON.stringify(sortOntoJson) == JSON.stringify(topJson))
+        })
+        it('should be idempotent', function() {
+            var sortSortOnto = sortOnto.toposort()
+            var sortSortOntoJson = sortSortOnto.toJSON()
+            assert (JSON.stringify(sortOntoJson) == JSON.stringify(sortSortOntoJson))
         })
     })
 
@@ -97,6 +103,15 @@ describe('Ontology', function() {
         })
         it('should return false for a DAG', function() {
             assert (!fullOnto.isCyclic())
+        })
+    })
+
+    describe('#isToposorted', function() {
+        it('should return true for a topologically-sorted ontology', function() {
+            assert (topOnto.isToposorted())
+        })
+        it('should return false for an unsorted ontology', function() {
+            assert (!fullOnto.isToposorted())
         })
     })
 })

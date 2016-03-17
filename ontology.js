@@ -45,6 +45,9 @@
     function toposort() {
         var onto = this
 
+        if (onto.isToposorted())
+            return onto
+        
         var L = toposortTermIndex(onto)
         if (typeof(L) === 'undefined')
             throw new Error ("Ontology graph is not a DAG")
@@ -55,6 +58,13 @@
         return new Ontology (toposortedJson)
     }
 
+    function isToposorted() {
+        for (var i = 0; i < this.terms(); ++i)
+            if (this.parents[i].some (function(p) { return p >= i }))
+                return false;
+        return true;
+    }
+    
     function Ontology (termParents) {
         var onto = this
         extend (onto,
@@ -65,6 +75,7 @@
                   'terms': function() { return this.termName.length },
                   'toJSON': toJSON,
                   'isCyclic': isCyclic,
+                  'isToposorted': isToposorted,
                   'toposort': toposort })
         var extTermParents = []
         termParents.forEach (function (tp) {
