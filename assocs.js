@@ -1,6 +1,7 @@
 (function() {
-    var extend = require('util')._extend,
-        assert = require('assert')
+    var util = require('./util'),
+    extend = util.extend,
+    assert = require('assert')
 
     function toJSON() {
         var assocs = this
@@ -12,10 +13,6 @@
         return gt
     }
 
-    function sortAscending (list) {
-        return list.sort (function(a,b) { return a-b })
-    }
-    
     function Assocs (conf) {
         var assocs = this
         conf = extend ({closure:false}, conf)
@@ -70,8 +67,8 @@
             })
         }
 
-        assocs.termsByGene = assocs.termsByGene.map (sortAscending)
-        assocs.genesByTerm = assocs.genesByTerm.map (sortAscending)
+        assocs.termsByGene = assocs.termsByGene.map (util.sortAscending)
+        assocs.genesByTerm = assocs.genesByTerm.map (util.sortAscending)
     }
 
     module.exports = Assocs

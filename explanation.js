@@ -1,7 +1,8 @@
 (function() {
-    var extend = require('util')._extend,
-    assert = require('assert'),
-    bernouilli = require('./bernouilli')
+    var assert = require('assert'),
+    bernouilli = require('./bernouilli'),
+    util = require('./util'),
+    extend = util.extend
 
     function getCounts (explan) {
 	var counts = explan.params.newCounts()
@@ -46,6 +47,7 @@
 		  geneSet: geneSet,
 		  termName: termName,
 		  geneName: geneName,
+
 		  _inGeneSet: geneName.map (function() { return false }),
 		  _termState: termState,
 		  _isActiveTerm: {},
@@ -55,6 +57,10 @@
 			  return accum + (termState[t] ? 1 : 0)
 		      }, 0)
 		  }),
+
+		  relevantTerms: util.removeDups (geneSet.reduce (function(termList,g) {
+		      return termList.concat (assocs.termsByGene[g])
+		  }, [])).map(parseInt).sort(util.numCmp),
 
 		  getTermState: function(t) { return this._termState[t] },
 
@@ -108,7 +114,8 @@
 		  toJSON: function() {
 		      var explan = this
 		      return Object.keys(explan._isActiveTerm)
-			  .sort (function(a,b) { return a-b })
+			  .map (parseInt)
+			  .sort (util.numCmp)
 			  .map (function(t) { return explan.termName[parseInt(t)] })
 		  }
                 })
