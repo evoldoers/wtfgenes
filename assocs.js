@@ -16,9 +16,11 @@
         return list.sort (function(a,b) { return a-b })
     }
     
-    function Assocs (ontology, geneTermList, conf) {
+    function Assocs (conf) {
         var assocs = this
         conf = extend ({closure:false}, conf)
+	var ontology = conf.ontology
+	var geneTermList = conf.assocs
         extend (assocs,
                 { 'ontology': ontology,
                   'geneName': [],

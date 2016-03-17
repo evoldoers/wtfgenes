@@ -62,9 +62,9 @@ describe('Assocs', function() {
 
     var gtDup = gt.concat ([["charlotte","spider"]])
     
-    var assocs = new Assocs (onto, gt)
-    var transAssocs = new Assocs (onto, gt, {closure:true})
-    var dupAssocs = new Assocs (onto, gtDup)
+    var assocs = new Assocs ({ ontology: onto, assocs: gt })
+    var transAssocs = new Assocs ({ ontology: onto, assocs: gt, closure: true })
+    var dupAssocs = new Assocs ({ ontology: onto, assocs: gtDup })
     
     describe('#constructor', function() {
         it('should parse the right number of genes', function() {
