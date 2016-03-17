@@ -21,6 +21,8 @@ describe('Ontology', function() {
     var topJson = [7,0,1,2,3,4,6,5]  // Kahn's sort ordering (NB kingkong now precedes spiderman)
         .map (function(i) { return fullJson[i] })
 
+    var cyclicJson = [["l'etat","moi"],["moi","l'etat"]];
+
     var onto = new Ontology (json)
     var fullOnto = new Ontology (fullJson)
 
@@ -47,6 +49,16 @@ describe('Ontology', function() {
             assert (fullOnto.parents[5].length == 2)
             assert (fullOnto.parents[5][0] == 2)
             assert (fullOnto.parents[5][1] == 4)
+        })
+        it('should create parent->child maps', function() {
+            assert (fullOnto.children[7].length == 2)
+            assert (fullOnto.children[7][0] == 0)
+            assert (fullOnto.children[7][1] == 1)
+
+            assert (fullOnto.children[0].length == 1)
+            assert (fullOnto.children[0][0] == 2)
+
+            assert (fullOnto.children[5].length == 0)
         })
     })
 
@@ -75,6 +87,16 @@ describe('Ontology', function() {
         it('should yield Kahn\'s ordering', function() {
             var topOntoJson = topOnto.toJSON()
             assert (JSON.stringify(topOntoJson) == JSON.stringify(topJson))
+        })
+    })
+
+    describe('#isCyclic', function() {
+        it('should return true for a cyclic ontology', function() {
+            var cyclicOnto = new Ontology (cyclicJson)
+            assert (cyclicOnto.isCyclic())
+        })
+        it('should return false for a DAG', function() {
+            assert (!fullOnto.isCyclic())
         })
     })
 })

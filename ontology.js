@@ -1,5 +1,6 @@
 (function() {
-    var extend = require('util')._extend
+    var extend = require('util')._extend,
+        assert = require('assert')
 
     function toJSON() {
         var onto = this
@@ -10,34 +11,45 @@
         return json
     }
 
-    function toposort() {
+    function toposortTermIndex() {
         // Kahn, Arthur B. (1962), "Topological sorting of large networks", Communications of the ACM 5 (11): 558–562, doi:10.1145/368996.369025
         // https://en.wikipedia.org/wiki/Topological_sorting
         var onto = this
         var S = [], L = []
-        var children = onto.parents.map (function() { return [] })
         var nParents = [], edges = 0
         for (var c = 0; c < onto.terms(); ++c) {
-            onto.parents[c].forEach (function(p) {
-                children[p].push (c)
-                ++edges
-            })
             nParents[c] = onto.parents[c].length
+            edges += nParents[c]
             if (nParents[c] == 0)
                 S.push (c)
         }
         while (S.length > 0) {
             var n = S.shift()
             L.push (n)
-            children[n].forEach (function(m) {
+            onto.children[n].forEach (function(m) {
                 --edges
                 if (--nParents[m] == 0)
                     S.push (m)
             })
         }
         if (edges > 0)
-            throw ("Ontology graph is not a DAG")
+            return undefined
 
+        return L
+    }
+
+    function isCyclic() {
+        var L = this._toposortTermIndex()
+        return typeof(L) === 'undefined'
+    }
+
+    function toposort() {
+        var onto = this
+
+        var L = onto._toposortTermIndex()
+        if (typeof(L) === 'undefined')
+            throw new Error ("Ontology graph is not a DAG")
+        
         var json = onto.toJSON()
         var toposortedJson = L.map (function(idx) { return json[idx] })
 
@@ -50,9 +62,11 @@
                 { 'termName': [],
                   'termIndex': {},
                   'parents': [],
-                  'closure': [],
+                  'children': [],
                   'terms': function() { return this.termName.length },
                   'toJSON': toJSON,
+                  '_toposortTermIndex': toposortTermIndex,
+                  'isCyclic': isCyclic,
                   'toposort': toposort })
         var extTermParents = []
         termParents.forEach (function (tp) {
@@ -73,6 +87,11 @@
         extTermParents.forEach (function (tp) {
             onto.parents[onto.termIndex[tp[0]]] = tp.slice([1]).map (function(n) { return onto.termIndex[n] })
         })
+        onto.children = onto.parents.map (function() { return [] })
+        for (var c = 0; c < onto.terms(); ++c)
+            onto.parents[c].forEach (function(p) {
+                onto.children[p].push (c)
+            })
     }
 
     module.exports = Ontology
