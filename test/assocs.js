@@ -79,25 +79,29 @@ describe('Assocs', function() {
         })
         it('should map genes to terms', function() {
             assert.deepEqual (assocs.termsByGene[0], [5])
+            assert.deepEqual (assocs.termsByGene[3], [2])
             assert.deepEqual (assocs.termsByGene[4], [6,8])
+        })
+        it('should ignore duplicate associations', function() {
+            assert.deepEqual (dupAssocs.termsByGene[3], [2])
         })
     })
 
     describe('#toJSON', function() {
         var assocsJson = assocs.toJSON()
-        it('should be idempotent with constructor', function() {
+        it('should serialize and deserialize idempotently', function() {
             assert.deepEqual (assocsJson, gt)
+        })
+        var dupAssocsJson = dupAssocs.toJSON()
+        it('should generate same output with duplicate associations', function() {
+            assert.deepEqual (dupAssocsJson, gt)
         })
     })
 
-    describe('#constructor', function() {
+    describe('#constructor with transitive closure', function() {
         var transAssocsJson = transAssocs.toJSON()
-        it('should form transitive associations if mandated', function() {
+        it('should form transitive associations', function() {
             assert.deepEqual (transAssocsJson, gtTrans)
-        })
-        var dupAssocsJson = dupAssocs.toJSON()
-        it('should ignore duplicate associations', function() {
-            assert.deepEqual (dupAssocsJson, gt)
         })
     })
 

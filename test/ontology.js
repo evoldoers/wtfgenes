@@ -97,13 +97,13 @@ describe('Ontology', function() {
     describe('#toJSON', function() {
         var fullOntoJson = fullOnto.toJSON()
         var fullOntoCompressedJson = fullOnto.toJSON({'compress':true})
-        it('should be idempotent with constructor', function() {
+        it('should serialize and deserialize idempotently', function() {
             assert.deepEqual (fullOntoJson.termParents, fullJson)
         })
-        it('should be able to generate compressed output', function() {
+        it('should generate compressed output', function() {
             assert.deepEqual (fullOntoCompressedJson.termParents, compressedJson)
         })
-        it('should be idempotent with constructor for compressed output', function() {
+        it('should deserialize when compressed', function() {
             var compressedOnto = new Ontology (fullOntoCompressedJson)
             var compressedOntoJson = compressedOnto.toJSON()
             assert.deepEqual (compressedOntoJson.termParents, fullJson)
