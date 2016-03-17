@@ -11,6 +11,10 @@
             })
         return gt
     }
+
+    function sortAscending (list) {
+        return list.sort (function(a,b) { return a-b })
+    }
     
     function Assocs (ontology, geneTermList, conf) {
         var assocs = this
@@ -26,20 +30,6 @@
                   'toJSON': toJSON
                 })
 
-        var gtIndexList = []
-        geneTermList.forEach (function(gt) {
-            var gene = gt[0], term = gt[1]
-            if (!(gene in assocs.geneIndex)) {
-                assocs.geneIndex[gene] = assocs.genes()
-                assocs.geneName.push (gene)
-            }
-            if (!(term in ontology.termIndex))
-                throw new Error ("Term " + term + " not found in the ontology")
-        })
-
-        assocs.genesByTerm = assocs.ontology.termName.map (function() { return [] })
-        assocs.termsByGene = assocs.geneName.map (function() { return [] })
-
         var closure
         if (conf.closure)
             closure = ontology.transitiveClosure()
@@ -49,13 +39,37 @@
                 closure.push ([t])
         }
 
+        var gtCount = []
         geneTermList.forEach (function(gt) {
-            var gene = assocs.geneIndex[gt[0]], term = ontology.termIndex[gt[1]]
-            closure[term].forEach (function(t) {
-                assocs.termsByGene[gene].push (t)
-                assocs.genesByTerm[t].push (gene)
+            var gene = gt[0], term = gt[1]
+            if (!(gene in assocs.geneIndex)) {
+                assocs.geneIndex[gene] = assocs.genes()
+                assocs.geneName.push (gene)
+                gtCount.push ({})
+            }
+            if (!(term in ontology.termIndex))
+                throw new Error ("Term " + term + " not found in the ontology")
+
+            var g = assocs.geneIndex[gene]
+            var t = ontology.termIndex[term]
+            closure[t].forEach (function(c) {
+                ++gtCount[g][c]
             })
         })
+
+        assocs.genesByTerm = assocs.ontology.termName.map (function() { return [] })
+        assocs.termsByGene = assocs.geneName.map (function() { return [] })
+
+        for (var g = 0; g < assocs.genes(); ++g) {
+            Object.keys(gtCount[g]).forEach (function(tStr) {
+                var t = parseInt (tStr)
+                assocs.termsByGene[g].push (t)
+                assocs.genesByTerm[t].push (g)
+            })
+        }
+
+        assocs.termsByGene = assocs.termsByGene.map (sortAscending)
+        assocs.genesByTerm = assocs.genesByTerm.map (sortAscending)
     }
 
     module.exports = Assocs
