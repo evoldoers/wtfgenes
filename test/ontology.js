@@ -27,7 +27,7 @@ describe('Ontology', function() {
         ["arachnid", 7],
         ["mammal", 7],
         ["spider", 0],
-        ["primate",1],
+        ["primate", 1],
         ["man", 3],
         ["spiderman", 2, 4],
         ["kingkong", 3],
