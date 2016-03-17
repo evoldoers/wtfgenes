@@ -12,8 +12,9 @@
         return gt
     }
     
-    function Assocs (ontology, geneTermList, wantTransitiveClosure) {
+    function Assocs (ontology, geneTermList, conf) {
         var assocs = this
+        conf = extend ({closure:false}, conf)
         extend (assocs,
                 { 'ontology': ontology,
                   'geneName': [],
@@ -40,7 +41,7 @@
         assocs.termsByGene = assocs.geneName.map (function() { return [] })
 
         var closure
-        if (wantTransitiveClosure)
+        if (conf.closure)
             closure = ontology.transitiveClosure()
         else {
             closure = []

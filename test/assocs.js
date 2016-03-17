@@ -55,7 +55,7 @@ describe('Assocs', function() {
                    ["kingkong", "mutant"]]
 
     var assocs = new Assocs (onto, gt)
-    var transAssocs = new Assocs (onto, gt, true)
+    var transAssocs = new Assocs (onto, gt, {closure:true})
     
     describe('#constructor', function() {
         it('should parse genes', function() {
@@ -72,7 +72,6 @@ describe('Assocs', function() {
 
     describe('#constructor', function() {
         var transAssocsJson = transAssocs.toJSON()
-        console.log (transAssocsJson)
         it('should form transitive associations if mandated', function() {
             assert.deepEqual (transAssocsJson, gtTrans)
         })

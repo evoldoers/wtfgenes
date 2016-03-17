@@ -5,7 +5,7 @@
     function toJSON (conf) {
         var onto = this
         var json = []
-        conf = extend ({'compress': false}, conf)
+        conf = extend ({compress:false}, conf)
         var parentLookup = conf.compress
             ? function(j) { return j }
             : function(j) { return onto.termName[j] }
