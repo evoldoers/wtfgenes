@@ -15,7 +15,7 @@
 		explan._nActiveTermsByGene[g] += delta
 	    })
 	    if (val)
-		explan._isActiveTerm[t] = 1
+		explan._isActiveTerm[t] = true
 	    else
 		delete explan._isActiveTerm[t]
 	    explan._termState[t] = val
@@ -127,58 +127,64 @@
             return termList.filter (function(t) { return isRelevant[t] })
         }
 
+        // this object encapsulates both the graphical model itself,
+        // and an assignment of state to the model variables
         extend (explan,
-                { assocs: assocs,
-		  geneSet: geneSet,
-		  termName: termName,
-		  geneName: geneName,
+                {
+                    // the graphical model
+                    assocs: assocs,
+		    geneSet: geneSet,
+		    termName: termName,
+		    geneName: geneName,
 
-		  _inGeneSet: geneName.map (function() { return false }),
-		  _termState: termState,
-		  _isActiveTerm: {},
+		    _inGeneSet: geneName.map (function() { return false }),
 
-		  _nActiveTermsByGene: assocs.termsByGene.map (function(terms) {
-		      return terms.reduce (function(accum,t) {
-			  return accum + (termState[t] ? 1 : 0)
-		      }, 0)
-		  }),
+                    isRelevant: isRelevant,
+		    relevantTerms: relevantTerms,
+                    relevantParents: assocs.ontology.parents.map (relevantFilter),
+                    relevantChildren: assocs.ontology.children.map (relevantFilter),
 
-                  activeTerms: function() {
-                      return Object.keys(this._isActiveTerm).sort(util.numCmp)
-                  },
+		    param: {
+		        termPrior: termName.map (conf.termPrior),
+		        geneFalsePos: geneName.map (conf.geneFalsePos),
+		        geneFalseNeg: geneName.map (conf.geneFalseNeg)
+		    },
 
-                  isRelevant: isRelevant,
-		  relevantTerms: relevantTerms,
-                  relevantParents: assocs.ontology.parents.map (relevantFilter),
-                  relevantChildren: assocs.ontology.children.map (relevantFilter),
-                  
-		  getTermState: getTermState,
-		  setTermState: setTermState,
-		  setTermStates: setTermStates,
-                  invert: invert,
-                  
-		  getCounts: getCounts,
-		  getCountDelta: getCountDelta,
+		    params: null,
+                    genes: function() { return this.assocs.genes() },
+                    terms: function() { return this.assocs.terms() },
 
-		  param: {
-		      termPrior: termName.map (conf.termPrior),
-		      geneFalsePos: geneName.map (conf.geneFalsePos),
-		      geneFalseNeg: geneName.map (conf.geneFalseNeg)
-		  },
+                    // current state of the model
+		    _termState: termState,
+		    _isActiveTerm: {},
 
-		  params: null,
-                  genes: function() { return this.assocs.genes() },
-                  terms: function() { return this.assocs.terms() },
+		    _nActiveTermsByGene: assocs.termsByGene.map (function(terms) {
+		        return terms.reduce (function(accum,t) {
+			    return accum + (termState[t] ? 1 : 0)
+		        }, 0)
+		    }),
 
-		  toJSON: function() {
-		      var explan = this
-		      return explan.activeTerms()
-			  .map (function(t) { return explan.termName[t] })
-		  }
+                    activeTerms: function() {
+                        return Object.keys(this._isActiveTerm).sort(util.numCmp)
+                    },
+                    
+		    getTermState: getTermState,
+		    setTermState: setTermState,
+		    setTermStates: setTermStates,
+                    invert: invert,
+                    
+		    getCounts: getCounts,
+		    getCountDelta: getCountDelta,
+
+		    toJSON: function() {
+		        var explan = this
+		        return explan.activeTerms()
+			    .map (function(t) { return explan.termName[t] })
+		    }
                 })
 
-	termState.forEach (function(s,t) { if (s) explan._isActiveTerm[t] = 1 })
 	geneSet.forEach (function(g) { explan._inGeneSet[g] = true })
+	termState.forEach (function(s,t) { if (s) explan._isActiveTerm[t] = true })
 
         if (conf.params)
 	    explan.params = conf.params
