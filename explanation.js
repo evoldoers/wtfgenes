@@ -1,10 +1,10 @@
 (function() {
     var assert = require('assert'),
-    bernouilli = require('./bernouilli'),
+    BernouilliParams = require('./bernouilli'),
     util = require('./util'),
     extend = util.extend
 
-    function getTermState(t) { return this._termState[t] },
+    function getTermState(t) { return this._termState[t] }
 
     function setTermState(t,val) {
 	var explan = this
@@ -37,7 +37,7 @@
 	    // 0        1         falsePos
 	    // 1        0         falseNeg
 	    // 1        1         !falseNeg
-	    ++(isFalse ? counts.pos : counts.neg)[isActive ? param.falsePos || param.falseNeg)[g]
+	    ++(isFalse ? counts.pos : counts.neg)[(isActive ? param.falsePos : param.falseNeg)[g]]
 	})
 	return counts
     }
@@ -56,8 +56,8 @@
 		    var inGeneSet = explan._inGeneSet[g]
 		    var oldFalse = oldActive ? !inGeneSet : inGeneSet
 		    var newFalse = !oldFalse
-		    ++(newFalse ? cd.pos : cd.neg)[newActive ? param.falsePos || param.falseNeg)[g]
-		    --(oldFalse ? cd.pos : cd.neg)[oldActive ? param.falsePos || param.falseNeg)[g]
+		    ++(newFalse ? cd.pos : cd.neg)[(newActive ? param.falsePos : param.falseNeg)[g]]
+		    --(oldFalse ? cd.pos : cd.neg)[(oldActive ? param.falsePos : param.falseNeg)[g]]
 		}
 	    })
 	}
@@ -74,13 +74,21 @@
 			},
 			conf)
 	var assocs = conf.assocs
-	var geneSet = conf.geneSet
 	var termName = assocs.ontology.termName
 	var geneName = assocs.geneName
+
+        var geneSet = conf.geneSet.map (function(g) {
+            return assocs.geneIndex[g]
+        })
 
 	if ('terms' in conf)
 	    conf.terms.forEach (function(term) { isActive[term] = true })
 	var termState = termName.map (conf.termState)
+
+        var relevantTerms = util.removeDups (geneSet.reduce (function(termList,g) {
+	    return termList.concat (assocs.termsByGene[g])
+	}, [])).map(util.parseDecInt).sort(util.numCmp)
+        var isRelevant = util.listToCounts (relevantTerms)
 
         extend (explan,
                 { assocs: assocs,
@@ -98,10 +106,11 @@
 		      }, 0)
 		  }),
 
-		  relevantTerms: util.removeDups (geneSet.reduce (function(termList,g) {
-		      return termList.concat (assocs.termsByGene[g])
-		  }, [])).map(parseInt).sort(util.numCmp),
-
+		  relevantTerms: relevantTerms,
+                  relevantParents: assocs.ontology.parents.map (function(p) {
+                      return p.filter (function(t) { return isRelevant[t] })
+                  }),
+                  
 		  getTermState: getTermState,
 		  setTermState: setTermState,
 
@@ -121,14 +130,14 @@
 		  toJSON: function() {
 		      var explan = this
 		      return Object.keys(explan._isActiveTerm)
-			  .map (parseInt)
+			  .map (util.parseDecInt)
 			  .sort (util.numCmp)
-			  .map (function(t) { return explan.termName[parseInt(t)] })
+			  .map (function(t) { return explan.termName[t] })
 		  }
                 })
 
-	termState.forEach (function(s,t) { if (s) assoc._isActiveTerm[t] = 1 })
-	geneSet.forEach (function(g) { assoc._inGeneSet[g] = true })
+	termState.forEach (function(s,t) { if (s) explan._isActiveTerm[t] = 1 })
+	geneSet.forEach (function(g) { explan._inGeneSet[g] = true })
 
 	var param = {}
 	function initParam(p) { param[p] = .5 }

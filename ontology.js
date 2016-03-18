@@ -1,5 +1,6 @@
 (function() {
-    var extend = require('util')._extend,
+    var util = require('./util'),
+        extend = util.extend,
         assert = require('assert')
 
     function toJSON (conf) {
@@ -100,8 +101,8 @@
                 })
                 closIndex[n] = 1
                 clos[n] = Object.keys(closIndex)
-                    .map (function(n) { return parseInt(n) })
-                    .sort (function(a,b) { return a-b })
+                    .map (util.parseDecInt)
+                    .sort (util.numCmp)
             })
             onto._closure = clos
         }

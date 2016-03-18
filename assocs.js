@@ -15,7 +15,7 @@
 
     function Assocs (conf) {
         var assocs = this
-        conf = extend ({closure:false}, conf)
+        conf = extend ({closure:true}, conf)
 	var ontology = conf.ontology
 	var geneTermList = conf.assocs
         extend (assocs,

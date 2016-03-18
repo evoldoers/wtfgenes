@@ -24,14 +24,14 @@ describe('Assocs', function() {
               ["may-parker", "spiderhuman"],
               ["socrates", "human"],
               ["charlotte", "spider"],
-              ["kingkong", "gorilla"],
-              ["kingkong", "mutant"]]
+              ["king-kong", "gorilla"],
+              ["king-kong", "mutant"]]
 
     var geneName = ["peter-parker",  // 0
                     "may-parker",  // 1
                     "socrates",  // 2
                     "charlotte",  // 3
-                    "kingkong"];  // 4
+                    "king-kong"];  // 4
     
     var gtTrans = [["peter-parker", "arachnid"],
                    ["peter-parker", "mammal"],
@@ -54,17 +54,17 @@ describe('Assocs', function() {
                    ["charlotte", "arachnid"],
                    ["charlotte", "spider"],
                    ["charlotte", "animal"],
-                   ["kingkong", "mammal"],
-                   ["kingkong", "primate"],
-                   ["kingkong", "gorilla"],
-                   ["kingkong", "animal"],
-                   ["kingkong", "mutant"]]
+                   ["king-kong", "mammal"],
+                   ["king-kong", "primate"],
+                   ["king-kong", "gorilla"],
+                   ["king-kong", "animal"],
+                   ["king-kong", "mutant"]]
 
     var gtDup = gt.concat ([["charlotte","spider"]])
     
-    var assocs = new Assocs ({ ontology: onto, assocs: gt })
-    var transAssocs = new Assocs ({ ontology: onto, assocs: gt, closure: true })
-    var dupAssocs = new Assocs ({ ontology: onto, assocs: gtDup })
+    var assocs = new Assocs ({ ontology: onto, assocs: gt, closure: false })
+    var transAssocs = new Assocs ({ ontology: onto, assocs: gt })
+    var dupAssocs = new Assocs ({ ontology: onto, assocs: gtDup, closure: false })
     
     describe('#constructor', function() {
         it('should parse the right number of genes', function() {
