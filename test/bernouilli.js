@@ -95,6 +95,17 @@ describe('BernouilliParams', function() {
 				  3 * Math.log(bern.getParam('a')) + Math.log(1 - bern.getParam('b')))
 		})
 	    })
+	    describe('#logPrior', function() {
+	        var abcLaplaceJson = {succ:{a:1,b:1,c:1},fail:{a:1,b:1,c:1}}
+                var abcMidJson = { 'c': .5,
+		                   'b': .5,
+		                   'a': .5 }
+                var midBern = new Bernouilli (abcMidJson)
+	        var abcLaplace = midBern.newCounts(abcLaplaceJson)
+		it('should compute log of beta prior', function() {
+		    assert.equal (abcLaplace.logPrior(), 3*Math.log(1.5))
+		})
+	    })
 	})
     })
 

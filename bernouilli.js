@@ -1,7 +1,7 @@
 (function() {
     var extend = require('util')._extend,
         assert = require('assert'),
-        jStat = require('jStat')
+        jStat = require('jStat').jStat
 
     function update (bp, param) {
 	var val = bp._params[param]
@@ -23,7 +23,7 @@
     function logPrior (params, counts) {
 	var lp = 0
 	for (var param in params._params)
-            lp += Math.log (jStat.beta.pdf (counts.succ[param] + 1, counts.fail[param] + 1))
+            lp += Math.log (jStat.beta.pdf (params._params[param], counts.succ[param] + 1, counts.fail[param] + 1))
 	return lp
     }
     
