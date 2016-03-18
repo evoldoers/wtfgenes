@@ -43,25 +43,32 @@ describe('BernouilliParams', function() {
     })
 
     describe('#newCounts', function() {
-	var a3b1Json = {pos:{a:3},neg:{b:1}}
-	var a1c5Json = {pos:{a:1},neg:{c:5}}
-	var a4b1c5Json = {pos:{a:4},neg:{b:1,c:5}}
+	var a3b1Json = {succ:{a:3},fail:{b:1}}
+	var a1c5Json = {succ:{a:1},fail:{c:5}}
+	var a4b1c5Json = {succ:{a:4},fail:{b:1,c:5}}
 	var zeroCounts = bern.newCounts()
 	var a3b1Counts = bern.newCounts(a3b1Json)
 	var a1c5Counts = bern.newCounts(a1c5Json)
         it('should return empty counts by default', function() {
-            assert.deepEqual (zeroCounts.pos, {})
-            assert.deepEqual (zeroCounts.neg, {})
+            assert.deepEqual (zeroCounts.succ, {})
+            assert.deepEqual (zeroCounts.fail, {})
         })
         it('should accept optional counts argument', function() {
-            assert.equal (a3b1Counts.pos.a, 3)
-            assert.equal (a3b1Counts.neg.b, 1)
+            assert.equal (a3b1Counts.succ.a, 3)
+            assert.equal (a3b1Counts.fail.b, 1)
         })
 
 	describe('BernouilliCounts', function() {
 	    describe('#toJSON', function() {
 		it('should serialize and deserialize idempotently', function() {
 		    assert.deepEqual (a3b1Counts.toJSON(), a3b1Json)
+		})
+	    })
+	    describe('#accum', function() {
+	        var tmpCounts = bern.newCounts(a3b1Json)
+		it('should accumulate counts', function() {
+		    tmpCounts.accum (a1c5Counts)
+		    assert.deepEqual (tmpCounts.toJSON(), a4b1c5Json)
 		})
 	    })
 	    describe('#add', function() {

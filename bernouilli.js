@@ -10,36 +10,41 @@
 
     function logLikelihood (params, counts) {
 	var ll = 0
-	for (var param in counts.pos)
-	    if (counts.pos.hasOwnProperty (param))
-		ll += params._logYes[param] * counts.pos[param]
-	for (var param in counts.neg)
-	    if (counts.neg.hasOwnProperty (param))
-		ll += params._logNo[param] * counts.neg[param]
+	for (var param in counts.succ)
+	    if (counts.succ.hasOwnProperty (param))
+		ll += params._logYes[param] * counts.succ[param]
+	for (var param in counts.fail)
+	    if (counts.fail.hasOwnProperty (param))
+		ll += params._logNo[param] * counts.fail[param]
 	return ll
     }
 
     function add (counts) {
-	assert (this.params === counts.params)
 	var c = new BernouilliCounts (this)
-	for (var param in counts.pos)
-	    if (counts.pos.hasOwnProperty (param))
-		c.pos[param] = counts.pos[param] + (c.pos[param] || 0)
-	for (var param in counts.neg)
-	    if (counts.neg.hasOwnProperty (param))
-		c.neg[param] = counts.neg[param] + (c.neg[param] || 0)
-	return c
+	return c.accum (counts)
+    }
+
+    function accum (counts) {
+	assert (this.params === counts.params)
+	for (var param in counts.succ)
+	    if (counts.succ.hasOwnProperty (param))
+		this.succ[param] = counts.succ[param] + (this.succ[param] || 0)
+	for (var param in counts.fail)
+	    if (counts.fail.hasOwnProperty (param))
+		this.fail[param] = counts.fail[param] + (this.fail[param] || 0)
+	return this
     }
 
     function BernouilliCounts (counts) {
         var bc = this
 	extend (bc, {
 	    params: counts.params,
-	    pos: extend ({}, counts.pos),
-	    neg: extend ({}, counts.neg),
+	    succ: extend ({}, counts.succ),
+	    fail: extend ({}, counts.fail),
 	    logLikelihood: function(params) { return logLikelihood(params || this.params,this) },
 	    add: add,
-	    toJSON: function() { return { pos: this.pos, neg: this.neg } }
+	    accum: accum,
+	    toJSON: function() { return { succ: this.succ, fail: this.fail } }
 	})
     }
 
