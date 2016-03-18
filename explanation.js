@@ -140,12 +140,16 @@
 		      }, 0)
 		  }),
 
+                  activeTerms: function() {
+                      return Object.keys(this._isActiveTerm).sort(util.numCmp)
+                  },
+
                   isRelevant: isRelevant,
 		  relevantTerms: relevantTerms,
                   relevantParents: assocs.ontology.parents.map (function(p) {
                       return p.filter (function(t) { return isRelevant[t] })
                   }),
-
+                  
 		  getTermState: getTermState,
 		  setTermState: setTermState,
 		  setTermStates: setTermStates,
@@ -166,9 +170,7 @@
 
 		  toJSON: function() {
 		      var explan = this
-		      return Object.keys(explan._isActiveTerm)
-			  .map (util.parseDecInt)
-			  .sort (util.numCmp)
+		      return explan.activeTerms()
 			  .map (function(t) { return explan.termName[t] })
 		  }
                 })
@@ -176,12 +178,17 @@
 	termState.forEach (function(s,t) { if (s) explan._isActiveTerm[t] = 1 })
 	geneSet.forEach (function(g) { explan._inGeneSet[g] = true })
 
-	var param = {}
-	function initParam(p) { param[p] = .5 }
-	explan.param.termPrior.map (initParam)
-	explan.param.geneFalsePos.map (initParam)
-	explan.param.geneFalseNeg.map (initParam)
-	explan.params = conf.params || new BernouilliParams (param)
+        if (conf.params)
+	    explan.params = conf.params
+        else {
+	    var param = {}
+	    function initParam(p) { param[p] = .5 }
+	    explan.param.termPrior.map (initParam)
+	    explan.param.geneFalsePos.map (initParam)
+	    explan.param.geneFalseNeg.map (initParam)
+            explan.params = new BernouilliParams (param)
+        }
+        explan.prior = conf.prior || explan.params.laplacePrior()
     }
 
     module.exports = Explanation

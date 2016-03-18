@@ -56,8 +56,11 @@ describe('Explanation', function() {
         it('should identify parents of relevant terms', function() {
             assert.deepEqual (mutantEx.relevantParents, [[7],[7],[0],[1],[3],[0,4,8],[3],[],[]])
         })
-        it('should create params {a,b,p} by default', function() {
+        it('should create default params', function() {
             assert.deepEqual (mutantEx.params.params(), ['fn','fp','t'])
+        })
+        it('should create default Laplace prior', function() {
+            assert.deepEqual (mutantEx.prior.toJSON(), {succ:{fn:1,fp:1,t:1},fail:{fn:1,fp:1,t:1}})
         })
         it('should set all term states to 0 by default', function() {
             assert.deepEqual (mutantEx._termState, [0,0,0,0,0,0,0,0,0])
@@ -104,6 +107,23 @@ describe('Explanation', function() {
                     assert.deepEqual (mutantEx.toJSON(), [onto.termName[t]])
                     mutantEx.setTermState(t,0);
                 }
+            assert.deepEqual (mutantEx.toJSON(), {})
+        })
+    })
+
+    describe('#activeTerms', function() {
+        it('should return sorted list of active terms', function() {
+            mutantEx.setTermState(0,1);
+            for (var t = 4; t < 9; ++t) {
+                mutantEx.setTermState(t,1);
+                for (var s = 3; s < t; ++s) {
+                    mutantEx.setTermState(s,1);
+                    assert.deepEqual (mutantEx.activeTerms(), [0,s,t])
+                    mutantEx.setTermState(s,0);
+                }
+                mutantEx.setTermState(t,0);
+            }
+            mutantEx.setTermState(0,0);
             assert.deepEqual (mutantEx.toJSON(), {})
         })
     })
