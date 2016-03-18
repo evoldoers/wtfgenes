@@ -40,6 +40,11 @@ describe('Explanation', function() {
 
     var mutantEx = new Explanation ({ assocs: assocs, geneSet: mutants })
     var normalEx = new Explanation ({ assocs: assocs, geneSet: normals })
+
+    var mutCount = mutantEx.getCounts()
+    var normCount = normalEx.getCounts()
+
+    var multAssign = {3:1,4:1,7:1,8:1}
     
     describe('#constructor', function() {
         it('should identify relevant terms', function() {
@@ -65,15 +70,16 @@ describe('Explanation', function() {
 
     describe('#setTermState', function() {
         it('should update termState & isActiveTerm', function() {
-            for (var t = 0; t < 9; ++t) {
-                mutantEx.setTermState(t,1);
-                for (var s = 0; s < 9; ++s)
-                    assert.equal (mutantEx.getTermState(s), s == t ? 1 : 0)
-                var isActiveTerm = {}
-                isActiveTerm[t] = 1
-                assert.deepEqual (mutantEx._isActiveTerm, isActiveTerm)
-                mutantEx.setTermState(t,0);
-            }
+            for (var t = 0; t < 9; ++t)
+                if (t != 2) {
+                    mutantEx.setTermState(t,1);
+                    for (var s = 0; s < 9; ++s)
+                        assert.equal (mutantEx.getTermState(s), s == t ? 1 : 0)
+                    var isActiveTerm = {}
+                    isActiveTerm[t] = 1
+                    assert.deepEqual (mutantEx._isActiveTerm, isActiveTerm)
+                    mutantEx.setTermState(t,0);
+                }
             assert.deepEqual (mutantEx._isActiveTerm, {})
             assert.deepEqual (mutantEx._termState, [0,0,0,0,0,0,0,0,0])
         })
@@ -90,12 +96,63 @@ describe('Explanation', function() {
         })
     })
 
+    describe('#toJSON', function() {
+        it('should convert term state to JSON', function() {
+            for (var t = 0; t < 9; ++t)
+                if (t != 2) {
+                    mutantEx.setTermState(t,1);
+                    assert.deepEqual (mutantEx.toJSON(), [onto.termName[t]])
+                    mutantEx.setTermState(t,0);
+                }
+            assert.deepEqual (mutantEx.toJSON(), {})
+        })
+    })
+    
+    describe('#invert', function() {
+        it('should invert a term-state assignment', function() {
+            assert.deepEqual (mutantEx.invert(multAssign), {3:0,4:0,7:0,8:0})
+            assert.deepEqual (mutantEx.invert({0:0,1:1}), {0:0,1:0})
+        })
+    })
+
+    describe('#setTermStates', function() {
+        it('should apply a term-state assignment', function() {
+            var inv = mutantEx.invert(multAssign)
+            mutantEx.setTermStates (multAssign)
+            assert.deepEqual (mutantEx.toJSON(), ['primate','human','animal','mutant'])
+            mutantEx.setTermStates (inv)
+            assert.deepEqual (mutantEx.toJSON(), [])
+        })
+    })
+            
     describe('#getCounts', function() {
         it('should return Bernouilli parameter counts', function() {
-            var mutCount = mutantEx.getCounts()
-            var normCount = normalEx.getCounts()
             assert.deepEqual (mutCount.toJSON(), {succ:{fp:3},fail:{t:8,fp:2}})
             assert.deepEqual (normCount.toJSON(), {succ:{fp:2},fail:{t:6,fp:3}})
+
+            normalEx.setTermState (7, 1)
+            var newNormCount = normalEx.getCounts()
+            assert.deepEqual (newNormCount.toJSON(), {succ:{t:1,fn:3},fail:{t:5,fn:2}})
+            normalEx.setTermState (7, 0)
+        })
+    })
+
+    describe('#getCountDelta', function() {
+        it('should return count deltas for a single-term state change', function() {
+            var normSingleDelta = normalEx.getCountDelta({7:1})
+            assert.deepEqual (normSingleDelta.toJSON(), {succ:{t:1,fp:-2,fn:3},fail:{t:-1,fp:-3,fn:2}})
+            var mutSingleDelta = mutantEx.getCountDelta({8:1})
+            assert.deepEqual (mutSingleDelta.toJSON(), {succ:{t:1,fp:-3},fail:{t:-1,fn:3}})
+        })
+        var mutMultiDelta = mutantEx.getCountDelta(multAssign)
+        it('should return count deltas for a multi-term state change', function() {
+            assert.deepEqual (mutMultiDelta.toJSON(), {succ:{t:4,fp:-3,fn:2},fail:{t:-4,fn:3,fp:-2}})
+        })
+        it('should be consistent with observed getCounts delta', function() {
+            var inv = mutantEx.invert (multAssign)
+            mutantEx.setTermStates (multAssign)
+            assert.deepEqual (mutCount.add(mutMultiDelta).toJSON(), mutantEx.getCounts().toJSON())
+            mutantEx.setTermStates (inv)
         })
     })
 })

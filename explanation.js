@@ -8,6 +8,7 @@
 
     function setTermState(t,val) {
 	var explan = this
+        assert (explan.isRelevant[t])
 	if (explan._termState[t] != val) {
 	    var delta = val ? +1 : -1
 	    explan.assocs.genesByTerm[t].forEach (function(g) {
@@ -19,6 +20,12 @@
 		delete explan._isActiveTerm[t]
 	    explan._termState[t] = val
 	}
+    }
+
+    function setTermStates(termStateAssignment) {
+        for (var t in termStateAssignment)
+            if (termStateAssignment.hasOwnProperty(t))
+                this.setTermState (t, termStateAssignment[t])
     }
 
     function countTerm(explan,counts,inc,t,state) {
@@ -53,25 +60,41 @@
 	return counts
     }
 
-    function getCountDelta(t,val) {
+    function getCountDelta(termStateAssignment) {
 	var explan = this
 	var param = explan.param
-	var cd = param.newCounts()
-	if (explan._termState[t] != val) {
-            countTerm (explan, cd, -1, t, explan._termState[t])
-            countTerm (explan, cd, +1, t, val)
-	    var delta = val ? +1 : -1
-	    explan.assocs.genesByTerm[t].forEach (function(g) {
-		var activeTerms = explan._nActiveTermsByGene[g]
-		var oldActive = activeTerms > 0
-		var newActive = (activeTerms + delta) > 0
-		if (oldActive != newActive) {
-                    countObs (explan, cd, -1, oldActive, g)
-                    countObs (explan, cd, +1, newActive, g)
-		}
-	    })
-	}
+	var cd = explan.params.newCounts()
+        var nActiveTermsByGene = {
+            _val: {},
+            val: function(g) { return this._val[g] || explan._nActiveTermsByGene[g] },
+            add: function(g,delta) { var oldval = this.val(g); this._val[g] = oldval + delta; return oldval }
+        }
+        for (var t in termStateAssignment)
+            if (termStateAssignment.hasOwnProperty(t)) {
+                assert (explan.isRelevant[t])
+                var val = termStateAssignment[t]
+	        if (explan._termState[t] != val) {
+                    countTerm (explan, cd, -1, t, explan._termState[t])
+                    countTerm (explan, cd, +1, t, val)
+	            var delta = val ? +1 : -1
+	            explan.assocs.genesByTerm[t].forEach (function(g) {
+		        var oldActive = nActiveTermsByGene.add(g,delta)
+		        var newActive = nActiveTermsByGene.val(g)
+		        if (oldActive != newActive) {
+                            countObs (explan, cd, -1, oldActive, g)
+                            countObs (explan, cd, +1, newActive, g)
+		        }
+	            })
+	        }
+            }
 	return cd
+    }
+
+    function invert(termStateAssignment) {
+        var inv = extend ({}, termStateAssignment)
+        for (var t in inv)
+            inv[t] = this._termState[t]
+        return inv
     }
 
     function Explanation (conf) {
@@ -122,10 +145,12 @@
                   relevantParents: assocs.ontology.parents.map (function(p) {
                       return p.filter (function(t) { return isRelevant[t] })
                   }),
-                  
+
 		  getTermState: getTermState,
 		  setTermState: setTermState,
-
+		  setTermStates: setTermStates,
+                  invert: invert,
+                  
 		  getCounts: getCounts,
 		  getCountDelta: getCountDelta,
 

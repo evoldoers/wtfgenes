@@ -26,12 +26,17 @@
 
     function accum (counts) {
 	assert (this.params === counts.params)
+        function accWithDelete (c, c2, param) {
+	    var newCount = c2[param] + (c[param] || 0)
+            if (newCount)
+                c[param] = newCount
+            else
+                delete c[param]
+        }
 	for (var param in counts.succ)
-	    if (counts.succ.hasOwnProperty (param))
-		this.succ[param] = counts.succ[param] + (this.succ[param] || 0)
+            accWithDelete (this.succ, counts.succ, param)
 	for (var param in counts.fail)
-	    if (counts.fail.hasOwnProperty (param))
-		this.fail[param] = counts.fail[param] + (this.fail[param] || 0)
+            accWithDelete (this.fail, counts.fail, param)
 	return this
     }
 
