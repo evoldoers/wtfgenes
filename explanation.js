@@ -123,6 +123,9 @@
 	    return termList.concat (assocs.termsByGene[g])
 	}, [])).map(util.parseDecInt).sort(util.numCmp)
         var isRelevant = util.listToCounts (relevantTerms)
+        function relevantFilter(termList) {
+            return termList.filter (function(t) { return isRelevant[t] })
+        }
 
         extend (explan,
                 { assocs: assocs,
@@ -146,9 +149,8 @@
 
                   isRelevant: isRelevant,
 		  relevantTerms: relevantTerms,
-                  relevantParents: assocs.ontology.parents.map (function(p) {
-                      return p.filter (function(t) { return isRelevant[t] })
-                  }),
+                  relevantParents: assocs.ontology.parents.map (relevantFilter),
+                  relevantChildren: assocs.ontology.children.map (relevantFilter),
                   
 		  getTermState: getTermState,
 		  setTermState: setTermState,

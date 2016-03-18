@@ -56,6 +56,9 @@ describe('Explanation', function() {
         it('should identify parents of relevant terms', function() {
             assert.deepEqual (mutantEx.relevantParents, [[7],[7],[0],[1],[3],[0,4,8],[3],[],[]])
         })
+        it('should identify children of relevant terms', function() {
+            assert.deepEqual (mutantEx.relevantChildren, [[5],[3],[],[4,6],[5],[],[],[0,1],[5]])
+        })
         it('should create default params', function() {
             assert.deepEqual (mutantEx.params.params(), ['fn','fp','t'])
         })
