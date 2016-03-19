@@ -7,18 +7,18 @@
     function getTermState(t) { return this._termState[t] }
 
     function setTermState(t,val) {
-	var explan = this
-        assert (explan.isRelevant[t])
-	if (explan._termState[t] != val) {
+	var model = this
+        assert (model.isRelevant[t])
+	if (model._termState[t] != val) {
 	    var delta = val ? +1 : -1
-	    explan.assocs.genesByTerm[t].forEach (function(g) {
-		explan._nActiveTermsByGene[g] += delta
+	    model.assocs.genesByTerm[t].forEach (function(g) {
+		model._nActiveTermsByGene[g] += delta
 	    })
 	    if (val)
-		explan._isActiveTerm[t] = true
+		model._isActiveTerm[t] = true
 	    else
-		delete explan._isActiveTerm[t]
-	    explan._termState[t] = val
+		delete model._isActiveTerm[t]
+	    model._termState[t] = val
 	}
     }
 
@@ -28,14 +28,14 @@
                 this.setTermState (t, termStateAssignment[t])
     }
 
-    function countTerm(explan,counts,inc,t,state) {
+    function countTerm(model,counts,inc,t,state) {
         var countObj = state ? counts.succ : counts.fail
-        var countParam = explan.param.termPrior[t]
+        var countParam = model.param.termPrior[t]
         countObj[countParam] = inc + (countObj[countParam] || 0)
     }
     
-    function countObs(explan,counts,inc,isActive,g) {
-        var inGeneSet = explan._inGeneSet[g]
+    function countObs(model,counts,inc,isActive,g) {
+        var inGeneSet = model._inGeneSet[g]
 	// isActive inGeneSet param
 	// 0        0         !falsePos
 	// 0        1         falsePos
@@ -43,46 +43,46 @@
 	// 1        1         !falseNeg
         var isFalse = isActive ? !inGeneSet : inGeneSet
         var countObj = isFalse ? counts.succ : counts.fail
-        var countParam = (isActive ? explan.param.geneFalseNeg : explan.param.geneFalsePos)[g]
+        var countParam = (isActive ? model.param.geneFalseNeg : model.param.geneFalsePos)[g]
         countObj[countParam] = inc + (countObj[countParam] || 0)
     }
     
     function getCounts() {
-	var explan = this
-	var counts = explan.params.newCounts()
-	var param = explan.param
-	explan.relevantTerms.forEach (function (t) {
-            countTerm (explan, counts, +1, t, explan._termState[t])
+	var model = this
+	var counts = model.params.newCounts()
+	var param = model.param
+	model.relevantTerms.forEach (function (t) {
+            countTerm (model, counts, +1, t, model._termState[t])
 	})
-	explan._nActiveTermsByGene.forEach (function (active, g) {
-            countObs (explan, counts, +1, active > 0, g)
+	model._nActiveTermsByGene.forEach (function (active, g) {
+            countObs (model, counts, +1, active > 0, g)
 	})
 	return counts
     }
 
     function getCountDelta(termStateAssignment) {
-	var explan = this
-	var param = explan.param
-	var cd = explan.params.newCounts()
+	var model = this
+	var param = model.param
+	var cd = model.params.newCounts()
         var nActiveTermsByGene = {
             _val: {},
-            val: function(g) { return this._val[g] || explan._nActiveTermsByGene[g] },
+            val: function(g) { return this._val[g] || model._nActiveTermsByGene[g] },
             add: function(g,delta) { var oldval = this.val(g); this._val[g] = oldval + delta; return oldval }
         }
         for (var t in termStateAssignment)
             if (termStateAssignment.hasOwnProperty(t)) {
-                assert (explan.isRelevant[t])
+                assert (model.isRelevant[t])
                 var val = termStateAssignment[t]
-	        if (explan._termState[t] != val) {
-                    countTerm (explan, cd, -1, t, explan._termState[t])
-                    countTerm (explan, cd, +1, t, val)
+	        if (model._termState[t] != val) {
+                    countTerm (model, cd, -1, t, model._termState[t])
+                    countTerm (model, cd, +1, t, val)
 	            var delta = val ? +1 : -1
-	            explan.assocs.genesByTerm[t].forEach (function(g) {
+	            model.assocs.genesByTerm[t].forEach (function(g) {
 		        var oldActive = nActiveTermsByGene.add(g,delta)
 		        var newActive = nActiveTermsByGene.val(g)
 		        if (oldActive != newActive) {
-                            countObs (explan, cd, -1, oldActive, g)
-                            countObs (explan, cd, +1, newActive, g)
+                            countObs (model, cd, -1, oldActive, g)
+                            countObs (model, cd, +1, newActive, g)
 		        }
 	            })
 	        }
@@ -97,8 +97,8 @@
         return inv
     }
 
-    function Explanation (conf) {
-        var explan = this
+    function Model (conf) {
+        var model = this
 	var isActive = {}
 	conf = extend ( { 'termPrior': function(term) { return "t" },
 			  'geneFalsePos': function(gene) { return "fp" },
@@ -129,7 +129,7 @@
 
         // this object encapsulates both the graphical model itself,
         // and an assignment of state to the model variables
-        extend (explan,
+        extend (model,
                 {
                     // the graphical model
                     assocs: assocs,
@@ -177,27 +177,27 @@
 		    getCountDelta: getCountDelta,
 
 		    toJSON: function() {
-		        var explan = this
-		        return explan.activeTerms()
-			    .map (function(t) { return explan.termName[t] })
+		        var model = this
+		        return model.activeTerms()
+			    .map (function(t) { return model.termName[t] })
 		    }
                 })
 
-	geneSet.forEach (function(g) { explan._inGeneSet[g] = true })
-	termState.forEach (function(s,t) { if (s) explan._isActiveTerm[t] = true })
+	geneSet.forEach (function(g) { model._inGeneSet[g] = true })
+	termState.forEach (function(s,t) { if (s) model._isActiveTerm[t] = true })
 
         if (conf.params)
-	    explan.params = conf.params
+	    model.params = conf.params
         else {
 	    var param = {}
 	    function initParam(p) { param[p] = .5 }
-	    explan.param.termPrior.map (initParam)
-	    explan.param.geneFalsePos.map (initParam)
-	    explan.param.geneFalseNeg.map (initParam)
-            explan.params = new BernouilliParams (param)
+	    model.param.termPrior.map (initParam)
+	    model.param.geneFalsePos.map (initParam)
+	    model.param.geneFalseNeg.map (initParam)
+            model.params = new BernouilliParams (param)
         }
-        explan.prior = conf.prior || explan.params.laplacePrior()
+        model.prior = conf.prior || model.params.laplacePrior()
     }
 
-    module.exports = Explanation
+    module.exports = Model
 }) ()
