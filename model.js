@@ -1,6 +1,7 @@
 (function() {
     var assert = require('assert'),
     BernouilliParams = require('./bernouilli'),
+    Parameterization = require('./parameterization'),
     util = require('./util'),
     extend = util.extend
 
@@ -30,7 +31,7 @@
 
     function countTerm(model,counts,inc,t,state) {
         var countObj = state ? counts.succ : counts.fail
-        var countParam = model.param.termPrior[t]
+        var countParam = model.parameterization.names.termPrior[t]
         countObj[countParam] = inc + (countObj[countParam] || 0)
     }
     
@@ -43,7 +44,7 @@
 	// 1        1         !falseNeg
         var isFalse = isActive ? !inGeneSet : inGeneSet
         var countObj = isFalse ? counts.succ : counts.fail
-        var countParam = (isActive ? model.param.geneFalseNeg : model.param.geneFalsePos)[g]
+        var countParam = (isActive ? model.parameterization.names.geneFalseNeg : model.parameterization.names.geneFalsePos)[g]
         countObj[countParam] = inc + (countObj[countParam] || 0)
     }
     
@@ -100,23 +101,18 @@
     function Model (conf) {
         var model = this
 	var isActive = {}
-	conf = extend ( { 'termPrior': function(term) { return "t" },
-			  'geneFalsePos': function(gene) { return "fp" },
-			  'geneFalseNeg': function(gene) { return "fn" },
-			  'termState': function(term) { return isActive[term] ? 1 : 0 }
-			},
-			conf)
+
 	var assocs = conf.assocs
 	var termName = assocs.ontology.termName
 	var geneName = assocs.geneName
-
+        
         var geneSet = conf.geneSet.map (function(g) {
             return assocs.geneIndex[g]
         })
 
 	if ('terms' in conf)
 	    conf.terms.forEach (function(term) { isActive[term] = true })
-	var termState = termName.map (conf.termState)
+        var termState = termName.map (conf.termState || util.objPredicate(isActive))
 
         // "relevant" terms are ones which have at least one associated gene in the geneSet
         var relevantTerms = util.removeDups (geneSet.reduce (function(termList,g) {
@@ -124,8 +120,10 @@
 	}, [])).map(util.parseDecInt).sort(util.numCmp)
         var isRelevant = util.listToCounts (relevantTerms)
         function relevantFilter(termList) {
-            return termList.filter (function(t) { return isRelevant[t] })
+            return termList.filter (util.objPredicate(isRelevant))
         }
+
+        var parameterization = conf.parameterization || new Parameterization (conf)
 
         // this object encapsulates both the graphical model itself,
         // and an assignment of state to the model variables
@@ -144,13 +142,10 @@
                     relevantParents: assocs.ontology.parents.map (relevantFilter),
                     relevantChildren: assocs.ontology.children.map (relevantFilter),
 
-		    param: {
-		        termPrior: termName.map (conf.termPrior),
-		        geneFalsePos: geneName.map (conf.geneFalsePos),
-		        geneFalseNeg: geneName.map (conf.geneFalseNeg)
-		    },
+		    parameterization: parameterization,
+		    params: conf.params || parameterization.params,
+                    prior: conf.prior || parameterization.params.laplacePrior(),
 
-		    params: null,
                     genes: function() { return this.assocs.genes() },
                     terms: function() { return this.assocs.terms() },
 
@@ -185,18 +180,6 @@
 
 	geneSet.forEach (function(g) { model._inGeneSet[g] = true })
 	termState.forEach (function(s,t) { if (s) model._isActiveTerm[t] = true })
-
-        if (conf.params)
-	    model.params = conf.params
-        else {
-	    var param = {}
-	    function initParam(p) { param[p] = .5 }
-	    model.param.termPrior.map (initParam)
-	    model.param.geneFalsePos.map (initParam)
-	    model.param.geneFalseNeg.map (initParam)
-            model.params = new BernouilliParams (param)
-        }
-        model.prior = conf.prior || model.params.laplacePrior()
     }
 
     module.exports = Model

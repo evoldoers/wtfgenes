@@ -22,11 +22,18 @@
     function parseDecInt (x) {
         return parseInt (x)
     }
+
+    function objPredicate (obj) {
+        return function(x) {
+            return obj[x] ? true : false
+        }
+    }
     
     module.exports.numCmp = numCmp
     module.exports.sortAscending = sortAscending
     module.exports.listToCounts = listToCounts
     module.exports.removeDups = removeDups
     module.exports.parseDecInt = parseDecInt
+    module.exports.objPredicate = objPredicate
     module.exports.extend = extend
 }) ()
