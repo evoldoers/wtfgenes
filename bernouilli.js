@@ -48,10 +48,11 @@
 	return this
     }
 
-    function sampleParams() {
-        var params = new BernouilliParams (this.params._params)
+    function sampleParams(params) {
+        params = params || new BernouilliParams (this.params._params)
 	for (var param in params._params)
             params.setParam (param, jStat.beta.sample (this.succ[param] + 1, this.fail[param] + 1))
+	return params
     }
 
     function BernouilliCounts (counts) {

@@ -98,6 +98,41 @@
         return inv
     }
 
+    function proposeFlipMove() {
+	var model = this
+	var term = util.randomElement (this.relevantTerms)
+	var tsa
+	tsa.term = !this._termState[term]
+	return { termStates: tsa,
+		 proposalHastingsRatio: 1 }
+    }
+
+    function proposeSwapMove() {
+	var model = this
+	var term = util.randomElement (this.activeTerms())
+	var tsa
+	tsa.term = false
+	var nbrs = this.relevantNeighbors[term]
+	if (nbrs.length == 0)
+	    return { termStates: tsa, hastingsRatio: 1 }
+	var nbr = util.randomElement (nbrs)
+	if (this._termState[nbr])
+	    return { termStates: tsa, hastingsRatio: 1 }
+	tsa.nbr = true
+	return { termStates: tsa,
+		 proposalHastingsRatio: this.relevantNeighbors[nbr].length / nbrs.length }
+    }
+
+    function sampleMove(move) {
+	move.delta = this.getCountDelta(move.termStates)
+	move.hastingsRatio = move.proposalHastingsRatio * Math.exp (move.delta.logLikelihood())
+	if (move.hastingsRatio > 1 || Math.random() < move.hastingsRatio) {
+	    this.setTermStates (move.termStates)
+	    move.accepted = true
+	} else
+	    move.accepted = false
+    }
+    
     function Model (conf) {
         var model = this
 	var isActive = {}
@@ -122,6 +157,8 @@
         function relevantFilter(termList) {
             return termList.filter (util.objPredicate(isRelevant))
         }
+        var relevantParents = assocs.ontology.parents.map (relevantFilter)
+        var relevantChildren = assocs.ontology.children.map (relevantFilter)
 
         var parameterization = conf.parameterization || new Parameterization (conf)
 
@@ -139,9 +176,10 @@
 
                     isRelevant: isRelevant,
 		    relevantTerms: relevantTerms,
-                    relevantParents: assocs.ontology.parents.map (relevantFilter),
-                    relevantChildren: assocs.ontology.children.map (relevantFilter),
-
+		    relevantNeighbors: relevantParents.map (function(parents,term) {
+			return parents.concat(relevantChildren[term]).sort(util.numCmp)
+		    }),
+		    
 		    parameterization: parameterization,
 		    params: conf.params || parameterization.params,
                     prior: conf.prior || parameterization.params.laplacePrior(),
@@ -171,6 +209,10 @@
 		    getCounts: getCounts,
 		    getCountDelta: getCountDelta,
 
+		    proposeFlipMove: proposeFlipMove,
+		    proposeSwapMove: proposeSwapMove,
+		    sampleMove: sampleMove,
+		    
 		    toJSON: function() {
 		        var model = this
 		        return model.activeTerms()

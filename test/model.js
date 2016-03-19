@@ -53,11 +53,8 @@ describe('Model', function() {
             assert (normalModel.isRelevant[1])
             assert (!normalModel.isRelevant[5])
         })
-        it('should identify parents of relevant terms', function() {
-            assert.deepEqual (mutantModel.relevantParents, [[7],[7],[0],[1],[3],[0,4,8],[3],[],[]])
-        })
-        it('should identify children of relevant terms', function() {
-            assert.deepEqual (mutantModel.relevantChildren, [[5],[3],[],[4,6],[5],[],[],[0,1],[5]])
+        it('should identify neighbors of relevant terms', function() {
+            assert.deepEqual (mutantModel.relevantNeighbors, [[5,7],[3,7],[0],[1,4,6],[3,5],[0,4,8],[3],[0,1],[5]])
         })
         it('should create default params', function() {
             assert.deepEqual (mutantModel.params.params(), ['fn','fp','t'])
