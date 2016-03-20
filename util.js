@@ -33,13 +33,15 @@
 	return list.reduce (function(tot,x) { return tot+x }, 0)
     }
     
-    function randomElement (list) {
-	return list.length > 0 ? list [Math.floor (Math.random() * list.length)] : undefined
+    function randomElement (list, generator) {
+	generator = generator || Math
+	return list.length > 0 ? list [Math.floor (generator.random() * list.length)] : undefined
     }
 
-    function randomIndex (distrib) {
+    function randomIndex (distrib, generator) {
+	generator = generator || Math
 	var sum = sumList (distrib)
-	var rnd = Math.random() * sum
+	var rnd = generator.random() * sum
 	for (var idx = 0; idx < distrib.length; ++idx)
 	    if ((rnd -= distrib[idx]) <= 0)
 		return idx
@@ -72,7 +74,7 @@
     }
 
     function keyValListToObj (keyValList) {
-	var obj
+	var obj = {}
 	keyValList.forEach (function (keyVal) {
 	    obj[keyVal[0]] = keyVal[1]
 	})

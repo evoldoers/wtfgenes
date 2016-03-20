@@ -1,9 +1,10 @@
 (function() {
     var assert = require('assert'),
-    BernouilliParams = require('./bernouilli'),
-    Parameterization = require('./parameterization'),
-    util = require('./util'),
-    extend = util.extend
+	MersenneTwister = require('mersennetwister'),
+	BernouilliParams = require('./bernouilli'),
+	Parameterization = require('./parameterization'),
+	util = require('./util'),
+	extend = util.extend
 
     function getTermState(t) { return this._termState[t] }
 
@@ -100,33 +101,36 @@
 
     function proposeFlipMove() {
 	var model = this
-	var term = util.randomElement (this.relevantTerms)
+	var term = util.randomElement (model.relevantTerms, model.generator)
 	var tsa = {}
-	tsa.term = !this._termState[term]
+	tsa[term] = !model._termState[term]
 	return { termStates: tsa,
 		 proposalHastingsRatio: 1 }
     }
 
     function proposeSwapMove() {
 	var model = this
-	var term = util.randomElement (this.activeTerms())
+	var activeTerms = model.activeTerms()
+	if (activeTerms.length == 0)
+	    return this.proposeFlipMove()
+	var term = util.randomElement (activeTerms, model.generator)
 	var tsa = {}
-	tsa.term = false
+	tsa[term] = false
 	var nbrs = this.relevantNeighbors[term]
 	if (nbrs.length == 0)
 	    return { termStates: tsa, hastingsRatio: 1 }
-	var nbr = util.randomElement (nbrs)
+	var nbr = util.randomElement (nbrs, model.generator)
 	if (this._termState[nbr])
 	    return { termStates: tsa, hastingsRatio: 1 }
-	tsa.nbr = true
+	tsa[nbr] = true
 	return { termStates: tsa,
-		 proposalHastingsRatio: this.relevantNeighbors[nbr].length / nbrs.length }
+		 proposalHastingsRatio: model.relevantNeighbors[nbr].length / nbrs.length }
     }
 
     function sampleMove(move) {
 	move.delta = this.getCountDelta(move.termStates)
 	move.hastingsRatio = move.proposalHastingsRatio * Math.exp (move.delta.logLikelihood())
-	if (move.hastingsRatio > 1 || Math.random() < move.hastingsRatio) {
+	if (move.hastingsRatio > 1 || this.generator.random() < move.hastingsRatio) {
 	    this.setTermStates (move.termStates)
 	    move.accepted = true
 	} else
@@ -145,7 +149,7 @@
             return assocs.geneIndex[g]
         })
 
-	if ('terms' in conf)
+	if (conf.terms)
 	    conf.terms.forEach (function(term) { isActive[term] = true })
         var termState = termName.map (conf.termState || util.objPredicate(isActive))
 
@@ -209,6 +213,8 @@
 		    getCounts: getCounts,
 		    getCountDelta: getCountDelta,
 
+		    generator: conf.generator || new MersenneTwister (conf.seed),
+		    
 		    proposeFlipMove: proposeFlipMove,
 		    proposeSwapMove: proposeSwapMove,
 		    sampleMove: sampleMove,
