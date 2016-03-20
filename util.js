@@ -1,5 +1,6 @@
 (function() {
-    var extend = require('util')._extend
+    var extend = require('util')._extend,
+	jStat = require('jStat').jStat
 
     function numCmp (a, b) { return a-b }
 
@@ -79,6 +80,14 @@
 	    obj[keyVal[0]] = keyVal[1]
 	})
 	return obj
+    }
+
+    function logBinomialCoefficient (n, k) {
+	return jStat.gammaln(n+1) - jStat.gammaln(k+1) - jStat.gammaln(n-k+1)
+    }
+    
+    function logBetaBinomial (alpha, beta, n, k) {
+	return logBinomialCoefficient(n,k) + jStat.betaln(alpha+k,beta+n-k) - jStat.betaln(alpha,beta)
     }
     
     module.exports.numCmp = numCmp
