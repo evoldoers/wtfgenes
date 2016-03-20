@@ -1,0 +1,11 @@
+[
+    ["arachnid", "animal"],
+    ["mammal", "animal"],
+    ["spider", "arachnid"],
+    ["primate", "mammal"],
+    ["human", "primate"],
+    ["spiderhuman", "arachnid", "human", "mutant"],
+    ["gorilla", "primate"],
+    ["animal"],
+    ["mutant"]
+]

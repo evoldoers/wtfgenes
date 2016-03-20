@@ -101,7 +101,7 @@
     function proposeFlipMove() {
 	var model = this
 	var term = util.randomElement (this.relevantTerms)
-	var tsa
+	var tsa = {}
 	tsa.term = !this._termState[term]
 	return { termStates: tsa,
 		 proposalHastingsRatio: 1 }
@@ -110,7 +110,7 @@
     function proposeSwapMove() {
 	var model = this
 	var term = util.randomElement (this.activeTerms())
-	var tsa
+	var tsa = {}
 	tsa.term = false
 	var nbrs = this.relevantNeighbors[term]
 	if (nbrs.length == 0)

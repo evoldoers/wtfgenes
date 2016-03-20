@@ -24,18 +24,18 @@
 			 mcmc.moveRate.swap * sumModelWeight,
 			 mcmc.moveRate.param ]
 	for (var sample = 0; sample < samples; ++sample) {
-	    var moveType = util.sampleIndex (moveRate)
+	    var moveType = util.randomIndex (moveRate)
 	    switch (moveType) {
 	    case 0:
-		var model = mcmc.model [util.randomIndex (mcmc.modelWeight)]
-		var move = model.proposeFlip()
+		var model = mcmc.models [util.randomIndex (mcmc.modelWeight)]
+		var move = model.proposeFlipMove()
 		model.sampleMove (move)
 		logTermMove (move)
 		break
 
 	    case 1:
-		var model = mcmc.model [util.randomIndex (mcmc.modelWeight)]
-		var move = model.proposeSwap()
+		var model = mcmc.models [util.randomIndex (mcmc.modelWeight)]
+		var move = model.proposeSwapMove()
 		model.sampleMove (move)
 		logTermMove (move)
 		break
@@ -110,7 +110,7 @@
                     
                     samples: 0,
                     termStateOccupancy: models.map (function(model) {
-                        return model.termState.map (function() { return 0 })
+                        return model.termName.map (function() { return 0 })
                     }),
 
 		    run: run,
