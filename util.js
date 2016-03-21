@@ -87,7 +87,11 @@
     }
     
     function logBetaBinomial (alpha, beta, n, k) {
-	return logBinomialCoefficient(n,k) + jStat.betaln(alpha+k,beta+n-k) - jStat.betaln(alpha,beta)
+	return logBinomialCoefficient(n,k) + logBetaBernouilli(alpha,beta,k,n-k)
+    }
+    
+    function logBetaBernouilli (alpha, beta, succ, fail) {
+	return jStat.betaln(alpha+succ,beta+fail) - jStat.betaln(alpha,beta)
     }
     
     module.exports.numCmp = numCmp
