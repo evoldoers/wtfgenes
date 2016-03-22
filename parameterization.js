@@ -1,6 +1,6 @@
 (function() {
     var assert = require('assert'),
-    BernouilliParams = require('./bernouilli'),
+    BernouilliParams = require('./bernouilli').BernouilliParams,
     util = require('./util'),
     extend = util.extend
 

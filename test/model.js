@@ -174,5 +174,13 @@ describe('Model', function() {
             assert.deepEqual (mutCount.add(mutMultiDelta).toJSON(), mutantModel.getCounts().toJSON())
             mutantModel.setTermStates (inv)
         })
+        it('should correctly identify new false negatives', function() {
+	    var m2 = new Model ({ assocs: assocs, geneSet: mutants, terms: ['arachnid','primate','gorilla'] })
+	    var c2 = m2.getCounts()
+	    var d2 = m2.getCountDelta({0:0})
+	    assert.deepEqual (d2.toJSON(), {succ:{t:-1,fn:-1},fail:{t:1,fn:1}})
+	    m2.setTermStates({0:0})
+            assert.deepEqual (c2.add(d2).toJSON(), m2.getCounts().toJSON())
+	})
     })
 })

@@ -1,6 +1,6 @@
 // for use with mocha test framework
 
-var Bernouilli = require('../bernouilli'),
+var Bernouilli = require('../bernouilli').BernouilliParams,
     assert = require('assert')
 
 describe('BernouilliParams', function() {

@@ -3,12 +3,14 @@
 	MersenneTwister = require('mersennetwister'),
 	Model = require('./model'),
 	Parameterization = require('./parameterization'),
+	BernouilliCounts = require('./bernouilli').BernouilliCounts,
 	util = require('./util'),
 	extend = util.extend
 
     function logMove(text) {
 	var mcmc = this
 	console.log ("Move #" + mcmc.samples + ": " + text)
+	console.log()
     }
 
     function logTermMove(move) {
@@ -18,9 +20,18 @@
 	}) + "), Hastings ratio " + move.hastingsRatio + ": "
 		+ (move.accepted ? "accepted" : "rejected"))
     }
-    
+
+    function getCounts(models,prior) {
+	return models.reduce (function(c,m) {
+	    return c.accum (m.getCounts())
+	}, prior.copy())
+    }
+
     function run(samples) {
 	var mcmc = this
+
+	console.log ("Initial counts: " + JSON.stringify(mcmc.counts.toJSON()))
+
 	var sumModelWeight = util.sumList (mcmc.modelWeight)
 	var moveRate = [ mcmc.moveRate.flip,
 			 mcmc.moveRate.swap ]
@@ -65,7 +76,11 @@
 		})
 	    })
 	    ++mcmc.samples
+
+	    assert.deepEqual (getCounts(mcmc.models,mcmc.prior).toJSON(), mcmc.counts.toJSON())
 	}
+
+    	console.log ("Final counts: " + JSON.stringify(mcmc.counts.toJSON()))
     }
 
     function termSummary() {
@@ -88,7 +103,9 @@
 
         var assocs = conf.assocs
         var parameterization = conf.parameterization || new Parameterization (conf)
-        var prior = conf.prior || parameterization.params.laplacePrior()
+        var prior = conf.prior
+	    ? new BernouilliCounts(conf.prior,parameterization.params)
+	    : parameterization.params.laplacePrior()
 	var generator = conf.generator || new MersenneTwister (conf.seed)
         var models = conf.models
             || (conf.geneSets || [conf.geneSet]).map (function(geneSet) {
@@ -110,9 +127,7 @@
                     prior: prior,
                     models: models,
 
-		    counts: models.reduce (function(c,m) {
-			return c.accum (m.getCounts())
-		    }, prior.copy()),
+		    counts: getCounts(models,prior),
 		    
 		    generator: generator,
 		    

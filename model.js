@@ -1,7 +1,9 @@
 (function() {
     var assert = require('assert'),
 	MersenneTwister = require('mersennetwister'),
-	BernouilliParams = require('./bernouilli'),
+	bernouilli = require('./bernouilli'),
+	BernouilliParams = bernouilli.BernouilliParams,
+	BernouilliCounts = bernouilli.BernouilliCounts,
 	Parameterization = require('./parameterization'),
 	util = require('./util'),
 	extend = util.extend
@@ -145,11 +147,23 @@
     }
 
     function sampleMoveCollapsed(move,counts) {
+	console.log ("State before move: " + JSON.stringify(this.toJSON()))
 	sampleMoveForDelta.bind(this) (move, function(countDelta) {
 	    return counts.deltaLogBetaBernouilliLikelihood (countDelta)
 	})
-	if (move.accepted)
+	if (move.accepted) {
 	    counts.accum (move.delta)
+	    console.log ("Delta: " + JSON.stringify(move.delta.toJSON()))
+	    console.log ("Counts: " + JSON.stringify(counts.toJSON()))
+	    console.log ("State after move: " + JSON.stringify(this.toJSON()))
+	    var model = this
+	    console.log ("_nActiveTermsByGene: " + model._nActiveTermsByGene
+			 + " ... expect " + model.assocs.termsByGene.map (function(terms) {
+			     return terms.reduce (function(accum,t) {
+				 return accum + (model._termState[t] ? 1 : 0)
+			     }, 0)
+			 }))
+	}
 	return move.accepted
     }
     

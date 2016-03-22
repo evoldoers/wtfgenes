@@ -86,10 +86,10 @@
 	return params
     }
 
-    function BernouilliCounts (counts) {
+    function BernouilliCounts (counts, params) {
         var bc = this
 	extend (bc, {
-	    params: counts.params,
+	    params: params || counts.params,
 	    succ: extend ({}, counts.succ),
 	    fail: extend ({}, counts.fail),
 	    logLikelihood: function(params) { return logLikelihood(params || this.params,this) },
@@ -133,5 +133,6 @@
 	})
     }
 
-    module.exports = BernouilliParams
+    module.exports.BernouilliParams = BernouilliParams
+    module.exports.BernouilliCounts = BernouilliCounts
 }) ()
