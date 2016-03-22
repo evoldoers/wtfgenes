@@ -49,7 +49,7 @@
 	    var newSucc = oldSucc + (deltaCounts.succ[param] || 0)
 	    var newFail = newSucc + (deltaCounts.fail[param] || 0)
 	    
-	    d += jStat.betaln(oldSucc+1,oldFail+1) - jStat.betaln(newSucc+1,newFail+1)
+	    d += jStat.betaln(newSucc+1,newFail+1) - jStat.betaln(oldSucc+1,oldFail+1)
 	}
 	return d
     }
