@@ -95,6 +95,7 @@
                 return prior.logPrior(params) + logLikelihood(params,this)
             },
 	    logBetaBernouilliLikelihood: logBetaBernouilliLikelihood,
+	    deltaLogBetaBernouilliLikelihood: deltaLogBetaBernouilliLikelihood,
 	    add: add,
 	    accum: accum,
             sampleParams: sampleParams,
