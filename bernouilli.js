@@ -42,16 +42,17 @@
     }
 
     function deltaLogBetaBernouilliLikelihood (deltaCounts) {
+	var counts = this
 	var d = 0
 	var allCounts = [deltaCounts.succ, deltaCounts.fail, this.succ, this.fail].reduce (util.extend, {})
-	for (var param in Object.keys(allCounts)) {
-	    var oldSucc = this.succ[param] || 0
-	    var oldFail = this.fail[param] || 0
+	Object.keys(allCounts).forEach (function (param) {
+	    var oldSucc = counts.succ[param] || 0
+	    var oldFail = counts.fail[param] || 0
 	    var newSucc = oldSucc + (deltaCounts.succ[param] || 0)
-	    var newFail = newSucc + (deltaCounts.fail[param] || 0)
-	    
+	    var newFail = oldFail + (deltaCounts.fail[param] || 0)
+
 	    d += jStat.betaln(newSucc+1,newFail+1) - jStat.betaln(oldSucc+1,oldFail+1)
-	}
+	})
 	return d
     }
 

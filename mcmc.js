@@ -9,16 +9,15 @@
 
     function logMove(text) {
 	var mcmc = this
-	console.log ("Move #" + mcmc.samples + ": " + text)
-	console.log()
+	console.log ("Move #" + (mcmc.samples+1) + ": " + text)
     }
 
     function logTermMove(move) {
 	var mcmc = this
-	logMove.bind(mcmc)("Toggle (" + Object.keys(move.termStates).map (function(t) {
-	    return mcmc.assocs.ontology.termName[t]
-	}) + "), Hastings ratio " + move.hastingsRatio + ": "
-		+ (move.accepted ? "accepted" : "rejected"))
+	logMove.bind(mcmc)("(" + Object.keys(move.termStates).map (function(t) {
+	    return mcmc.assocs.ontology.termName[t] + "=>" + move.termStates[t]
+	}) + ") " + JSON.stringify(move.delta) + " HastingsRatio=" + move.hastingsRatio + " "
+		+ (move.accepted ? "Accept" : "Reject"))
     }
 
     function getCounts(models,prior) {
@@ -30,12 +29,11 @@
     function run(samples) {
 	var mcmc = this
 
-	console.log ("Initial counts: " + JSON.stringify(mcmc.counts.toJSON()))
-
 	var sumModelWeight = util.sumList (mcmc.modelWeight)
 	var moveRate = [ mcmc.moveRate.flip,
 			 mcmc.moveRate.swap ]
 	for (var sample = 0; sample < samples; ++sample) {
+
 	    var moveType = util.randomIndex (moveRate, mcmc.generator)
 	    switch (moveType) {
 	    case 0:
@@ -77,10 +75,10 @@
 	    })
 	    ++mcmc.samples
 
-	    assert.deepEqual (getCounts(mcmc.models,mcmc.prior).toJSON(), mcmc.counts.toJSON())
-	}
+	    console.log ("State #" + mcmc.samples + ": " + mcmc.models.map(function(model){return JSON.stringify(model.toJSON())}))
 
-    	console.log ("Final counts: " + JSON.stringify(mcmc.counts.toJSON()))
+//	    assert.deepEqual (getCounts(mcmc.models,mcmc.prior).toJSON(), mcmc.counts.toJSON())
+	}
     }
 
     function termSummary() {

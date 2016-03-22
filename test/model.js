@@ -177,9 +177,11 @@ describe('Model', function() {
         it('should correctly identify new false negatives', function() {
 	    var m2 = new Model ({ assocs: assocs, geneSet: mutants, terms: ['arachnid','primate','gorilla'] })
 	    var c2 = m2.getCounts()
+	    assert.deepEqual (c2.toJSON(), {succ:{t:3,fn:2},fail:{t:5,fn:3}})
 	    var d2 = m2.getCountDelta({0:0})
-	    assert.deepEqual (d2.toJSON(), {succ:{t:-1,fn:-1},fail:{t:1,fn:1}})
+	    assert.deepEqual (d2.toJSON(), {succ:{t:-1,fn:-1},fail:{t:1,fp:1}})
 	    m2.setTermStates({0:0})
+	    assert.deepEqual (m2.getCounts().toJSON(), {succ:{t:2,fn:1},fail:{t:6,fn:3,fp:1}})
             assert.deepEqual (c2.add(d2).toJSON(), m2.getCounts().toJSON())
 	})
     })

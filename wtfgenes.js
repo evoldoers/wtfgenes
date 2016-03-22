@@ -49,9 +49,9 @@ var mcmc = new MCMC ({ assocs: assocs,
 		       prior: {
 			   succ: { t: 1, fp: 1, fn: 1 },
 			   fail: {
-			       t: opt.options['term-absent'] || ontology.terms(),
-			       fp: opt.options['true-negative'] || assocs.genes(),
-			       fn: opt.options['true-positive'] || assocs.genes()
+			       t: parseInt(opt.options['term-absent']) || ontology.terms(),
+			       fp: parseInt(opt.options['true-negative']) || assocs.genes(),
+			       fn: parseInt(opt.options['true-positive']) || assocs.genes()
 			   }
 		       }
 		     })

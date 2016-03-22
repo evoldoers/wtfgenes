@@ -35,9 +35,13 @@
     function countTerm(model,counts,inc,t,state) {
         var countObj = state ? counts.succ : counts.fail
         var countParam = model.parameterization.names.termPrior[t]
-        countObj[countParam] = inc + (countObj[countParam] || 0)
+        var newCount = inc + (countObj[countParam] || 0)
+	if (newCount)
+	    countObj[countParam] = newCount
+	else
+	    delete countObj[countParam]
     }
-    
+
     function countObs(model,counts,inc,isActive,g) {
         var inGeneSet = model._inGeneSet[g]
 	// isActive inGeneSet param
@@ -48,7 +52,11 @@
         var isFalse = isActive ? !inGeneSet : inGeneSet
         var countObj = isFalse ? counts.succ : counts.fail
         var countParam = (isActive ? model.parameterization.names.geneFalseNeg : model.parameterization.names.geneFalsePos)[g]
-        countObj[countParam] = inc + (countObj[countParam] || 0)
+        var newCount = inc + (countObj[countParam] || 0)
+	if (newCount)
+	    countObj[countParam] = newCount
+	else
+	    delete countObj[countParam]
     }
     
     function getCounts() {
@@ -70,7 +78,7 @@
 	var cd = model.params.newCounts()
         var nActiveTermsByGene = {
             _val: {},
-            val: function(g) { return this._val[g] || model._nActiveTermsByGene[g] },
+            val: function(g) { return g in this._val ? this._val[g] : model._nActiveTermsByGene[g] },
             add: function(g,delta) { var oldval = this.val(g); this._val[g] = oldval + delta; return oldval }
         }
         for (var t in termStateAssignment)
@@ -120,10 +128,12 @@
 	tsa[term] = false
 	var nbrs = this.relevantNeighbors[term]
 	if (nbrs.length == 0)
-	    return { termStates: tsa, hastingsRatio: 1 }
+	    return { termStates: tsa,
+		     proposalHastingsRatio: 1 }
 	var nbr = util.randomElement (nbrs, model.generator)
 	if (this._termState[nbr])
-	    return { termStates: tsa, hastingsRatio: 1 }
+	    return { termStates: tsa,
+		     proposalHastingsRatio: 1 }
 	tsa[nbr] = true
 	return { termStates: tsa,
 		 proposalHastingsRatio: model.relevantNeighbors[nbr].length / nbrs.length }
@@ -131,7 +141,8 @@
 
     function sampleMoveForDelta(move,logLikeDeltaFunc) {
 	move.delta = this.getCountDelta(move.termStates)
-	move.hastingsRatio = move.proposalHastingsRatio * Math.exp (logLikeDeltaFunc(move.delta))
+	var logLikelihoodHastingsRatio = logLikeDeltaFunc(move.delta)
+	move.hastingsRatio = move.proposalHastingsRatio * Math.exp(logLikelihoodHastingsRatio)
 	if (move.hastingsRatio > 1 || this.generator.random() < move.hastingsRatio) {
 	    this.setTermStates (move.termStates)
 	    move.accepted = true
@@ -147,23 +158,11 @@
     }
 
     function sampleMoveCollapsed(move,counts) {
-	console.log ("State before move: " + JSON.stringify(this.toJSON()))
 	sampleMoveForDelta.bind(this) (move, function(countDelta) {
 	    return counts.deltaLogBetaBernouilliLikelihood (countDelta)
 	})
-	if (move.accepted) {
+	if (move.accepted)
 	    counts.accum (move.delta)
-	    console.log ("Delta: " + JSON.stringify(move.delta.toJSON()))
-	    console.log ("Counts: " + JSON.stringify(counts.toJSON()))
-	    console.log ("State after move: " + JSON.stringify(this.toJSON()))
-	    var model = this
-	    console.log ("_nActiveTermsByGene: " + model._nActiveTermsByGene
-			 + " ... expect " + model.assocs.termsByGene.map (function(terms) {
-			     return terms.reduce (function(accum,t) {
-				 return accum + (model._termState[t] ? 1 : 0)
-			     }, 0)
-			 }))
-	}
 	return move.accepted
     }
     
