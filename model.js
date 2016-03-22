@@ -127,14 +127,30 @@
 		 proposalHastingsRatio: model.relevantNeighbors[nbr].length / nbrs.length }
     }
 
-    function sampleMove(move) {
+    function sampleMoveForDelta(move,logLikeDeltaFunc) {
 	move.delta = this.getCountDelta(move.termStates)
-	move.hastingsRatio = move.proposalHastingsRatio * Math.exp (move.delta.logLikelihood())
+	move.hastingsRatio = move.proposalHastingsRatio * Math.exp (logLikeDeltaFunc(move.delta))
 	if (move.hastingsRatio > 1 || this.generator.random() < move.hastingsRatio) {
 	    this.setTermStates (move.termStates)
 	    move.accepted = true
 	} else
 	    move.accepted = false
+	return move.accepted
+    }
+    
+    function sampleMove(move) {
+	return sampleMoveForDelta.bind(this) (move, function(countDelta) {
+	    return countDelta.logLikelihood()
+	})
+    }
+
+    function sampleMoveCollapsed(move,counts) {
+	sampleMoveForDelta.bind(this) (move, function(countDelta) {
+	    return counts.deltaLogBetaBernouilliLikelihood (countDelta)
+	})
+	if (move.accepted)
+	    counts.accum (move.delta)
+	return move.accepted
     }
     
     function Model (conf) {
@@ -217,7 +233,9 @@
 		    
 		    proposeFlipMove: proposeFlipMove,
 		    proposeSwapMove: proposeSwapMove,
+
 		    sampleMove: sampleMove,
+		    sampleMoveCollapsed: sampleMoveCollapsed,
 		    
 		    toJSON: function() {
 		        var model = this

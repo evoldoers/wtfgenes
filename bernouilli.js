@@ -1,5 +1,6 @@
 (function() {
-    var extend = require('util')._extend,
+    var util = require('./util'),
+        extend = util.extend,
         assert = require('assert'),
         jStat = require('jStat').jStat
 
@@ -54,9 +55,12 @@
 	return d
     }
 
+    function copyCounts() {
+	return new BernouilliCounts (this)
+    }
+
     function add (counts) {
-	var c = new BernouilliCounts (this)
-	return c.accum (counts)
+	return this.copy().accum(counts)
     }
 
     function accum (counts) {
@@ -96,6 +100,7 @@
             },
 	    logBetaBernouilliLikelihood: logBetaBernouilliLikelihood,
 	    deltaLogBetaBernouilliLikelihood: deltaLogBetaBernouilliLikelihood,
+	    copy: copyCounts,
 	    add: add,
 	    accum: accum,
             sampleParams: sampleParams,

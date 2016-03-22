@@ -71,6 +71,14 @@ describe('BernouilliParams', function() {
 		    assert.deepEqual (tmpCounts.toJSON(), a4b1c5Json)
 		})
 	    })
+	    describe('#copy', function() {
+		it('should copy counts', function() {
+		    var a3b1copy = a3b1Counts.copy()
+		    assert.deepEqual (a3b1copy.toJSON(), a3b1Json)
+		    ++a3b1copy.succ['a']
+		    assert.deepEqual (a3b1Counts.toJSON(), a3b1Json)
+		})
+	    })
 	    describe('#add', function() {
 		it('should add counts', function() {
 		    var a4b1c5Counts = a3b1Counts.add (a1c5Counts)

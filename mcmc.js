@@ -22,26 +22,28 @@
     function run(samples) {
 	var mcmc = this
 	var sumModelWeight = util.sumList (mcmc.modelWeight)
-	var moveRate = [ mcmc.moveRate.flip * sumModelWeight,
-			 mcmc.moveRate.swap * sumModelWeight,
-			 mcmc.moveRate.param ]
+	var moveRate = [ mcmc.moveRate.flip,
+			 mcmc.moveRate.swap ]
 	for (var sample = 0; sample < samples; ++sample) {
 	    var moveType = util.randomIndex (moveRate, mcmc.generator)
 	    switch (moveType) {
 	    case 0:
 		var model = mcmc.models [util.randomIndex (mcmc.modelWeight)]
 		var move = model.proposeFlipMove()
-		model.sampleMove (move)
+//		model.sampleMove (move)
+		model.sampleMoveCollapsed (move, mcmc.counts)
 		logTermMove.bind(mcmc) (move)
 		break
 
 	    case 1:
 		var model = mcmc.models [util.randomIndex (mcmc.modelWeight, mcmc.generator)]
 		var move = model.proposeSwapMove()
-		model.sampleMove (move)
+//		model.sampleMove (move)
+		model.sampleMoveCollapsed (move, mcmc.counts)
 		logTermMove.bind(mcmc) (move)
 		break
 
+/*
 	    case 2:
 		var counts = mcmc.models.reduce (function(counts,model) {
 		    return counts.add (model.getCounts())
@@ -49,6 +51,7 @@
 		counts.sampleParams (mcmc.params)
 		logMove.bind(mcmc) ("Params " + JSON.stringify(mcmc.params.toJSON()))
 		break
+*/
 
 	    default:
 		throw new Error ("invalid move type!")
@@ -107,6 +110,10 @@
                     prior: prior,
                     models: models,
 
+		    counts: models.reduce (function(c,m) {
+			return c.accum (m.getCounts())
+		    }, prior.copy()),
+		    
 		    generator: generator,
 		    
 		    moveRate: moveRate,
