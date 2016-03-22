@@ -107,5 +107,7 @@
     module.exports.sortIndices = sortIndices
     module.exports.permuteList = permuteList
     module.exports.keyValListToObj = keyValListToObj
+    module.exports.logBetaBinomial = logBetaBinomial
+    module.exports.logBetaBernouilli = logBetaBernouilli
     module.exports.extend = extend
 }) ()

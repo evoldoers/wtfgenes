@@ -20,13 +20,40 @@
 	return ll
     }
 
-    function logPrior (params, counts) {
+    function logPrior (params, priorCounts) {
 	var lp = 0
 	for (var param in params._params)
-            lp += Math.log (jStat.beta.pdf (params._params[param], counts.succ[param] + 1, counts.fail[param] + 1))
+            lp += Math.log (jStat.beta.pdf (params._params[param],
+					    priorCounts.succ[param] + 1,
+					    priorCounts.fail[param] + 1))
 	return lp
     }
-    
+
+    function logBetaBernouilliLikelihood (priorCounts) {
+	var l = 0
+	var allCounts = [priorCounts.succ, priorCounts.fail, this.succ, this.fail].reduce (util.extend, {})
+	for (var param in Object.keys(allCounts))
+	    l += util.logBetaBernouilli ((priorCounts.succ[param] || 0) + 1,
+					 (priorCounts.fail[param] || 0) + 1,
+					 this.succ[param] || 0,
+					 this.fail[param] || 0)
+	return l
+    }
+
+    function deltaLogBetaBernouilliLikelihood (deltaCounts) {
+	var d = 0
+	var allCounts = [deltaCounts.succ, deltaCounts.fail, this.succ, this.fail].reduce (util.extend, {})
+	for (var param in Object.keys(allCounts)) {
+	    var oldSucc = this.succ[param] || 0
+	    var oldFail = this.fail[param] || 0
+	    var newSucc = oldSucc + (deltaCounts.succ[param] || 0)
+	    var newFail = newSucc + (deltaCounts.fail[param] || 0)
+	    
+	    d += jStat.betaln(oldSucc+1,oldFail+1) - jStat.betaln(newSucc+1,newFail+1)
+	}
+	return d
+    }
+
     function add (counts) {
 	var c = new BernouilliCounts (this)
 	return c.accum (counts)
@@ -67,6 +94,7 @@
                 params = params || this.params
                 return prior.logPrior(params) + logLikelihood(params,this)
             },
+	    logBetaBernouilliLikelihood: logBetaBernouilliLikelihood,
 	    add: add,
 	    accum: accum,
             sampleParams: sampleParams,
