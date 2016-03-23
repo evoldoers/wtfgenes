@@ -223,14 +223,6 @@ describe('MCMC', function() {
 	mcmc.run(1000)
     })
 
-    it('should have an RNG that generates uniformly distributed bits', function() {
-	var propFreq = [0,0]
-	var mersenne = new MersenneTwister()
-	for (var n = 0; n < 10000; ++n)
-	    ++propFreq [mersenne.random() > .5 ? 1 : 0]
-	testUniformDistribution (propFreq, function(state){return state})
-    })
-
     function proposeRandomize() {
 	var move = {termStates:{}}
 	model.relevantTerms.forEach (function(term) {
@@ -253,63 +245,72 @@ describe('MCMC', function() {
         assert.deepEqual (move.model.relevantTerms, [0,1,3,4,5,6,7,8])
     }
 
-    it('should have an RNG that generates uniformly distributed states', function() {
-	testRandomize (proposeRandomize)
-    })
+    describe('#randomize', function() {
+	it('should have an RNG that generates uniformly distributed bits', function() {
+	    var propFreq = [0,0]
+	    var mersenne = new MersenneTwister()
+	    for (var n = 0; n < 10000; ++n)
+		++propFreq [mersenne.random() > .5 ? 1 : 0]
+	    testUniformDistribution (propFreq, function(state){return state})
+	})
 
-    it('should have a model that proposes states uniformly with "randomize" moves', function() {
-	testRandomize (function(){return model.proposeRandomizeMove()})
-    })
+	it('should have an RNG that generates uniformly distributed states', function() {
+	    testRandomize (proposeRandomize)
+	})
 
-    it('should propose states uniformly with "randomize" moves during a run', function() {
+	it('should have a model that proposes states uniformly with "randomize" moves', function() {
+	    testRandomize (function(){return model.proposeRandomizeMove()})
+	})
+
 	var mcmc = newMCMC ({randomize:1})
 	var propFreq = addProposalTracker (mcmc)
-	mcmc.run(10000)
-	testUniformDistribution (propFreq)
-    })
-
-    it('should estimate state post.probs. to within 10 stdevs with "randomize" moves', function() {
-	var mcmc = newMCMC ({randomize:1})
 	var stateOccupancy = addStateOccupancyTracker (mcmc)
 	mcmc.postMoveCallback.push (testCounts)
 	addLogLikeRatioTest (mcmc)
-	mcmc.run(10000)
-	testStateOccupancy (mcmc, stateOccupancy, 10)
+
+	it('should propose states uniformly with "randomize" moves during a run', function() {
+	    mcmc.run(10000)
+	    testUniformDistribution (propFreq)
+	})
+
+	it('should estimate state post.probs. to within 10 stdevs with "randomize" moves', function() {
+	    testStateOccupancy (mcmc, stateOccupancy, 10)
+	})
+
+	it('should estimate term post.probs. to within 10 stdevs with "randomize" moves', function() {
+	    testTermOccupancy (mcmc, 10)
+	})
     })
 
-    it('should estimate term post.probs. to within 10 stdevs with "randomize" moves', function() {
-	var mcmc = newMCMC ({randomize:1})
-	mcmc.run(10000)
-	testTermOccupancy (mcmc, 10)
-    })
-
-    it('should estimate state post.probs. to within 10 stdevs with "flip" moves', function() {
+    describe('#flip', function() {
 	var mcmc = newMCMC ({flip:1})
 	var stateOccupancy = addStateOccupancyTracker (mcmc)
 	mcmc.postMoveCallback.push (testCounts)
 	addLogLikeRatioTest (mcmc)
-	mcmc.run(10000)
-	testStateOccupancy (mcmc, stateOccupancy, 10)
+
+	it('should estimate state post.probs. to within 10 stdevs with "flip" moves', function() {
+	    mcmc.run(10000)
+	    testStateOccupancy (mcmc, stateOccupancy, 10)
+	})
+
+	it('should estimate term post.probs. to within 10 stdevs with "flip" moves', function() {
+	    testTermOccupancy (mcmc, 10)
+	})
     })
 
-    it('should estimate term post.probs. to within 10 stdevs with "flip" moves', function() {
-	var mcmc = newMCMC ({flip:1})
-	mcmc.run(10000)
-	testTermOccupancy (mcmc, 10)
-    })
-
-    it('should estimate state post.probs. to within 10 stdevs with "randomize" and "swap" moves', function() {
+    describe('#swap', function() {
 	var mcmc = newMCMC ({randomize:1,swap:1})
 	var stateOccupancy = addStateOccupancyTracker (mcmc)
 	mcmc.postMoveCallback.push (testCounts)
 	addLogLikeRatioTest (mcmc)
-	mcmc.run(10000)
-	testStateOccupancy (mcmc, stateOccupancy, 10)
-    })
 
-    it('should estimate term post.probs. to within 10 stdevs with "randomize" and "swap" moves', function() {
-	var mcmc = newMCMC ({randomize:1,swap:1})
-	mcmc.run(10000)
-	testTermOccupancy (mcmc, 10)
+	it('should estimate state post.probs. to within 10 stdevs with "randomize" and "swap" moves', function() {
+	    mcmc.run(10000)
+	    testStateOccupancy (mcmc, stateOccupancy, 10)
+	})
+
+	it('should estimate term post.probs. to within 10 stdevs with "randomize" and "swap" moves', function() {
+	    testTermOccupancy (mcmc, 10)
+	})
     })
 })

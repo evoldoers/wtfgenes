@@ -1,6 +1,6 @@
 (function() {
     var assert = require('assert'),
-    BernouilliParams = require('./bernouilli').BernouilliParams,
+    BernouilliParamSet = require('./bernouilli').BernouilliParamSet,
     util = require('./util'),
     extend = util.extend
 
@@ -21,7 +21,7 @@
         function init(f) {
             return function(x) {
                 var name = f(x)
-                params[name] = 0.5
+                params[name] = 1
                 return name
             }
         }
@@ -32,7 +32,7 @@
 	    geneFalseNeg: geneName.map (init (conf.geneFalseNeg))
         }
     
-        parameterization.params = new BernouilliParams (params)
+        parameterization.params = new BernouilliParamSet (params)
     }
 
     module.exports = Parameterization

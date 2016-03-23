@@ -59,8 +59,7 @@
 
 	var sumModelWeight = util.sumList (mcmc.modelWeight)
 	var moveRate = { flip: mcmc.moveRate.flip,
-			 randomize: mcmc.moveRate.randomize,
-			 param: mcmc.moveRate.param
+			 randomize: mcmc.moveRate.randomize
 		       }
 
 	for (var sample = 0; sample < samples; ++sample) {
@@ -184,6 +183,7 @@
 		    postMoveCallback: [],
 
 		    logMoves: logMoves,
+		    logState: logState,
 
 		    run: run,
 		    summary: summary

@@ -1,9 +1,6 @@
 (function() {
     var assert = require('assert'),
 	MersenneTwister = require('mersennetwister'),
-	bernouilli = require('./bernouilli'),
-	BernouilliParams = bernouilli.BernouilliParams,
-	BernouilliCounts = bernouilli.BernouilliCounts,
 	Parameterization = require('./parameterization'),
 	util = require('./util'),
 	extend = util.extend
@@ -148,30 +145,16 @@
 		 proposalHastingsRatio: 1 }
     }
 
-    function sampleMoveForDelta(move,logLikeRatioFunc) {
-	move.delta = this.getCountDelta(move.termStates)
-	move.logLikelihoodRatio = logLikeRatioFunc(move.delta)
+    function sampleMoveCollapsed(move,counts) {
+	move.delta = this.getCountDelta (move.termStates)
+	move.logLikelihoodRatio = counts.deltaLogBetaBernouilliLikelihood (move.delta)
 	move.hastingsRatio = move.proposalHastingsRatio * Math.exp(move.logLikelihoodRatio)
 	if (move.hastingsRatio >= 1 || this.generator.random() < move.hastingsRatio) {
 	    this.setTermStates (move.termStates)
 	    move.accepted = true
+	    counts.accum (move.delta)
 	} else
 	    move.accepted = false
-	return move.accepted
-    }
-    
-    function sampleMove(move) {
-	return sampleMoveForDelta.bind(this) (move, function(countDelta) {
-	    return countDelta.logLikelihood()
-	})
-    }
-
-    function sampleMoveCollapsed(move,counts) {
-	sampleMoveForDelta.bind(this) (move, function(countDelta) {
-	    return counts.deltaLogBetaBernouilliLikelihood (countDelta)
-	})
-	if (move.accepted)
-	    counts.accum (move.delta)
 	return move.accepted
     }
     
@@ -257,7 +240,6 @@
 		    proposeSwapMove: proposeSwapMove,
 		    proposeRandomizeMove: proposeRandomizeMove,
 
-		    sampleMove: sampleMove,
 		    sampleMoveCollapsed: sampleMoveCollapsed,
 		    
 		    toJSON: function() {

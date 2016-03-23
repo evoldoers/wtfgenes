@@ -91,7 +91,7 @@ describe('BernouilliParams', function() {
 	    })
 	    describe('#logLikelihood', function() {
 		it('should compute log-likelihood', function() {
-		    assert.equal (a3b1Counts.logLikelihood(),
+		    assert.equal (a3b1Counts.logLikelihood(bern),
 				  3 * Math.log(bern.getParam('a')) + Math.log(1 - bern.getParam('b')))
 		})
 		it('should work after parameters changed', function() {
@@ -99,7 +99,7 @@ describe('BernouilliParams', function() {
 		    bern.setParam('b',.33)
 		    assert.equal (bern.getParam('a'), .66)
 		    assert.equal (bern.getParam('b'), .33)
-		    assert.equal (a3b1Counts.logLikelihood(),
+		    assert.equal (a3b1Counts.logLikelihood(bern),
 				  3 * Math.log(bern.getParam('a')) + Math.log(1 - bern.getParam('b')))
 		})
 	    })
@@ -111,7 +111,7 @@ describe('BernouilliParams', function() {
                 var midBern = new Bernouilli (abcMidJson)
 	        var abcLaplace = midBern.newCounts(abcLaplaceJson)
 		it('should compute log of beta prior', function() {
-		    assert.equal (abcLaplace.logPrior(), 3*Math.log(1.5))
+		    assert.equal (abcLaplace.logPrior(midBern), 3*Math.log(1.5))
 		})
 	    })
 	})

@@ -83,10 +83,26 @@
     }
 
     function sampleParams(params) {
-        params = params || new BernouilliParams (this.params._params)
 	for (var param in params._params)
             params.setParam (param, jStat.beta.sample (this.succ[param] + 1, this.fail[param] + 1))
 	return params
+    }
+
+    function BernouilliParamSet (params) {
+        var bp = this
+	extend (bp, {
+	    _params: params || {},
+	    params: function() { return Object.keys(this._params).sort() },
+	    addParam: function(param) { this._params[param] = 1 },
+	    toJSON: function() { return this.params() },
+	    newParams: function(p) { return new BernouilliParams (extend ({ params: this }, p)) },
+	    newCounts: function(c) { return new BernouilliCounts (extend ({ params: this }, c)) },
+	    laplacePrior: function() {
+                var c = this.newCounts()
+                this.params().forEach (function(p) { c.succ[p] = c.fail[p] = 1 })
+                return c
+            }
+	})
     }
 
     function BernouilliCounts (counts, params) {
@@ -95,10 +111,9 @@
 	    params: params || counts.params,
 	    succ: extend ({}, counts.succ),
 	    fail: extend ({}, counts.fail),
-	    logLikelihood: function(params) { return logLikelihood(params || this.params,this) },
-	    logPrior: function(params) { return logPrior(params || this.params,this) },
+	    logLikelihood: function(params) { return logLikelihood(params,this) },
+	    logPrior: function(params) { return logPrior(params,this) },
 	    logLikeWithPrior: function(prior,params) {
-                params = params || this.params
                 return prior.logPrior(params) + logLikelihood(params,this)
             },
 	    logBetaBernouilliLikelihood: logBetaBernouilliLikelihood,
@@ -136,6 +151,7 @@
 	})
     }
 
+    module.exports.BernouilliParamSet = BernouilliParamSet
     module.exports.BernouilliParams = BernouilliParams
     module.exports.BernouilliCounts = BernouilliCounts
 }) ()
