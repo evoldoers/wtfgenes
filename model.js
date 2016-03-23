@@ -131,7 +131,7 @@
 		if (!this._termState[nbr]) {
 		    move.termStates[term] = false
 		    move.termStates[nbr] = true
-		    move.proposalHastingsRatio = model.relevantNeighbors[nbr].length / nbrs.length
+		    move.proposalHastingsRatio = nbrs.length / model.relevantNeighbors[nbr].length
 		}
 	    }
 	}

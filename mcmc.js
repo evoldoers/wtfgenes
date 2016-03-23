@@ -59,18 +59,21 @@
 
 	var sumModelWeight = util.sumList (mcmc.modelWeight)
 	var moveRate = { flip: mcmc.moveRate.flip,
-			 swap: mcmc.moveRate.swap,
 			 randomize: mcmc.moveRate.randomize,
 			 param: mcmc.moveRate.param
 		       }
 
 	for (var sample = 0; sample < samples; ++sample) {
 	    
+	    var nActiveTerms = mcmc.models.map (function(model) { return model.activeTerms.length })
+	    moveRate.swap = mcmc.moveRate.swap * util.sumList (nActiveTerms)
+
 	    mcmc.preMoveCallback.forEach (function(callback) {
-		callback (mcmc)
+		callback (mcmc, moveRate)
 	    })
 
 	    var move = { type: util.randomKey (moveRate, mcmc.generator) }
+
 	    switch (move.type) {
 	    case 'flip':
 		move.model = mcmc.models [util.randomIndex (mcmc.modelWeight)]
@@ -79,7 +82,7 @@
 		break
 
 	    case 'swap':
-		move.model = mcmc.models [util.randomIndex (mcmc.modelWeight)]
+		move.model = mcmc.models [util.randomIndex (nActiveTerms)]
 		extend (move, move.model.proposeSwapMove.bind(move.model) ())
 		move.model.sampleMoveCollapsed (move, mcmc.countsWithPrior)
 		break
