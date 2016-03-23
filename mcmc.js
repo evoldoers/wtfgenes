@@ -70,25 +70,24 @@
 		callback (mcmc)
 	    })
 
-	    var move = {}
-	    function makeMove (moveProposalFunc) {
-		move.model = mcmc.models [util.randomIndex (mcmc.modelWeight)]
-		extend (move, move.model[moveProposalFunc].bind(move.model) ())
-		move.model.sampleMoveCollapsed (move, mcmc.countsWithPrior)
-	    }
-
-	    move.type = util.randomKey (moveRate, mcmc.generator)
+	    var move = { type: util.randomKey (moveRate, mcmc.generator) }
 	    switch (move.type) {
 	    case 'flip':
-		makeMove ('proposeFlipMove')
+		move.model = mcmc.models [util.randomIndex (mcmc.modelWeight)]
+		extend (move, move.model.proposeFlipMove.bind(move.model) ())
+		move.model.sampleMoveCollapsed (move, mcmc.countsWithPrior)
 		break
 
 	    case 'swap':
-		makeMove ('proposeSwapMove')
+		move.model = mcmc.models [util.randomIndex (mcmc.modelWeight)]
+		extend (move, move.model.proposeSwapMove.bind(move.model) ())
+		move.model.sampleMoveCollapsed (move, mcmc.countsWithPrior)
 		break
 
 	    case 'randomize':
-		makeMove ('proposeRandomizeMove')
+		move.model = mcmc.models [util.randomIndex (mcmc.modelWeight)]
+		extend (move, move.model.proposeRandomizeMove.bind(move.model) ())
+		move.model.sampleMoveCollapsed (move, mcmc.countsWithPrior)
 		break
 
 	    default:
