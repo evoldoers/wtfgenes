@@ -13,7 +13,8 @@ var defaultSeed = 123456789
 var opt = getopt.create([
     ['o' , 'ontology=PATH'   , 'path to ontology file'],
     ['a' , 'assoc=PATH'      , 'path to gene-term association file'],
-    ['g' , 'genes=PATH'      , 'path to gene-set file'],
+    ['g' , 'genes=PATH+'     , 'path to gene-set file'],
+    ['n' , 'numsamples=N'    , 'number of samples'],
     ['A',  'term-absent=N'   , 'pseudocount for absent terms (default=#terms)'],
     ['N',  'true-positive=N' , 'pseudocount for true positives (default=#genes)'],
     ['P',  'true-negative=N' , 'pseudocount for true negatives (default=#genes)'],
@@ -21,29 +22,32 @@ var opt = getopt.create([
     ['S',  'swap-rate=N'     , 'relative rate of term-swapping moves (default=1)'],
     ['R',  'randomize-rate=N', 'relative rate of term-randomizing moves (default=0)'],
     ['l',  'log=TAG+'        , 'log various things (e.g. "move", "state")'],
-    ['n' , 'numsamples=N'    , 'number of samples'],
     ['s' , 'seed=N'          , 'seed random number generator (default=' + defaultSeed + ')'],
     ['h' , 'help'            , 'display this help']
 ])              // create Getopt instance
 .bindHelp()     // bind option 'help' to default action
 .parseSystem(); // parse command line
 
-var ontologyPath = opt.options['ontology']
-var assocPath = opt.options['assoc']
-var genesPath = opt.options['genes']
+function inputError(err) {
+    throw new Error (err)
+}
+
+var ontologyPath = opt.options['ontology'] || inputError("You must specify an ontology")
+var assocPath = opt.options['assoc'] || inputError("You must specify gene-term associations")
+var genesPaths = opt.options['genes'] || inputError("You must specify a gene list")
 var nSamples = opt.options['numsamples']
 var seed = opt.options['seed'] || defaultSeed
 
 function readJsonFileSync (filename) {
     if (!fs.existsSync (filename))
-        throw new Error ("File does not exist: " + filename)
+        inputError ("File does not exist: " + filename)
     var data = fs.readFileSync (filename)
     return JSON.parse (data)
 }
 
 var ontologyJson = readJsonFileSync (ontologyPath)
 var assocJson = readJsonFileSync (assocPath)
-var genesJson = readJsonFileSync (genesPath)
+var genesJson = genesPaths.map (function(genesPath) { return readJsonFileSync (genesPath) })
 
 var ontology = new Ontology ({termParents:ontologyJson})
 var assocs = new Assocs ({ontology:ontology,assocs:assocJson})
@@ -57,7 +61,7 @@ moves.forEach (function(r) {
 })
 
 var mcmc = new MCMC ({ assocs: assocs,
-		       geneSet: genesJson,
+		       geneSets: genesJson,
 		       seed: seed,
 		       prior: {
 			   succ: { t: 1, fp: 1, fn: 1 },
