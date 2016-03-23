@@ -31,13 +31,15 @@
     }
 
     function logBetaBernouilliLikelihood (priorCounts) {
+	var counts = this
 	var l = 0
-	var allCounts = [priorCounts.succ, priorCounts.fail, this.succ, this.fail].reduce (util.extend, {})
-	for (var param in Object.keys(allCounts))
+	var allCounts = [priorCounts.succ, priorCounts.fail, counts.succ, counts.fail].reduce (util.extend, {})
+	Object.keys(allCounts).forEach (function (param) {
 	    l += util.logBetaBernouilli ((priorCounts.succ[param] || 0) + 1,
 					 (priorCounts.fail[param] || 0) + 1,
-					 this.succ[param] || 0,
-					 this.fail[param] || 0)
+					 counts.succ[param] || 0,
+					 counts.fail[param] || 0)
+	})
 	return l
     }
 

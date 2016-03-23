@@ -26,6 +26,11 @@
 	}, prior.copy())
     }
 
+    function assertApproxEqual (a, b) {
+	if (Math.max(Math.abs(a),Math.abs(b)) > 0)
+	    assert (Math.abs(a-b)/Math.max(Math.abs(a),Math.abs(b)) < .0001)
+    }
+    
     function run(samples) {
 	var mcmc = this
 
@@ -33,6 +38,8 @@
 	var moveRate = [ mcmc.moveRate.flip,
 			 mcmc.moveRate.swap ]
 	for (var sample = 0; sample < samples; ++sample) {
+	    
+	    var llOld = getCounts(mcmc.models,mcmc.params.newCounts()).logBetaBernouilliLikelihood(mcmc.prior)
 
 	    var moveType = util.randomIndex (moveRate, mcmc.generator)
 	    switch (moveType) {
@@ -42,6 +49,21 @@
 //		model.sampleMove (move)
 		model.sampleMoveCollapsed (move, mcmc.counts)
 		logTermMove.bind(mcmc) (move)
+
+		if (move.accepted) {
+		    var llNew = getCounts(mcmc.models,mcmc.params.newCounts()).logBetaBernouilliLikelihood(mcmc.prior)
+		    console.log ("llOld="+llOld+" llNew="+llNew+" llRatio="+move.logLikelihoodRatio)
+		    assertApproxEqual (llNew - llOld, move.logLikelihoodRatio)
+		} else {
+		    console.log(move.termStates)
+		    var inv = model.invert(move.termStates)
+		    model.setTermStates(move.termStates)
+		    var llNew = getCounts(mcmc.models,mcmc.params.newCounts()).logBetaBernouilliLikelihood(mcmc.prior)
+		    console.log ("llOld="+llOld+" llNew="+llNew+" llRatio="+move.logLikelihoodRatio)
+		    assertApproxEqual (llNew - llOld, move.logLikelihoodRatio)
+		    model.setTermStates(inv)
+		}
+
 		break
 
 	    case 1:
@@ -50,6 +72,21 @@
 //		model.sampleMove (move)
 		model.sampleMoveCollapsed (move, mcmc.counts)
 		logTermMove.bind(mcmc) (move)
+
+		if (move.accepted) {
+		    var llNew = getCounts(mcmc.models,mcmc.params.newCounts()).logBetaBernouilliLikelihood(mcmc.prior)
+		    console.log ("llOld="+llOld+" llNew="+llNew+" llRatio="+move.logLikelihoodRatio)
+		    assertApproxEqual (llNew - llOld, move.logLikelihoodRatio)
+		} else {
+		    console.log(move.termStates)
+		    var inv = model.invert(move.termStates)
+		    model.setTermStates(move.termStates)
+		    var llNew = getCounts(mcmc.models,mcmc.params.newCounts()).logBetaBernouilliLikelihood(mcmc.prior)
+		    console.log ("llOld="+llOld+" llNew="+llNew+" llRatio="+move.logLikelihoodRatio)
+		    assertApproxEqual (llNew - llOld, move.logLikelihoodRatio)
+		    model.setTermStates(inv)
+		}
+
 		break
 
 /*
@@ -66,6 +103,7 @@
 		throw new Error ("invalid move type!")
 		break;
 	    }
+
 
 	    mcmc.models.forEach (function(model,n) {
 		var occupancy = mcmc.termStateOccupancy[n]

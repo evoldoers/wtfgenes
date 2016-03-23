@@ -139,11 +139,11 @@
 		 proposalHastingsRatio: model.relevantNeighbors[nbr].length / nbrs.length }
     }
 
-    function sampleMoveForDelta(move,logLikeDeltaFunc) {
+    function sampleMoveForDelta(move,logLikeRatioFunc) {
 	move.delta = this.getCountDelta(move.termStates)
-	var logLikelihoodHastingsRatio = logLikeDeltaFunc(move.delta)
-	move.hastingsRatio = move.proposalHastingsRatio * Math.exp(logLikelihoodHastingsRatio)
-	if (move.hastingsRatio > 1 || this.generator.random() < move.hastingsRatio) {
+	move.logLikelihoodRatio = logLikeRatioFunc(move.delta)
+	move.hastingsRatio = move.proposalHastingsRatio * Math.exp(move.logLikelihoodRatio)
+	if (move.hastingsRatio >= 1 || this.generator.random() < move.hastingsRatio) {
 	    this.setTermStates (move.termStates)
 	    move.accepted = true
 	} else
