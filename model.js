@@ -120,23 +120,22 @@
 
     function proposeSwapMove() {
 	var model = this
+	var move = { termStates: {},
+		     proposalHastingsRatio: 1 }
 	var activeTerms = model.activeTerms()
-	if (activeTerms.length == 0)
-	    return this.proposeFlipMove()
-	var term = util.randomElement (activeTerms, model.generator)
-	var tsa = {}
-	tsa[term] = false
-	var nbrs = this.relevantNeighbors[term]
-	if (nbrs.length == 0)
-	    return { termStates: tsa,
-		     proposalHastingsRatio: 1 }
-	var nbr = util.randomElement (nbrs, model.generator)
-	if (this._termState[nbr])
-	    return { termStates: tsa,
-		     proposalHastingsRatio: 1 }
-	tsa[nbr] = true
-	return { termStates: tsa,
-		 proposalHastingsRatio: model.relevantNeighbors[nbr].length / nbrs.length }
+	if (activeTerms.length > 0) {
+	    var term = util.randomElement (activeTerms, model.generator)
+	    var nbrs = this.relevantNeighbors[term]
+	    if (nbrs.length > 0) {
+		var nbr = util.randomElement (nbrs, model.generator)
+		if (!this._termState[nbr]) {
+		    move.termStates[term] = false
+		    move.termStates[nbr] = true
+		    move.proposalHastingsRatio = model.relevantNeighbors[nbr].length / nbrs.length
+		}
+	    }
+	}
+	return move
     }
 
     function proposeRandomizeMove() {

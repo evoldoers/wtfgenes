@@ -298,8 +298,8 @@ describe('MCMC', function() {
 	testTermOccupancy (mcmc, 10)
     })
 
-    it('should estimate state post.probs. to within 10 stdevs with "swap" moves', function() {
-	var mcmc = newMCMC ({swap:1})
+    it('should estimate state post.probs. to within 10 stdevs with "randomize" and "swap" moves', function() {
+	var mcmc = newMCMC ({randomize:1,swap:1})
 	var stateOccupancy = addStateOccupancyTracker (mcmc)
 	mcmc.postMoveCallback.push (testCounts)
 	addLogLikeRatioTest (mcmc)
@@ -307,8 +307,8 @@ describe('MCMC', function() {
 	testStateOccupancy (mcmc, stateOccupancy, 10)
     })
 
-    it('should estimate term post.probs. to within 10 stdevs with "swap" moves', function() {
-	var mcmc = newMCMC ({swap:1})
+    it('should estimate term post.probs. to within 10 stdevs with "randomize" and "swap" moves', function() {
+	var mcmc = newMCMC ({randomize:1,swap:1})
 	mcmc.run(10000)
 	testTermOccupancy (mcmc, 10)
     })
