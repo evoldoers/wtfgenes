@@ -170,27 +170,30 @@ describe('MCMC', function() {
 	})
     })
 
-    function testTermOccupancy (mcmc) {
+    function binomApproxEqual (n, p, k, stdevs, state) {
+	var expectedFreq = n*p
+	var stdev = Math.sqrt (n*p*(1-p))
+	var tol = stdevs*stdev / expectedFreq
+	var eq = util.approxEqual (k, expectedFreq, tol)
+	if (!eq)
+	    console.log ("Expected: " + Math.round(expectedFreq) + " +/- " + Math.round(stdev) + " Actual: " + k + " State: " + state + '\033[31m NOT CLOSE\033[39m')
+	return eq
+    }
+
+    function testTermOccupancy (mcmc, stdevs) {
 	var summary = mcmc.summary()
 	var termSummary = summary.termSummary[0]
 	assert (termPostProb.every (function (postProb, term) {
-	    util.approxEqual (postProb, termSummary[onto.termName[term]])
+	    var name = onto.termName[term]
+	    return binomApproxEqual (mcmc.samples, termSummary[name], postProb*mcmc.samples, stdevs, name)
 	}), "\nTrue: " + JSON.stringify(termPostProbByName,null,1) + "\nEstimated: " + JSON.stringify(termSummary,null,1))
     }
 
-    function testStateOccupancy (mcmc, stateOccupancy) {
+    function testStateOccupancy (mcmc, stateOccupancy, stdevs) {
 	var ok = true
-	var n = mcmc.samples
 	stateOccupancy.forEach (function (occupancy, state) {
-	    var p = statePostProb[state]
-	    var expectedFreq = n*p
-	    var stdev = Math.sqrt (n*p*(1-p))
-	    var tol = 4*stdev / expectedFreq
-	    var approxEq = util.approxEqual (occupancy, expectedFreq, tol)
-	    if (!approxEq) {
-		console.log ("Expected: " + Math.round(expectedFreq) + " +/- " + Math.round(stdev) + " Actual: " + occupancy + " State: " + bitVecToTermString(state) + '\033[31m NOT CLOSE\033[39m')
+	    if (!binomApproxEqual (mcmc.samples, statePostProb[state], occupancy, stdevs, bitVecToTermString(state)))
 		ok = false
-	    }
 	})
 	assert (ok)
     }
@@ -200,16 +203,9 @@ describe('MCMC', function() {
 	var ok = true
 	var n = proposalFrequency.reduce (function(tot,x) { return tot+x }, 0)
 	var p = 1 / proposalFrequency.length
-	var expectedFreq = n*p
-	var stdev = Math.sqrt (n*p*(1-p))
-	var tol = 4*stdev / expectedFreq
 	proposalFrequency.forEach (function (propFreq, state) {
-	    var approxEq = util.approxEqual (propFreq, expectedFreq, tol)
-	    if (!approxEq) {
-		model.setTermStates (bitVecToTermStateAssignment (state))
-		console.log ("Expected: " + expectedFreq + " Actual: " + propFreq + " Proposal: " + stateNameFunc(state) + '\033[31m NOT CLOSE\033[39m')
+	    if (!binomApproxEqual (n, p, propFreq, 4, stateNameFunc(state)))
 		ok = false
-	    }
 	})
 	assert (ok)
     }
@@ -272,19 +268,48 @@ describe('MCMC', function() {
 	testUniformDistribution (propFreq)
     })
 
-    it('should estimate state post.probs. correctly with "randomize" moves', function() {
+    it('should estimate state post.probs. to within 10 stdevs with "randomize" moves', function() {
 	var mcmc = newMCMC ({randomize:1})
 	var stateOccupancy = addStateOccupancyTracker (mcmc)
 	mcmc.postMoveCallback.push (testCounts)
 	addLogLikeRatioTest (mcmc)
 	mcmc.run(10000)
-	testStateOccupancy (mcmc, stateOccupancy)
+	testStateOccupancy (mcmc, stateOccupancy, 10)
     })
 
-    it('should estimate term post.probs. correctly with "randomize" moves', function() {
+    it('should estimate term post.probs. to within 10 stdevs with "randomize" moves', function() {
 	var mcmc = newMCMC ({randomize:1})
 	mcmc.run(10000)
-	testTermOccupancy (mcmc)
+	testTermOccupancy (mcmc, 10)
     })
 
+    it('should estimate state post.probs. to within 10 stdevs with "flip" moves', function() {
+	var mcmc = newMCMC ({flip:1})
+	var stateOccupancy = addStateOccupancyTracker (mcmc)
+	mcmc.postMoveCallback.push (testCounts)
+	addLogLikeRatioTest (mcmc)
+	mcmc.run(10000)
+	testStateOccupancy (mcmc, stateOccupancy, 10)
+    })
+
+    it('should estimate term post.probs. to within 10 stdevs with "flip" moves', function() {
+	var mcmc = newMCMC ({flip:1})
+	mcmc.run(10000)
+	testTermOccupancy (mcmc, 10)
+    })
+
+    it('should estimate state post.probs. to within 10 stdevs with "swap" moves', function() {
+	var mcmc = newMCMC ({swap:1})
+	var stateOccupancy = addStateOccupancyTracker (mcmc)
+	mcmc.postMoveCallback.push (testCounts)
+	addLogLikeRatioTest (mcmc)
+	mcmc.run(10000)
+	testStateOccupancy (mcmc, stateOccupancy, 10)
+    })
+
+    it('should estimate term post.probs. to within 10 stdevs with "swap" moves', function() {
+	var mcmc = newMCMC ({swap:1})
+	mcmc.run(10000)
+	testTermOccupancy (mcmc, 10)
+    })
 })
