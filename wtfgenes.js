@@ -17,6 +17,10 @@ var opt = getopt.create([
     ['A',  'term-absent=N'   , 'pseudocount for absent terms (default=#terms)'],
     ['N',  'true-positive=N' , 'pseudocount for true positives (default=#genes)'],
     ['P',  'true-negative=N' , 'pseudocount for true negatives (default=#genes)'],
+    ['F',  'flip-rate=N'     , 'relative rate of term-toggling moves (default=1)'],
+    ['S',  'swap-rate=N'     , 'relative rate of term-swapping moves (default=1)'],
+    ['R',  'randomize-rate=N', 'relative rate of term-randomizing moves (default=0)'],
+    ['l',  'log=TAG+'        , 'log various things (e.g. "move", "state")'],
     ['n' , 'numsamples=N'    , 'number of samples'],
     ['s' , 'seed=N'          , 'seed random number generator (default=' + defaultSeed + ')'],
     ['h' , 'help'            , 'display this help']
@@ -43,6 +47,15 @@ var genesJson = readJsonFileSync (genesPath)
 
 var ontology = new Ontology ({termParents:ontologyJson})
 var assocs = new Assocs ({ontology:ontology,assocs:assocJson})
+
+var moveRate = {}
+var moves = ['flip','swap','randomize']
+moves.forEach (function(r) {
+    var arg = r + '-rate'
+    if (arg in opt.options)
+	moveRate[r] = parseInt (opt.options[arg])
+})
+
 var mcmc = new MCMC ({ assocs: assocs,
 		       geneSet: genesJson,
 		       seed: seed,
@@ -53,11 +66,16 @@ var mcmc = new MCMC ({ assocs: assocs,
 			       fp: parseInt(opt.options['true-negative']) || assocs.genes(),
 			       fn: parseInt(opt.options['true-positive']) || assocs.genes()
 			   }
-		       }
+		       },
+		       moveRate: moveRate,
 		     })
 
-// mcmc.logMoves()
-// mcmc.logState()
+var logTags = opt.options['log'] || []
+function logging(tag) { return logTags.some(function(x) { return tag == x }) }
+if (logging('move'))
+    mcmc.logMoves()
+if (logging('state'))
+    mcmc.logState()
 
 mcmc.run (nSamples)
 console.log (mcmc.summary())
