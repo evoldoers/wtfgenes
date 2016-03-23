@@ -56,5 +56,7 @@ var mcmc = new MCMC ({ assocs: assocs,
 		       }
 		     })
 
+mcmc.logMoves()
+
 mcmc.run (nSamples)
 console.log (mcmc.summary())

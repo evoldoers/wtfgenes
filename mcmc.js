@@ -20,90 +20,83 @@
 		+ (move.accepted ? "Accept" : "Reject"))
     }
 
+    function logMoves() {
+	var mcmc = this
+	mcmc.postMoveCallback.push (function (mcmc, move) {
+	    switch (move.type) {
+	    case 'flip':
+	    case 'swap':
+	    case 'randomize':
+		logTermMove.bind(mcmc) (move)
+		break
+
+	    case 'param':
+		logMove.bind(mcmc) ("Params " + JSON.stringify(mcmc.params.toJSON()))
+		break
+
+	    default:
+		break;
+	    }
+	})
+    }
+
+    function logState() {
+	this.postMoveCallback.push (function (mcmc, move) {
+	    console.log ("State #" + mcmc.samples + ": " + mcmc.models.map (function (model) {
+		return JSON.stringify (model.toJSON())
+	    }))
+	})
+    }
+
     function getCounts(models,prior) {
 	return models.reduce (function(c,m) {
 	    return c.accum (m.getCounts())
 	}, prior.copy())
     }
 
-    function assertApproxEqual (a, b) {
-	if (Math.max(Math.abs(a),Math.abs(b)) > 0)
-	    assert (Math.abs(a-b)/Math.max(Math.abs(a),Math.abs(b)) < .0001)
-    }
-    
     function run(samples) {
 	var mcmc = this
 
 	var sumModelWeight = util.sumList (mcmc.modelWeight)
-	var moveRate = [ mcmc.moveRate.flip,
-			 mcmc.moveRate.swap ]
+	var moveRate = { flip: mcmc.moveRate.flip,
+			 swap: mcmc.moveRate.swap,
+			 randomize: mcmc.moveRate.randomize,
+			 param: mcmc.moveRate.param
+		       }
+
 	for (var sample = 0; sample < samples; ++sample) {
 	    
-	    var llOld = getCounts(mcmc.models,mcmc.params.newCounts()).logBetaBernouilliLikelihood(mcmc.prior)
+	    mcmc.preMoveCallback.forEach (function(callback) {
+		callback (mcmc)
+	    })
 
-	    var moveType = util.randomIndex (moveRate, mcmc.generator)
-	    switch (moveType) {
-	    case 0:
-		var model = mcmc.models [util.randomIndex (mcmc.modelWeight)]
-		var move = model.proposeFlipMove()
-//		model.sampleMove (move)
-		model.sampleMoveCollapsed (move, mcmc.counts)
-		logTermMove.bind(mcmc) (move)
+	    var move = {}
+	    function makeMove (moveProposalFunc) {
+		move.model = mcmc.models [util.randomIndex (mcmc.modelWeight)]
+		extend (move, move.model[moveProposalFunc].bind(move.model) ())
+		move.model.sampleMoveCollapsed (move, mcmc.countsWithPrior)
+	    }
 
-		if (move.accepted) {
-		    var llNew = getCounts(mcmc.models,mcmc.params.newCounts()).logBetaBernouilliLikelihood(mcmc.prior)
-		    console.log ("llOld="+llOld+" llNew="+llNew+" llRatio="+move.logLikelihoodRatio)
-		    assertApproxEqual (llNew - llOld, move.logLikelihoodRatio)
-		} else {
-		    console.log(move.termStates)
-		    var inv = model.invert(move.termStates)
-		    model.setTermStates(move.termStates)
-		    var llNew = getCounts(mcmc.models,mcmc.params.newCounts()).logBetaBernouilliLikelihood(mcmc.prior)
-		    console.log ("llOld="+llOld+" llNew="+llNew+" llRatio="+move.logLikelihoodRatio)
-		    assertApproxEqual (llNew - llOld, move.logLikelihoodRatio)
-		    model.setTermStates(inv)
-		}
-
+	    move.type = util.randomKey (moveRate, mcmc.generator)
+	    switch (move.type) {
+	    case 'flip':
+		makeMove ('proposeFlipMove')
 		break
 
-	    case 1:
-		var model = mcmc.models [util.randomIndex (mcmc.modelWeight, mcmc.generator)]
-		var move = model.proposeSwapMove()
-//		model.sampleMove (move)
-		model.sampleMoveCollapsed (move, mcmc.counts)
-		logTermMove.bind(mcmc) (move)
-
-		if (move.accepted) {
-		    var llNew = getCounts(mcmc.models,mcmc.params.newCounts()).logBetaBernouilliLikelihood(mcmc.prior)
-		    console.log ("llOld="+llOld+" llNew="+llNew+" llRatio="+move.logLikelihoodRatio)
-		    assertApproxEqual (llNew - llOld, move.logLikelihoodRatio)
-		} else {
-		    console.log(move.termStates)
-		    var inv = model.invert(move.termStates)
-		    model.setTermStates(move.termStates)
-		    var llNew = getCounts(mcmc.models,mcmc.params.newCounts()).logBetaBernouilliLikelihood(mcmc.prior)
-		    console.log ("llOld="+llOld+" llNew="+llNew+" llRatio="+move.logLikelihoodRatio)
-		    assertApproxEqual (llNew - llOld, move.logLikelihoodRatio)
-		    model.setTermStates(inv)
-		}
-
+	    case 'swap':
+		makeMove ('proposeSwapMove')
 		break
 
-/*
-	    case 2:
-		var counts = mcmc.models.reduce (function(counts,model) {
-		    return counts.add (model.getCounts())
-		}, mcmc.prior)
-		counts.sampleParams (mcmc.params)
-		logMove.bind(mcmc) ("Params " + JSON.stringify(mcmc.params.toJSON()))
+	    case 'randomize':
+		makeMove ('proposeRandomizeMove')
 		break
-*/
 
 	    default:
-		throw new Error ("invalid move type!")
+		throw new Error ("Invalid move type: " + move.type)
 		break;
 	    }
 
+	    ++mcmc.samples
 
 	    mcmc.models.forEach (function(model,n) {
 		var occupancy = mcmc.termStateOccupancy[n]
@@ -111,11 +104,10 @@
 		    ++occupancy[term]
 		})
 	    })
-	    ++mcmc.samples
 
-	    console.log ("State #" + mcmc.samples + ": " + mcmc.models.map(function(model){return JSON.stringify(model.toJSON())}))
-
-//	    assert.deepEqual (getCounts(mcmc.models,mcmc.prior).toJSON(), mcmc.counts.toJSON())
+	    mcmc.postMoveCallback.forEach (function(callback) {
+		callback (mcmc, move)
+	    })
 	}
     }
 
@@ -152,10 +144,10 @@
 				    generator: generator})
             })
         
-	var moveRate = { flip: 1, swap: 1, param: 1 }
-	if (conf.moveRate)
-	    extend (moveRate, conf.moveRate)
-	
+	var moveRate = conf.moveRate
+            ? extend ( { flip: 0, swap: 0, param: 0, randomize: 0 }, conf.moveRate)
+            : { flip: 1, swap: 1, param: 0, randomize: 0 }
+
         extend (mcmc,
                 {
 		    assocs: assocs,
@@ -163,7 +155,16 @@
                     prior: prior,
                     models: models,
 
-		    counts: getCounts(models,prior),
+		    countsWithPrior: getCounts(models,prior),
+		    computeCounts: function() {
+			return getCounts (this.models, this.params.newCounts())
+		    },
+		    computeCountsWithPrior: function() {
+			return getCounts (this.models, this.prior)
+		    },
+		    collapsedLogLikelihood: function() {
+			return this.computeCounts().logBetaBernouilliLikelihood (this.prior)
+		    },
 		    
 		    generator: generator,
 		    
@@ -176,6 +177,11 @@
                     termStateOccupancy: models.map (function(model) {
                         return model.termName.map (function() { return 0 })
                     }),
+
+		    preMoveCallback: [],
+		    postMoveCallback: [],
+
+		    logMoves: logMoves,
 
 		    run: run,
 		    summary: summary

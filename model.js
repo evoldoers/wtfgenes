@@ -139,6 +139,16 @@
 		 proposalHastingsRatio: model.relevantNeighbors[nbr].length / nbrs.length }
     }
 
+    function proposeRandomizeMove() {
+	var model = this
+	var tsa = {}
+	model.relevantTerms.forEach (function (term) {
+	    tsa[term] = model.generator.random() > 0.5
+	})
+	return { termStates: tsa,
+		 proposalHastingsRatio: 1 }
+    }
+
     function sampleMoveForDelta(move,logLikeRatioFunc) {
 	move.delta = this.getCountDelta(move.termStates)
 	move.logLikelihoodRatio = logLikeRatioFunc(move.delta)
@@ -246,6 +256,7 @@
 		    
 		    proposeFlipMove: proposeFlipMove,
 		    proposeSwapMove: proposeSwapMove,
+		    proposeRandomizeMove: proposeRandomizeMove,
 
 		    sampleMove: sampleMove,
 		    sampleMoveCollapsed: sampleMoveCollapsed,

@@ -1,5 +1,6 @@
 (function() {
     var extend = require('util')._extend,
+        assert = require('assert'),
 	jStat = require('jStat').jStat
 
     function numCmp (a, b) { return a-b }
@@ -49,6 +50,12 @@
 	return undefined
     }
 
+    function randomKey (obj, generator) {
+	var keys = Object.keys (obj)
+	var distrib = keys.map (function(k) { return obj[k] })
+	return keys [randomIndex (distrib, generator)]
+    }
+
     function iota(n) {
 	var list = []
 	for (var i = 0; i < n; ++i)
@@ -93,6 +100,18 @@
     function logBetaBernouilli (alpha, beta, succ, fail) {
 	return jStat.betaln(alpha+succ,beta+fail) - jStat.betaln(alpha,beta)
     }
+
+    function approxEqual (a, b, epsilon) {
+	epsilon = epsilon || .0001
+	if (Math.max (Math.abs(a), Math.abs(b)) > 0)
+	    return Math.abs(a-b) / Math.max (Math.abs(a), Math.abs(b)) < epsilon
+	else
+	    return Math.abs(a-b) < epsilon
+    }
+    
+    function assertApproxEqual (a, b, epsilon, message) {
+	assert (approxEqual(a,b,epsilon), message || ("Difference between a ("+a+") and b ("+b+") is too large"))
+    }
     
     module.exports.numCmp = numCmp
     module.exports.sortAscending = sortAscending
@@ -103,11 +122,14 @@
     module.exports.sumList = sumList
     module.exports.randomElement = randomElement
     module.exports.randomIndex = randomIndex
+    module.exports.randomKey = randomKey
     module.exports.iota = iota
     module.exports.sortIndices = sortIndices
     module.exports.permuteList = permuteList
     module.exports.keyValListToObj = keyValListToObj
     module.exports.logBetaBinomial = logBetaBinomial
     module.exports.logBetaBernouilli = logBetaBernouilli
+    module.exports.approxEqual = approxEqual
+    module.exports.assertApproxEqual = assertApproxEqual
     module.exports.extend = extend
 }) ()
