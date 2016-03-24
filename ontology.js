@@ -101,7 +101,6 @@
                 })
                 closIndex[n] = 1
                 clos[n] = Object.keys(closIndex)
-                    .map (util.parseDecInt)
                     .sort (util.numCmp)
             })
             onto._closure = clos

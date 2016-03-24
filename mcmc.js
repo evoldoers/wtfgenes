@@ -115,9 +115,13 @@
 	    ++mcmc.samples
 
 	    mcmc.models.forEach (function(model,n) {
-		var occupancy = mcmc.termStateOccupancy[n]
+		var termStateOccupancy = mcmc.termStateOccupancy[n]
 		model.activeTerms().forEach (function(term) {
-		    ++occupancy[term]
+		    ++termStateOccupancy[term]
+		})
+		var geneFalseOccupancy = mcmc.geneFalseOccupancy[n]
+		model.falseGenes().forEach (function(gene) {
+		    ++geneFalseOccupancy[gene]
 		})
 	    })
 
@@ -127,31 +131,47 @@
 	}
     }
 
-    function termSummary() {
-	var mcmc = this
-	return mcmc.termStateOccupancy.map (function (occupancy) {
-	    return util.keyValListToObj (occupancy.map (function (occ, term) {
-		return [mcmc.assocs.ontology.termName[term], occ / mcmc.samples]
-	    }).filter (function (keyVal) { return keyVal[1] > 0 }))
-	})
+    function termSummary (mcmc, modelIndex) {
+	return util.keyValListToObj (mcmc.termStateOccupancy[modelIndex].map (function (occ, term) {
+	    return [mcmc.assocs.ontology.termName[term], occ / mcmc.samples]
+	}).filter (function (keyVal) { return keyVal[1] > 0 }))
     }
 
-    function hypergeometricSummary (maxPValue) {
-	var mcmc = this
+    function geneSummary (mcmc, modelIndex, wantGeneSet) {
+	var model = mcmc.models[modelIndex]
+	return util.keyValListToObj (mcmc.geneFalseOccupancy[modelIndex].map (function (occ, gene) {
+	    return [gene, occ / mcmc.samples]
+	}).filter (function (keyVal) {
+	    var inGeneSet = model.inGeneSet[keyVal[0]]
+	    return keyVal[1] > 0 && (wantGeneSet ? inGeneSet : !inGeneSet)
+	}).map (function (keyVal) {
+	    return [mcmc.assocs.geneName[keyVal[0]], keyVal[1]]
+	}))
+    }
+
+    function hypergeometricSummary (mcmc, modelIndex, maxPValue) {
 	maxPValue = maxPValue || (.05 / mcmc.assocs.terms())  // 5% significance + Bonferroni correction
-	return mcmc.hypergeometric.map (function (hyper) {
-	    return util.keyValListToObj (hyper.map (function (pvalue, term) {
-		return [mcmc.assocs.ontology.termName[term], pvalue]
-	    }).filter (function (keyVal) { return keyVal[1] <= maxPValue }))
-	})
+	return util.keyValListToObj (mcmc.hypergeometric[modelIndex].map (function (pvalue, term) {
+	    return [mcmc.assocs.ontology.termName[term], pvalue]
+	}).filter (function (keyVal) { return keyVal[1] <= maxPValue }))
     }
 
     function summary() {
 	var mcmc = this
 	return { samples: mcmc.samples,
 		 prior: mcmc.prior.toJSON(),
-		 hypergeometricPValue: hypergeometricSummary.bind(mcmc)(),
-		 marginalPosterior: termSummary.bind(mcmc)()
+		 summary: mcmc.models.map (function (model, modelIndex) {
+		     return {
+			 hypergeometricPValue: hypergeometricSummary (mcmc, modelIndex),
+			 marginalPosterior: {
+			     term: termSummary (mcmc, modelIndex),
+			     gene: {
+				 falsePos: geneSummary (mcmc, modelIndex, true),
+				 falseNeg: geneSummary (mcmc, modelIndex, false)
+			     }
+			 }
+		     }
+		 })
 	       }
     }
 
@@ -220,7 +240,10 @@
                     termStateOccupancy: models.map (function(model) {
                         return model.termName.map (function() { return 0 })
                     }),
-
+		    geneFalseOccupancy: models.map (function(model) {
+                        return model.geneName.map (function() { return 0 })
+                    }),
+		    
 		    preMoveCallback: [],
 		    postMoveCallback: [],
 

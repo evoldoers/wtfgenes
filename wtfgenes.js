@@ -127,4 +127,4 @@ if (logging('data'))
     console.log("Model has " + mcmc.nVariables() + " variables; running MCMC for " + nSamples + " steps")
 
 mcmc.run (nSamples)
-console.log (mcmc.summary())
+console.log (JSON.stringify (mcmc.summary(), null, 2))

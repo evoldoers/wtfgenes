@@ -182,7 +182,7 @@ describe('MCMC', function() {
 
     function testTermOccupancy (mcmc, stdevs) {
 	var summary = mcmc.summary()
-	var marginalPosterior = summary.marginalPosterior[0]
+	var marginalPosterior = summary.summary[0].marginalPosterior.term
 	assert (termPostProb.every (function (postProb, term) {
 	    var name = onto.termName[term]
 	    if (postProb == 0 && !(name in marginalPosterior))

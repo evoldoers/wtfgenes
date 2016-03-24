@@ -65,9 +65,9 @@ describe('Model', function() {
         it('should set all term states to 0 by default', function() {
             assert.deepEqual (mutantModel._termState, [0,0,0,0,0,0,0,0,0])
         })
-        it('should initialize private inGeneSet flags', function() {
-            assert.deepEqual (mutantModel._inGeneSet, [1,1,0,0,1])
-            assert.deepEqual (normalModel._inGeneSet, [0,0,1,1,0])
+        it('should initialize inGeneSet flags', function() {
+            assert.deepEqual (mutantModel.inGeneSet, [1,1,0,0,1])
+            assert.deepEqual (normalModel.inGeneSet, [0,0,1,1,0])
         })
     })
 
@@ -96,6 +96,15 @@ describe('Model', function() {
             mutantModel.setTermState(1,0);
             mutantModel.setTermState(3,0);
             mutantModel.setTermState(8,0);
+        })
+    })
+
+    describe('#falseGenes', function() {
+        it('should return the list of falsely-labeled genes', function() {
+	    assert.deepEqual (mutantModel.falseGenes(), [0,1,4])
+            mutantModel.setTermState(0,1);
+	    assert.deepEqual (mutantModel.falseGenes(), [3,4])
+            mutantModel.setTermState(0,0);
         })
     })
 

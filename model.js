@@ -13,7 +13,14 @@
 	if (model._termState[t] != val) {
 	    var delta = val ? +1 : -1
 	    model.assocs.genesByTerm[t].forEach (function(g) {
-		model._nActiveTermsByGene[g] += delta
+		var newCount = model._nActiveTermsByGene[g] + delta
+		model._nActiveTermsByGene[g] = newCount
+		var inGeneSet = model.inGeneSet[g]
+		var isFalse = newCount > 0 ? !inGeneSet : inGeneSet
+		if (isFalse)
+		    model._isFalseGene[g] = 1
+		else
+		    delete model._isFalseGene[g]
 	    })
 	    if (val)
 		model._isActiveTerm[t] = true
@@ -40,7 +47,7 @@
     }
 
     function countObs(model,counts,inc,isActive,g) {
-        var inGeneSet = model._inGeneSet[g]
+        var inGeneSet = model.inGeneSet[g]
 	// isActive inGeneSet param
 	// 0        0         !falsePos
 	// 0        1         falsePos
@@ -192,7 +199,7 @@
         // "relevant" terms are ones which have at least one associated gene in the geneSet
         var relevantTerms = util.removeDups (geneSet.reduce (function(termList,g) {
 	    return termList.concat (assocs.termsByGene[g])
-	}, [])).map(util.parseDecInt).sort(util.numCmp)
+	}, [])).sort(util.numCmp)
 
 	assert (relevantTerms.length > 0, "No terms annotated to enrichment set!")
 
@@ -215,7 +222,7 @@
 		    termName: termName,
 		    geneName: geneName,
 
-		    _inGeneSet: geneName.map (function() { return false }),
+		    inGeneSet: geneName.map (function() { return false }),
 
                     isRelevant: isRelevant,
 		    relevantTerms: relevantTerms,
@@ -239,11 +246,16 @@
 			    return accum + (termState[t] ? 1 : 0)
 		        }, 0)
 		    }),
-
+		    _isFalseGene: {},
+		    		    
                     activeTerms: function() {
                         return Object.keys(this._isActiveTerm).sort(util.numCmp)
                     },
-                    
+
+		    falseGenes: function() {
+			return Object.keys(this._isFalseGene).sort(util.numCmp)
+		    },
+		    
 		    getTermState: getTermState,
 		    setTermState: setTermState,
 		    setTermStates: setTermStates,
@@ -267,8 +279,13 @@
 		    }
                 })
 
-	geneSet.forEach (function(g) { model._inGeneSet[g] = true })
+	geneSet.forEach (function(g) { model.inGeneSet[g] = true })
 	termState.forEach (function(s,t) { if (s) model._isActiveTerm[t] = true })
+
+	model._nActiveTermsByGene.map (function(terms,gene) {
+	    if (terms > 0 ? !model.inGeneSet[gene] : model.inGeneSet[gene])
+		model._isFalseGene[gene] = true
+	})
     }
 
     module.exports = Model
