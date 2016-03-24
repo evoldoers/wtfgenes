@@ -194,7 +194,7 @@
 	    return termList.concat (assocs.termsByGene[g])
 	}, [])).map(util.parseDecInt).sort(util.numCmp)
 
-	assert (geneSet.relevantTerms > 0, "No terms annotated to enrichment set!")
+	assert (relevantTerms.length > 0, "No terms annotated to enrichment set!")
 
         var isRelevant = util.listToCounts (relevantTerms)
         function relevantFilter(termList) {

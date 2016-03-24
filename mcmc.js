@@ -117,7 +117,7 @@
 	return mcmc.termStateOccupancy.map (function (occupancy) {
 	    return util.keyValListToObj (occupancy.map (function (occ, term) {
 		return [mcmc.assocs.ontology.termName[term], occ / mcmc.samples]
-	    }))
+	    }).filter (function (keyVal) { return keyVal[1] > 0 }))
 	})
     }
 

@@ -185,6 +185,8 @@ describe('MCMC', function() {
 	var termSummary = summary.termSummary[0]
 	assert (termPostProb.every (function (postProb, term) {
 	    var name = onto.termName[term]
+	    if (postProb == 0 && !(name in termSummary))
+		return true
 	    return binomApproxEqual (mcmc.samples, termSummary[name], postProb*mcmc.samples, stdevs, name)
 	}), "\nTrue: " + JSON.stringify(termPostProbByName,null,1) + "\nEstimated: " + JSON.stringify(termSummary,null,1))
     }
