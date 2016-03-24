@@ -18,8 +18,8 @@ Usage: node wtfgenes.js
   -g, --genes=PATH+        path to gene-set file(s)
   -s, --samples=N          number of samples per term (default=100)
   -i, --ignore-missing     ignore missing terms & genes
-  -T, --terms=N            pseudocount: annotated terms (default=1)
-  -t, --absent-terms=N     pseudocount: unannotated terms (default=#terms)
+  -T, --terms=N            pseudocount: active terms (default=1)
+  -t, --absent-terms=N     pseudocount: inactive terms (default=#terms)
   -N, --false-negatives=N  pseudocount: false negatives (default=1)
   -p, --true-positives=N   pseudocount: true positives (default=99)
   -P, --false-positives=N  pseudocount: false positives (default=1)
