@@ -144,8 +144,9 @@
                     }
                 }
             })
-            extTermParents.forEach (function (tp) {
-                onto.parents[onto.termIndex[tp[0]]] = tp.slice([1]).map (function(n) {
+ 
+            extTermParents.forEach (function (tp,term) {
+                onto.parents[term] = tp.slice([1]).map (function(n) {
                     return typeof(n) === 'number' ? n : onto.termIndex[n]
                 })
             })

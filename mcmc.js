@@ -142,7 +142,8 @@
                                     geneSet: geneSet,
                                     parameterization: parameterization,
                                     prior: prior,
-				    generator: generator})
+				    generator: generator,
+				    ignoreMissingGenes: conf.ignoreMissingGenes })
             })
         
 	var moveRate = conf.moveRate

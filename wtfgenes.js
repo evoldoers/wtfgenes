@@ -15,6 +15,7 @@ var opt = getopt.create([
     ['a' , 'assoc=PATH'      , 'path to gene-term association file'],
     ['g' , 'genes=PATH+'     , 'path to gene-set file'],
     ['n' , 'numsamples=N'    , 'number of samples'],
+    ['i' , 'ignore-missing'  , 'ignore missing terms & genes'],
     ['A',  'term-absent=N'   , 'pseudocount for absent terms (default=#terms)'],
     ['N',  'true-positive=N' , 'pseudocount for true positives (default=#genes)'],
     ['P',  'true-negative=N' , 'pseudocount for true negatives (default=#genes)'],
@@ -50,7 +51,9 @@ var assocJson = readJsonFileSync (assocPath)
 var genesJson = genesPaths.map (function(genesPath) { return readJsonFileSync (genesPath) })
 
 var ontology = new Ontology ({termParents:ontologyJson})
-var assocs = new Assocs ({ontology:ontology,assocs:assocJson})
+var assocs = new Assocs ({ ontology: ontology,
+			   assocs: assocJson,
+			   ignoreMissingTerms: opt.options['ignore-missing'] })
 
 var moveRate = {}
 var moves = ['flip','swap','randomize']
@@ -72,6 +75,7 @@ var mcmc = new MCMC ({ assocs: assocs,
 			   }
 		       },
 		       moveRate: moveRate,
+		       ignoreMissingGenes: opt.options['ignore-missing']
 		     })
 
 var logTags = opt.options['log'] || []

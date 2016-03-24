@@ -38,7 +38,7 @@
                 closure.push ([t])
         }
 
-        var gtCount = []
+        var gtCount = [], missing = {}
         geneTermList.forEach (function(gt) {
             var gene = gt[0], term = gt[1]
             if (!(gene in assocs.geneIndex)) {
@@ -47,14 +47,23 @@
                 gtCount.push ({})
             }
             if (!(term in ontology.termIndex))
-                throw new Error ("Term " + term + " not found in the ontology")
-
-            var g = assocs.geneIndex[gene]
-            var t = ontology.termIndex[term]
-            closure[t].forEach (function(c) {
-                ++gtCount[g][c]
-            })
+		missing[term] = (missing[term] || 0) + 1
+	    else {
+		var g = assocs.geneIndex[gene]
+		var t = ontology.termIndex[term]
+		closure[t].forEach (function(c) {
+                    ++gtCount[g][c]
+		})
+	    }
         })
+
+	var missingTerms = Object.keys(missing)
+	if (missingTerms.length > 0) {
+	    if (conf.ignoreMissingTerms)
+		console.log ("Warning: the following terms were not found in the ontology: " + missingTerms)
+	    else
+                throw new Error ("Terms not found in the ontology: " + missingTerms)
+	}
 
         assocs.genesByTerm = assocs.ontology.termName.map (function() { return [] })
         assocs.termsByGene = assocs.geneName.map (function() { return [] })

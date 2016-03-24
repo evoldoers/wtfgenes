@@ -165,10 +165,25 @@
 	var assocs = conf.assocs
 	var termName = assocs.ontology.termName
 	var geneName = assocs.geneName
-        
-        var geneSet = conf.geneSet.map (function(g) {
-            return assocs.geneIndex[g]
+
+        var missing = {}
+        var geneSet = []
+	conf.geneSet.map (function(g) {
+	    if (g in assocs.geneIndex)
+		geneSet.push (assocs.geneIndex[g])
+	    else
+		missing[g] = (missing[g] || 0) + 1
         })
+
+	var missingGenes = Object.keys(missing)
+	if (missingGenes.length > 0) {
+	    if (conf.ignoreMissingGenes)
+		console.log ("Warning: the following genes were not found in the associations list: " + missingGenes)
+	    else
+                throw new Error ("Genes not found in the associations list: " + missingGenes)
+	}
+
+	assert (geneSet.length > 0, "No genes in enrichment set!")
 
 	if (conf.terms)
 	    conf.terms.forEach (function(term) { isActive[term] = true })
@@ -178,6 +193,9 @@
         var relevantTerms = util.removeDups (geneSet.reduce (function(termList,g) {
 	    return termList.concat (assocs.termsByGene[g])
 	}, [])).map(util.parseDecInt).sort(util.numCmp)
+
+	assert (geneSet.relevantTerms > 0, "No terms annotated to enrichment set!")
+
         var isRelevant = util.listToCounts (relevantTerms)
         function relevantFilter(termList) {
             return termList.filter (util.objPredicate(isRelevant))
