@@ -124,6 +124,7 @@
     function summary() {
 	var mcmc = this
 	return { samples: mcmc.samples,
+		 prior: mcmc.prior.toJSON(),
 		 termSummary: termSummary.bind(mcmc)() }
     }
 
