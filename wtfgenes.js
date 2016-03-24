@@ -14,7 +14,7 @@ var defaultSamplesPerTerm = 100
 var opt = getopt.create([
     ['o' , 'ontology=PATH'   , 'path to ontology file'],
     ['a' , 'assoc=PATH'      , 'path to gene-term association file'],
-    ['g' , 'genes=PATH+'     , 'path to gene-set file'],
+    ['g' , 'genes=PATH+'     , 'path to gene-set file(s)'],
     ['n' , 'num-samples=N'   , 'number of samples per term (default='+defaultSamplesPerTerm+')'],
     ['i' , 'ignore-missing'  , 'ignore missing terms & genes'],
     ['A',  'term-absent=N'   , 'pseudocount for absent terms (default=#terms)'],

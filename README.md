@@ -15,7 +15,7 @@ Usage: node wtfgenes.js
 
   -o, --ontology=PATH     path to ontology file
   -a, --assoc=PATH        path to gene-term association file
-  -g, --genes=PATH+       path to gene-set file
+  -g, --genes=PATH+       path to gene-set file(s)
   -n, --num-samples=N     number of samples per term (default=100)
   -i, --ignore-missing    ignore missing terms & genes
   -A, --term-absent=N     pseudocount for absent terms (default=#terms)
