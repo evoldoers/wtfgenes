@@ -121,11 +121,23 @@
 	})
     }
 
+    function hypergeometricSummary (maxPValue) {
+	var mcmc = this
+	maxPValue = maxPValue || (.05 / mcmc.assocs.terms())  // 5% significance + Bonferroni correction
+	return mcmc.hypergeometric.map (function (hyper) {
+	    return util.keyValListToObj (hyper.map (function (pvalue, term) {
+		return [mcmc.assocs.ontology.termName[term], pvalue]
+	    }).filter (function (keyVal) { return keyVal[1] <= maxPValue }))
+	})
+    }
+
     function summary() {
 	var mcmc = this
 	return { samples: mcmc.samples,
 		 prior: mcmc.prior.toJSON(),
-		 termSummary: termSummary.bind(mcmc)() }
+		 marginalPosterior: termSummary.bind(mcmc)(),
+		 hypergeometricPValue: hypergeometricSummary.bind(mcmc)()
+	       }
     }
 
     function nVariables() {
@@ -152,6 +164,7 @@
 				    generator: generator,
 				    ignoreMissingGenes: conf.ignoreMissingGenes })
             })
+	var geneSets = models.map (function(model) { return model.geneSet })
         
 	var moveRate = conf.moveRate
             ? extend ( { flip: 0, swap: 0, param: 0, randomize: 0 }, conf.moveRate)
@@ -164,7 +177,12 @@
                     prior: prior,
                     models: models,
 		    nVariables: nVariables,
-		    
+
+		    geneSets: geneSets,
+		    hypergeometric: geneSets.map (function (geneSet) {
+			return assocs.hypergeometricPValues (geneSet)
+		    }),
+
 		    countsWithPrior: getCounts(models,prior),
 		    computeCounts: function() {
 			return getCounts (this.models, this.params.newCounts())

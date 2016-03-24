@@ -1,7 +1,7 @@
 (function() {
     var util = require('./util'),
-    extend = util.extend,
-    assert = require('assert')
+	extend = util.extend,
+	assert = require('assert')
 
     function toJSON() {
         var assocs = this
@@ -13,6 +13,31 @@
         return gt
     }
 
+    function hypergeometricPValues (geneSet) {
+	var assocs = this
+	var ontology = assocs.ontology
+	return assocs.genesByTerm.map (function (genesForTerm, term) {
+	    var genesForTermInSet = geneSet.filter (function (gene) {
+		return assocs.geneHasTerm[gene][term]
+	    })
+	    var n = assocs.genes(),
+		nPresent = genesForTerm.length,
+		nAbsent = n - nPresent,
+		nInSet = geneSet.length,
+		logDenominator = util.logBinomialCoefficient(n,nInSet),
+		p = 0
+	    for (var nPresentInSet = genesForTermInSet.length;
+		 nPresentInSet <= nInSet && nPresentInSet <= nPresent;
+		 ++nPresentInSet) {
+		var nAbsentInSet = nInSet - nPresentInSet
+		p += Math.exp (util.logBinomialCoefficient(nPresent,nPresentInSet)
+			       + util.logBinomialCoefficient(nAbsent,nAbsentInSet)
+			       - logDenominator)
+	    }
+	    return p
+	})
+    }
+    
     function Assocs (conf) {
         var assocs = this
         conf = extend ({closure:true}, conf)
@@ -24,9 +49,11 @@
                   'geneIndex': {},
                   'genesByTerm': [],
                   'termsByGene': [],
+		  'geneHasTerm': {},
                   'genes': function() { return this.geneName.length },
                   'terms': function() { return this.ontology.terms() },
 		  'nAssocs': 0,
+		  'hypergeometricPValues': hypergeometricPValues,
                   'toJSON': toJSON
                 })
 
@@ -68,12 +95,14 @@
 
         assocs.genesByTerm = assocs.ontology.termName.map (function() { return [] })
         assocs.termsByGene = assocs.geneName.map (function() { return [] })
+        assocs.geneHasTerm = assocs.geneName.map (function() { return {} })
 
         for (var g = 0; g < assocs.genes(); ++g) {
             Object.keys(gtCount[g]).forEach (function(tStr) {
                 var t = parseInt (tStr)
                 assocs.termsByGene[g].push (t)
                 assocs.genesByTerm[t].push (g)
+		assocs.geneHasTerm[g][t] = 1
 		++assocs.nAssocs
             })
         }

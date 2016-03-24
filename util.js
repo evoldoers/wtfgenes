@@ -127,6 +127,7 @@
     module.exports.sortIndices = sortIndices
     module.exports.permuteList = permuteList
     module.exports.keyValListToObj = keyValListToObj
+    module.exports.logBinomialCoefficient = logBinomialCoefficient
     module.exports.logBetaBinomial = logBetaBinomial
     module.exports.logBetaBernouilli = logBetaBernouilli
     module.exports.approxEqual = approxEqual
