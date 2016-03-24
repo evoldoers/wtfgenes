@@ -14,13 +14,13 @@ var defaultSamplesPerTerm = 100
 
 // The default prior can be summarized as follows:
 // - P(term present) = 1/#terms, sample size #terms + 1
-// - P(false positive) = 1/100, sample size 101
-// - P(false negative) = 1/100, sample size 101
+// - P(false positive) = 1/100, sample size 100
+// - P(false negative) = 1/100, sample size 100
 var defaultTermPseudocount = 1
 var defaultFalseNegPseudocount = 1
-var defaultTruePosPseudocount = 100
+var defaultTruePosPseudocount = 99
 var defaultFalsePosPseudocount = 1
-var defaultTrueNegPseudocount = 100
+var defaultTrueNegPseudocount = 99
 
 var defaultMoveRate = { flip: 1, swap: 1, randomize: 0 }
 
