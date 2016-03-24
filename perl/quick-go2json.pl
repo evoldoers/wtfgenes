@@ -15,6 +15,8 @@ while (<>) {
 	$t = $1;
     } elsif (/^is_a: (GO:\d+)/) {
 	push @p, $1;
+    } elsif (/^relationship: part_of (GO:\d+)/) {
+	push @p, $1;
     } elsif (/^is_obsolete/) {
 	$t = undef;
 	$p = ();
