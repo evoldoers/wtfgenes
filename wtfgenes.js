@@ -3,6 +3,7 @@
 var fs = require('fs'),
     path = require('path'),
     getopt = require('node-getopt'),
+    util = require('./util'),
     Ontology = require('./ontology'),
     Assocs = require('./assocs'),
     Model = require('./model'),
@@ -11,21 +12,37 @@ var fs = require('fs'),
 var defaultSeed = 123456789
 var defaultSamplesPerTerm = 100
 
+// The default prior can be summarized as follows:
+// - P(term present) = 1/#terms, sample size #terms + 1
+// - P(false positive) = 1/100, sample size 101
+// - P(false negative) = 1/100, sample size 101
+var defaultTermPseudocount = 1
+var defaultFalseNegPseudocount = 1
+var defaultTruePosPseudocount = 100
+var defaultFalsePosPseudocount = 1
+var defaultTrueNegPseudocount = 100
+
+var defaultMoveRate = { flip: 1, swap: 1, randomize: 0 }
+
 var opt = getopt.create([
-    ['o' , 'ontology=PATH'   , 'path to ontology file'],
-    ['a' , 'assoc=PATH'      , 'path to gene-term association file'],
-    ['g' , 'genes=PATH+'     , 'path to gene-set file(s)'],
-    ['n' , 'num-samples=N'   , 'number of samples per term (default='+defaultSamplesPerTerm+')'],
-    ['i' , 'ignore-missing'  , 'ignore missing terms & genes'],
-    ['A',  'term-absent=N'   , 'pseudocount for absent terms (default=#terms)'],
-    ['N',  'true-positive=N' , 'pseudocount for true positives (default=#genes)'],
-    ['P',  'true-negative=N' , 'pseudocount for true negatives (default=#genes)'],
-    ['F',  'flip-rate=N'     , 'relative rate of term-toggling moves (default=1)'],
-    ['S',  'swap-rate=N'     , 'relative rate of term-swapping moves (default=1)'],
-    ['R',  'randomize-rate=N', 'relative rate of term-randomizing moves (default=0)'],
-    ['l',  'log=TAG+'        , 'log various things (e.g. "move", "state", "data")'],
-    ['s' , 'seed=N'          , 'seed random number generator (default=' + defaultSeed + ')'],
-    ['h' , 'help'            , 'display this help']
+    ['o' , 'ontology=PATH'    , 'path to ontology file'],
+    ['a' , 'assoc=PATH'       , 'path to gene-term association file'],
+    ['g' , 'genes=PATH+'      , 'path to gene-set file(s)'],
+    ['s' , 'samples=N'        , 'number of samples per term (default='+defaultSamplesPerTerm+')'],
+    ['i' , 'ignore-missing'   , 'ignore missing terms & genes'],
+    ['T',  'terms=N'          , 'pseudocount: annotated terms (default='+defaultTermPseudocount+')'],
+    ['t',  'absent-terms=N'   , 'pseudocount: unannotated terms (default=#terms)'],
+    ['N',  'false-negatives=N', 'pseudocount: false negatives (default='+defaultFalseNegPseudocount+')'],
+    ['p',  'true-positives=N' , 'pseudocount: true positives (default='+defaultTruePosPseudocount+')'],
+    ['P',  'false-positives=N', 'pseudocount: false positives (default='+defaultFalsePosPseudocount+')'],
+    ['n',  'true-negatives=N' , 'pseudocount: true negatives (default='+defaultTrueNegPseudocount+')'],
+    ['F',  'flip-rate=N'      , 'relative rate of term-toggling moves (default='+defaultMoveRate.flip+')'],
+    ['S',  'swap-rate=N'      , 'relative rate of term-swapping moves (default='+defaultMoveRate.swap+')'],
+    ['R',  'randomize-rate=N' , 'relative rate of term-randomizing moves (default='+defaultMoveRate.randomize+')'],
+    ['l',  'log=TAG+'         , 'log various extra things (e.g. "move", "state")'],
+    ['q' , 'quiet'            , 'don\'t log the usual things ("data", "progress")'],
+    ['r' , 'rnd-seed=N'       , 'seed random number generator (default=' + defaultSeed + ')'],
+    ['h' , 'help'             , 'display this help']
 ])              // create Getopt instance
 .bindHelp()     // bind option 'help' to default action
 .parseSystem(); // parse command line
@@ -37,10 +54,12 @@ function inputError(err) {
 var ontologyPath = opt.options['ontology'] || inputError("You must specify an ontology")
 var assocPath = opt.options['assoc'] || inputError("You must specify gene-term associations")
 var genesPaths = opt.options['genes'] || inputError("You must specify a gene list")
-var samplesPerTerm = opt.options['num-samples'] ? parseInt(opt.options['num-samples']) : defaultSamplesPerTerm
-var seed = opt.options['seed'] || defaultSeed
+var samplesPerTerm = opt.options['samples'] ? parseInt(opt.options['samples']) : defaultSamplesPerTerm
+var seed = opt.options['rnd-seed'] || defaultSeed
 
 var logTags = opt.options['log'] || []
+if (!opt.options['quiet'])
+    logTags.push('data','progress')
 function logging(tag) { return logTags.some(function(x) { return tag == x }) }
 
 function readJsonFileSync (filename) {
@@ -61,16 +80,15 @@ var assocs = new Assocs ({ ontology: ontology,
 			   ignoreMissingTerms: opt.options['ignore-missing'] })
 
 if (logging('data'))
-    console.log("Read " + assocs.nAssocs + " associations for " + assocs.genes() + " genes from " + assocPath)
+    console.log("Read " + assocs.nAssocs + " associations (" + assocs.genes() + " genes, " + assocs.relevantTerms().length + " terms) from " + assocPath)
 
 var genesJson = genesPaths.map (function(genesPath) { return readJsonFileSync (genesPath) })
 
 if (logging('data'))
     console.log("Read " + genesJson.length + " gene set(s) of size (" + genesJson.map(function(l){return l.length}) + ") from (" + genesPaths + ")")
 
-var moveRate = {}
-var moves = ['flip','swap','randomize']
-moves.forEach (function(r) {
+var moveRate = util.extend ({}, defaultMoveRate)
+Object.keys(defaultMoveRate).forEach (function(r) {
     var arg = r + '-rate'
     if (arg in opt.options)
 	moveRate[r] = parseInt (opt.options[arg])
@@ -80,11 +98,15 @@ var mcmc = new MCMC ({ assocs: assocs,
 		       geneSets: genesJson,
 		       seed: seed,
 		       prior: {
-			   succ: { t: 1, fp: 1, fn: 1 },
+			   succ: {
+			       t: parseInt(opt.options['terms']) || defaultTermPseudocount,
+			       fp: parseInt(opt.options['false-positives']) || defaultFalsePosPseudocount,
+			       fn: parseInt(opt.options['false-negatives']) || defaultFalseNegPseudocount
+			   },
 			   fail: {
-			       t: parseInt(opt.options['term-absent']) || ontology.terms(),
-			       fp: parseInt(opt.options['true-negative']) || assocs.genes(),
-			       fn: parseInt(opt.options['true-positive']) || assocs.genes()
+			       t: parseInt(opt.options['absent-terms']) || assocs.relevantTerms().length,
+			       fp: parseInt(opt.options['true-negatives']) || defaultTrueNegPseudocount,
+			       fn: parseInt(opt.options['true-positives']) || defaultTruePosPseudocount
 			   }
 		       },
 		       moveRate: moveRate,
@@ -96,6 +118,9 @@ if (logging('move'))
 
 if (logging('state'))
     mcmc.logState()
+
+if (logging('progress'))
+    mcmc.logProgress()
 
 var nSamples = samplesPerTerm * mcmc.nVariables()
 if (logging('data'))

@@ -47,6 +47,19 @@
 	    }))
 	})
     }
+    
+    function logProgress() {
+	var startTime = Date.now(), lastTime = startTime, delay = 1000
+	this.postMoveCallback.push (function (mcmc, move) {
+	    var nowTime = Date.now()
+	    if (nowTime - lastTime > delay) {
+		lastTime = nowTime
+		delay = Math.min (30000, delay*2)
+		var progress = move.sample / move.totalSamples
+		console.log ("Sampled " + (move.sample+1) + "/" + move.totalSamples + " states (" + Math.round(100*progress) + "%), estimated time left " + util.toHHMMSS ((1/progress - 1) * (nowTime - startTime)))
+	    }
+	})
+    }
 
     function getCounts(models,prior) {
 	return models.reduce (function(c,m) {
@@ -71,7 +84,9 @@
 		callback (mcmc, moveRate)
 	    })
 
-	    var move = { type: util.randomKey (moveRate, mcmc.generator) }
+	    var move = { sample: sample,
+			 totalSamples: samples,
+			 type: util.randomKey (moveRate, mcmc.generator) }
 
 	    switch (move.type) {
 	    case 'flip':
@@ -135,8 +150,8 @@
 	var mcmc = this
 	return { samples: mcmc.samples,
 		 prior: mcmc.prior.toJSON(),
-		 marginalPosterior: termSummary.bind(mcmc)(),
-		 hypergeometricPValue: hypergeometricSummary.bind(mcmc)()
+		 hypergeometricPValue: hypergeometricSummary.bind(mcmc)(),
+		 marginalPosterior: termSummary.bind(mcmc)()
 	       }
     }
 
@@ -211,6 +226,7 @@
 
 		    logMoves: logMoves,
 		    logState: logState,
+		    logProgress: logProgress,
 
 		    run: run,
 		    summary: summary

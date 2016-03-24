@@ -1,6 +1,7 @@
 (function() {
     var util = require('./util'),
 	extend = util.extend,
+	jStat = require('jstat').jStat,
 	assert = require('assert')
 
     function toJSON() {
@@ -52,6 +53,12 @@
 		  'geneHasTerm': {},
                   'genes': function() { return this.geneName.length },
                   'terms': function() { return this.ontology.terms() },
+		  'relevantTerms': function() {
+		      var assocs = this
+		      return util.iota(assocs.terms()).filter (function(term) {
+			  return assocs.genesByTerm[term].length > 0
+		      })
+		  },
 		  'nAssocs': 0,
 		  'hypergeometricPValues': hypergeometricPValues,
                   'toJSON': toJSON
