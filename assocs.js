@@ -26,6 +26,7 @@
                   'termsByGene': [],
                   'genes': function() { return this.geneName.length },
                   'terms': function() { return this.ontology.terms() },
+		  'nAssocs': 0,
                   'toJSON': toJSON
                 })
 
@@ -73,6 +74,7 @@
                 var t = parseInt (tStr)
                 assocs.termsByGene[g].push (t)
                 assocs.genesByTerm[t].push (g)
+		++assocs.nAssocs
             })
         }
 

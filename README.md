@@ -16,7 +16,7 @@ Usage: node wtfgenes.js
   -o, --ontology=PATH     path to ontology file
   -a, --assoc=PATH        path to gene-term association file
   -g, --genes=PATH+       path to gene-set file
-  -n, --numsamples=N      number of samples
+  -n, --num-samples=N     number of samples per term (default=100)
   -i, --ignore-missing    ignore missing terms & genes
   -A, --term-absent=N     pseudocount for absent terms (default=#terms)
   -N, --true-positive=N   pseudocount for true positives (default=#genes)
@@ -24,7 +24,7 @@ Usage: node wtfgenes.js
   -F, --flip-rate=N       relative rate of term-toggling moves (default=1)
   -S, --swap-rate=N       relative rate of term-swapping moves (default=1)
   -R, --randomize-rate=N  relative rate of term-randomizing moves (default=0)
-  -l, --log=TAG+          log various things (e.g. "move", "state")
+  -l, --log=TAG+          log various things (e.g. "move", "state", "data")
   -s, --seed=N            seed random number generator (default=123456789)
   -h, --help              display this help
 

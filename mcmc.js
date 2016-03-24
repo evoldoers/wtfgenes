@@ -126,6 +126,12 @@
 	return { samples: mcmc.samples,
 		 termSummary: termSummary.bind(mcmc)() }
     }
+
+    function nVariables() {
+	return util.sumList (this.models.map (function (model) {
+	    return model.relevantTerms.length
+	}))
+    }
     
     function MCMC (conf) {
         var mcmc = this
@@ -156,7 +162,8 @@
                     params: parameterization.params,
                     prior: prior,
                     models: models,
-
+		    nVariables: nVariables,
+		    
 		    countsWithPrior: getCounts(models,prior),
 		    computeCounts: function() {
 			return getCounts (this.models, this.params.newCounts())

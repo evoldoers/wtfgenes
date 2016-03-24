@@ -32,7 +32,7 @@ go-basic.json: go-basic.obo
 
 # Cerevisiae mating pathway
 cerevisiae-test: go-basic.json gene_association.sgd.json
-	$(WTFGENES) -o go-basic.json -a gene_association.sgd.json -g cerevisiae-mating.json -n 10000 -i
+	$(WTFGENES) -o go-basic.json -a gene_association.sgd.json -g cerevisiae-mating.json -n 100 -i
 
 # These slims don't seem to be very useful (they lack terms from the GOA files)
 # but here are the rules anyway:
