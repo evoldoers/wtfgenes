@@ -9,7 +9,7 @@
 
     function logMove(text) {
 	var mcmc = this
-	console.log ("Move #" + (mcmc.samples+1) + ": " + text)
+	console.warn ("Move #" + (mcmc.samples+1) + ": " + text)
     }
 
     function logTermMove(move) {
@@ -42,7 +42,7 @@
 
     function logState() {
 	this.postMoveCallback.push (function (mcmc, move) {
-	    console.log ("State #" + mcmc.samples + ": " + mcmc.models.map (function (model) {
+	    console.warn ("State #" + mcmc.samples + ": " + mcmc.models.map (function (model) {
 		return JSON.stringify (model.toJSON())
 	    }))
 	})
@@ -56,7 +56,7 @@
 		lastTime = nowTime
 		delay = Math.min (30000, delay*2)
 		var progress = move.sample / move.totalSamples
-		console.log ("Sampled " + (move.sample+1) + "/" + move.totalSamples + " states (" + Math.round(100*progress) + "%), estimated time left " + util.toHHMMSS ((1/progress - 1) * (nowTime - startTime)))
+		console.warn ("Sampled " + (move.sample+1) + "/" + move.totalSamples + " states (" + Math.round(100*progress) + "%), estimated time left " + util.toHHMMSS ((1/progress - 1) * (nowTime - startTime)))
 	    }
 	})
     }
@@ -71,7 +71,7 @@
 	var mcmc = this
 
 	if (util.sumList(mcmc.modelWeight) == 0) {
-	    console.log ("Refusing to run MCMC on a model with no variables")
+	    console.warn ("Refusing to run MCMC on a model with no variables")
 	    return
 	}
 

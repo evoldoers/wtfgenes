@@ -74,7 +74,7 @@ function readJsonFileSync (filename) {
 var ontologyJson = readJsonFileSync (ontologyPath)
 var ontology = new Ontology ({termParents:ontologyJson})
 if (logging('data'))
-    console.log("Read " + ontology.terms() + "-term ontology from " + ontologyPath)
+    console.warn("Read " + ontology.terms() + "-term ontology from " + ontologyPath)
 
 var assocJson = readJsonFileSync (assocPath)
 var assocs = new Assocs ({ ontology: ontology,
@@ -82,7 +82,7 @@ var assocs = new Assocs ({ ontology: ontology,
 			   ignoreMissingTerms: opt.options['ignore-missing'] })
 
 if (logging('data'))
-    console.log("Read " + assocs.nAssocs + " associations (" + assocs.genes() + " genes, " + assocs.relevantTerms().length + " terms) from " + assocPath)
+    console.warn("Read " + assocs.nAssocs + " associations (" + assocs.genes() + " genes, " + assocs.relevantTerms().length + " terms) from " + assocPath)
 
 var prior = {
     succ: {
@@ -97,7 +97,13 @@ var prior = {
     }
 }
 
-var simResults, genesJson
+var moveRate = util.extend ({}, defaultMoveRate)
+Object.keys(defaultMoveRate).forEach (function(r) {
+    var arg = r + '-rate'
+    if (arg in opt.options)
+	moveRate[r] = parseInt (opt.options[arg])
+})
+
 var wantSim = opt.options['simulate'] || opt.options['benchmark']
 var wantInference = !opt.options['simulate'] || opt.options['benchmark']
 if (wantSim) {
@@ -106,34 +112,37 @@ if (wantSim) {
 			       prior: prior,
 			       excludeRedundantTerms: opt.options['exclude-redundant'] })
 
-    simResults = sim.sampleGeneSets (parseInt (opt.options['simulate'] || '1'))
+    var simResults = sim.sampleGeneSets (parseInt (opt.options['simulate'] || '1'))
 
     if (wantInference) {
-	genesJson = simResults.simulation.samples.map (function(sample) { return sample.gene.observed })
+	var genesJson = simResults.simulation.samples.map (function(sample) { return sample.gene.observed })
 
 	if (logging('data'))
-	    console.log("Simulated " + genesJson.length + " gene set(s) of size [" + genesJson.map(function(l){return l.length}) + "]")
+	    console.warn("Simulated " + genesJson.length + " gene set(s) of size [" + genesJson.map(function(l){return l.length}) + "]")
 
-    } else
-	console.log (JSON.stringify (simResults, null, 2))
+	var infResults = runInference (genesJson)
+
+	// inject inference results back into simulation data structure
+	infResults.summary.forEach (function (summ, idx) {
+	    simResults.simulation.samples[idx].inferenceResults = summ
+	})
+	simResults.mcmc = infResults.mcmc
+    }
+
+    showResults (simResults)
     
 } else {
     var genesPaths = opt.options['genes'] || inputError("You must specify at least one gene set")
-    genesJson = genesPaths.map (function(genesPath) { return readJsonFileSync (genesPath) })
+    var genesJson = genesPaths.map (function(genesPath) { return readJsonFileSync (genesPath) })
 
     if (logging('data'))
-	console.log("Read " + genesJson.length + " gene set(s) of size [" + genesJson.map(function(l){return l.length}) + "] from [" + genesPaths + "]")
+	console.warn("Read " + genesJson.length + " gene set(s) of size [" + genesJson.map(function(l){return l.length}) + "] from [" + genesPaths + "]")
+
+    var infResults = runInference (genesJson)
+    showResults (infResults)
 }
 
-if (wantInference) {
-
-    var moveRate = util.extend ({}, defaultMoveRate)
-    Object.keys(defaultMoveRate).forEach (function(r) {
-	var arg = r + '-rate'
-	if (arg in opt.options)
-	    moveRate[r] = parseInt (opt.options[arg])
-    })
-
+function runInference (genesJson) {
     var mcmc = new MCMC ({ assocs: assocs,
 			   geneSets: genesJson,
 			   seed: seed,
@@ -153,18 +162,13 @@ if (wantInference) {
 
     var nSamples = samplesPerTerm * mcmc.nVariables()
     if (logging('data'))
-	console.log("Model has " + mcmc.nVariables() + " variables; running MCMC for " + nSamples + " steps")
+	console.warn("Model has " + mcmc.nVariables() + " variables; running MCMC for " + nSamples + " steps")
 
     mcmc.run (nSamples)
 
-    var results = mcmc.summary()
-    if (wantSim) {
-	results.summary.forEach (function (summ, idx) {
-	    simResults.simulation.samples[idx].inferenceResults = summ
-	})
-	simResults.mcmc = results.mcmc
-	results = simResults
-    }
+    return mcmc.summary()
+}
 
+function showResults (results) {
     console.log (JSON.stringify (results, null, 2))
 }

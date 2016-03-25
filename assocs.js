@@ -95,7 +95,7 @@
 	var missingTerms = Object.keys(missing)
 	if (missingTerms.length > 0) {
 	    if (conf.ignoreMissingTerms)
-		console.log ("Warning: the following terms were not found in the ontology: " + missingTerms)
+		console.warn ("Warning: the following terms were not found in the ontology: " + missingTerms)
 	    else
                 throw new Error ("Terms not found in the ontology: " + missingTerms)
 	}
