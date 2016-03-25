@@ -33,6 +33,7 @@ Usage: node wtfgenes.js
   -m, --simulate=N         instead of doing inference, simulate N gene sets
   -x, --exclude-redundant  exclude redundant terms from simulation
   -b, --benchmark          benchmark by running inference on simulated data
+  -B, --bench-reps         number of repetitions of benchmark (default=1)
   -h, --help               display this help message
 
 </code></pre>
