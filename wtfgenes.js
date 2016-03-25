@@ -7,7 +7,8 @@ var fs = require('fs'),
     Ontology = require('./ontology'),
     Assocs = require('./assocs'),
     Model = require('./model'),
-    MCMC = require('./mcmc')
+    MCMC = require('./mcmc'),
+    Simulator = require('./simulator')
 
 var defaultSeed = 123456789
 var defaultSamplesPerTerm = 100
@@ -42,6 +43,7 @@ var opt = getopt.create([
     ['l',  'log=TAG+'         , 'log various extra things (e.g. "move", "state")'],
     ['q' , 'quiet'            , 'don\'t log the usual things ("data", "progress")'],
     ['r' , 'rnd-seed=N'       , 'seed random number generator (default=' + defaultSeed + ')'],
+    ['m' , 'simulate=N'       , 'instead of inference, simulate model output'],
     ['h' , 'help'             , 'display this help']
 ])              // create Getopt instance
 .bindHelp()     // bind option 'help' to default action
@@ -53,7 +55,7 @@ function inputError(err) {
 
 var ontologyPath = opt.options['ontology'] || inputError("You must specify an ontology")
 var assocPath = opt.options['assoc'] || inputError("You must specify gene-term associations")
-var genesPaths = opt.options['genes'] || inputError("You must specify a gene list")
+
 var samplesPerTerm = opt.options['samples'] ? parseInt(opt.options['samples']) : defaultSamplesPerTerm
 var seed = opt.options['rnd-seed'] || defaultSeed
 
@@ -82,49 +84,64 @@ var assocs = new Assocs ({ ontology: ontology,
 if (logging('data'))
     console.log("Read " + assocs.nAssocs + " associations (" + assocs.genes() + " genes, " + assocs.relevantTerms().length + " terms) from " + assocPath)
 
-var genesJson = genesPaths.map (function(genesPath) { return readJsonFileSync (genesPath) })
+var prior = {
+    succ: {
+	t: parseInt(opt.options['terms']) || defaultTermPseudocount,
+	fp: parseInt(opt.options['false-positives']) || defaultFalsePosPseudocount,
+	fn: parseInt(opt.options['false-negatives']) || defaultFalseNegPseudocount
+    },
+    fail: {
+	t: parseInt(opt.options['absent-terms']) || assocs.relevantTerms().length,
+	fp: parseInt(opt.options['true-negatives']) || defaultTrueNegPseudocount,
+	fn: parseInt(opt.options['true-positives']) || defaultTruePosPseudocount
+    }
+}
 
-if (logging('data'))
-    console.log("Read " + genesJson.length + " gene set(s) of size (" + genesJson.map(function(l){return l.length}) + ") from (" + genesPaths + ")")
+if (opt.options['simulate']) {
+    var sim = new Simulator ({ assocs: assocs,
+			       seed: seed,
+			       prior: prior })
 
-var moveRate = util.extend ({}, defaultMoveRate)
-Object.keys(defaultMoveRate).forEach (function(r) {
-    var arg = r + '-rate'
-    if (arg in opt.options)
-	moveRate[r] = parseInt (opt.options[arg])
-})
+    var geneSets = sim.sampleGeneSets (parseInt (opt.options['simulate']))
+    console.log (JSON.stringify (geneSets, null, 2))
+    
+} else {
+    // MCMC inference
 
-var mcmc = new MCMC ({ assocs: assocs,
-		       geneSets: genesJson,
-		       seed: seed,
-		       prior: {
-			   succ: {
-			       t: parseInt(opt.options['terms']) || defaultTermPseudocount,
-			       fp: parseInt(opt.options['false-positives']) || defaultFalsePosPseudocount,
-			       fn: parseInt(opt.options['false-negatives']) || defaultFalseNegPseudocount
-			   },
-			   fail: {
-			       t: parseInt(opt.options['absent-terms']) || assocs.relevantTerms().length,
-			       fp: parseInt(opt.options['true-negatives']) || defaultTrueNegPseudocount,
-			       fn: parseInt(opt.options['true-positives']) || defaultTruePosPseudocount
-			   }
-		       },
-		       moveRate: moveRate,
-		       ignoreMissingGenes: opt.options['ignore-missing']
-		     })
+    var genesPaths = opt.options['genes'] || inputError("You must specify at least one gene set")
+    var genesJson = genesPaths.map (function(genesPath) { return readJsonFileSync (genesPath) })
 
-if (logging('move'))
-    mcmc.logMoves()
+    if (logging('data'))
+	console.log("Read " + genesJson.length + " gene set(s) of size (" + genesJson.map(function(l){return l.length}) + ") from (" + genesPaths + ")")
 
-if (logging('state'))
-    mcmc.logState()
+    var moveRate = util.extend ({}, defaultMoveRate)
+    Object.keys(defaultMoveRate).forEach (function(r) {
+	var arg = r + '-rate'
+	if (arg in opt.options)
+	    moveRate[r] = parseInt (opt.options[arg])
+    })
 
-if (logging('progress'))
-    mcmc.logProgress()
+    var mcmc = new MCMC ({ assocs: assocs,
+			   geneSets: genesJson,
+			   seed: seed,
+			   prior: prior,
+			   moveRate: moveRate,
+			   ignoreMissingGenes: opt.options['ignore-missing']
+			 })
 
-var nSamples = samplesPerTerm * mcmc.nVariables()
-if (logging('data'))
-    console.log("Model has " + mcmc.nVariables() + " variables; running MCMC for " + nSamples + " steps")
+    if (logging('move'))
+	mcmc.logMoves()
 
-mcmc.run (nSamples)
-console.log (JSON.stringify (mcmc.summary(), null, 2))
+    if (logging('state'))
+	mcmc.logState()
+
+    if (logging('progress'))
+	mcmc.logProgress()
+
+    var nSamples = samplesPerTerm * mcmc.nVariables()
+    if (logging('data'))
+	console.log("Model has " + mcmc.nVariables() + " variables; running MCMC for " + nSamples + " steps")
+
+    mcmc.run (nSamples)
+    console.log (JSON.stringify (mcmc.summary(), null, 2))
+}

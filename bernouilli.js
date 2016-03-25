@@ -83,6 +83,7 @@
     }
 
     function sampleParams(params) {
+	params = params || this.params.newParams()
 	for (var param in params._params)
             params.setParam (param, jStat.beta.sample (this.succ[param] + 1, this.fail[param] + 1))
 	return params
@@ -95,7 +96,7 @@
 	    params: function() { return Object.keys(this._params).sort() },
 	    addParam: function(param) { this._params[param] = 1 },
 	    toJSON: function() { return this.params() },
-	    newParams: function(p) { return new BernouilliParams (extend ({ params: this }, p)) },
+	    newParams: function(p) { return new BernouilliParams (this._params) },
 	    newCounts: function(c) { return new BernouilliCounts (extend ({ params: this }, c)) },
 	    laplacePrior: function() {
                 var c = this.newCounts()

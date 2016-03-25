@@ -263,20 +263,21 @@
                     
 		    getCounts: getCounts,
 		    getCountDelta: getCountDelta,
+		    
+		    toJSON: function() {
+		        var model = this
+		        return model.activeTerms()
+			    .map (function(t) { return model.termName[t] })
+		    },
 
+		    // MCMC methods
 		    generator: conf.generator || new MersenneTwister (conf.seed),
 		    
 		    proposeFlipMove: proposeFlipMove,
 		    proposeSwapMove: proposeSwapMove,
 		    proposeRandomizeMove: proposeRandomizeMove,
 
-		    sampleMoveCollapsed: sampleMoveCollapsed,
-		    
-		    toJSON: function() {
-		        var model = this
-		        return model.activeTerms()
-			    .map (function(t) { return model.termName[t] })
-		    }
+		    sampleMoveCollapsed: sampleMoveCollapsed
                 })
 
 	geneSet.forEach (function(g) { model.inGeneSet[g] = true })
