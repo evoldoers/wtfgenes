@@ -133,7 +133,6 @@ if (opt.options['benchmark']) {
 	benchResults.mcmc = infResults.mcmc
 	benchResults.benchmark.push (simResults)
 	delete simResults.model
-	delete infResults.mcmc
     }
 
     function benchList (selector) {
