@@ -32,7 +32,7 @@ Usage: node wtfgenes.js
   -r, --rnd-seed=N         seed random number generator (default=123456789)
   -m, --simulate=N         instead of doing inference, simulate N gene sets
   -x, --exclude-redundant  exclude redundant terms from simulation
-  -b, --benchmark          benchmark by running inference on simulated gene set(s)
+  -b, --benchmark          benchmark by running inference on simulated data
   -h, --help               display this help message
 
 </code></pre>
