@@ -4,6 +4,7 @@ var fs = require('fs'),
     path = require('path'),
     getopt = require('node-getopt'),
     jStat = require('jStat').jStat,
+    MersenneTwister = require('mersennetwister'),
     assert = require('assert'),
     util = require('./util'),
     Ontology = require('./ontology'),
@@ -47,7 +48,7 @@ var opt = getopt.create([
     ['m' , 'simulate=N'       , 'instead of doing inference, simulate N gene sets'],
     ['x' , 'exclude-redundant', 'exclude redundant terms from simulation'],
     ['b' , 'benchmark'        , 'benchmark by running inference on simulated data'],
-    ['B' , 'bench-reps'       , 'number of repetitions of benchmark (default='+defaultBenchReps+')'],
+    ['B' , 'bench-reps=N'     , 'number of repetitions of benchmark (default='+defaultBenchReps+')'],
     ['h' , 'help'             , 'display this help message']
 ])              // create Getopt instance
 .bindHelp()     // bind option 'help' to default action
@@ -108,8 +109,14 @@ Object.keys(defaultMoveRate).forEach (function(r) {
 	moveRate[r] = parseInt (opt.options[arg])
 })
 
-if (opt.options['benchmark']) {
-    var benchReps = opt.options['bench-reps'] || defaultBenchReps
+var _generator
+function generator() {
+    _generator = _generator || new MersenneTwister (seed)
+    return _generator
+}
+
+if (opt.options['benchmark'] || opt.options['bench-reps']) {
+    var benchReps = opt.options['bench-reps'] ? parseInt(opt.options['bench-reps']) : defaultBenchReps
     var benchResults = { model: null, mcmc: null, benchmark: [] }
     for (var benchRep = 0; benchRep < benchReps; ++benchRep) {
 
@@ -167,7 +174,7 @@ if (opt.options['benchmark']) {
 
 function runSimulation() {
     var sim = new Simulator ({ assocs: assocs,
-			       seed: seed,
+			       generator: generator(),
 			       prior: prior,
 			       excludeRedundantTerms: opt.options['exclude-redundant'] })
 
@@ -177,7 +184,7 @@ function runSimulation() {
 function runInference (genesJson) {
     var mcmc = new MCMC ({ assocs: assocs,
 			   geneSets: genesJson,
-			   seed: seed,
+			   generator: generator(),
 			   prior: prior,
 			   moveRate: moveRate,
 			   ignoreMissingGenes: opt.options['ignore-missing']
@@ -222,9 +229,10 @@ function analyzeBenchmark (trueTermLists, termScoreObjects, scoreCmp) {
 	})
 
 	function calc (param1, param2) {
-	    return jStat.mean (counts
-			       .filter (function(c) { return c[param1] + c[param2] > 0 })
-			       .map (function(c) { return c[param1] / (c[param1] + c[param2]) }))
+	    var x = counts
+		.filter (function(c) { return c[param1] + c[param2] > 0 })
+		.map (function(c) { return c[param1] / (c[param1] + c[param2]) })
+	    return { mean: jStat.mean(x), stdev: jStat.stdev(x,true) }
 	}
 
 	return { threshold: threshold,
