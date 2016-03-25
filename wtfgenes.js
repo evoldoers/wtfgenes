@@ -15,13 +15,12 @@ var defaultSamplesPerTerm = 100
 
 // The default prior can be summarized as follows:
 // - P(term present) = 1/#terms, sample size #terms + 1
-// - P(false positive) = 1/100, sample size 100
+// - P(false positive) = 1/#terms, sample size #terms + 1
 // - P(false negative) = 1/100, sample size 100
 var defaultTermPseudocount = 1
 var defaultFalseNegPseudocount = 1
 var defaultTruePosPseudocount = 99
 var defaultFalsePosPseudocount = 1
-var defaultTrueNegPseudocount = 99
 
 var defaultMoveRate = { flip: 1, swap: 1, randomize: 0 }
 
@@ -36,14 +35,14 @@ var opt = getopt.create([
     ['N',  'false-negatives=N', 'pseudocount: false negatives (default='+defaultFalseNegPseudocount+')'],
     ['p',  'true-positives=N' , 'pseudocount: true positives (default='+defaultTruePosPseudocount+')'],
     ['P',  'false-positives=N', 'pseudocount: false positives (default='+defaultFalsePosPseudocount+')'],
-    ['n',  'true-negatives=N' , 'pseudocount: true negatives (default='+defaultTrueNegPseudocount+')'],
+    ['n',  'true-negatives=N' , 'pseudocount: true negatives (default=#terms)'],
     ['F',  'flip-rate=N'      , 'relative rate of term-toggling moves (default='+defaultMoveRate.flip+')'],
     ['S',  'swap-rate=N'      , 'relative rate of term-swapping moves (default='+defaultMoveRate.swap+')'],
     ['R',  'randomize-rate=N' , 'relative rate of term-randomizing moves (default='+defaultMoveRate.randomize+')'],
     ['l',  'log=TAG+'         , 'log various extra things (e.g. "move", "state")'],
     ['q' , 'quiet'            , 'don\'t log the usual things ("data", "progress")'],
     ['r' , 'rnd-seed=N'       , 'seed random number generator (default=' + defaultSeed + ')'],
-    ['m' , 'simulate=N'       , 'instead of inference, simulate model output'],
+    ['m' , 'simulate=N'       , 'instead of doing inference, simulate N gene sets'],
     ['h' , 'help'             , 'display this help']
 ])              // create Getopt instance
 .bindHelp()     // bind option 'help' to default action
@@ -92,7 +91,7 @@ var prior = {
     },
     fail: {
 	t: parseInt(opt.options['absent-terms']) || assocs.relevantTerms().length,
-	fp: parseInt(opt.options['true-negatives']) || defaultTrueNegPseudocount,
+	fp: parseInt(opt.options['true-negatives']) || assocs.relevantTerms().length,
 	fn: parseInt(opt.options['true-positives']) || defaultTruePosPseudocount
     }
 }
@@ -112,7 +111,7 @@ if (opt.options['simulate']) {
     var genesJson = genesPaths.map (function(genesPath) { return readJsonFileSync (genesPath) })
 
     if (logging('data'))
-	console.log("Read " + genesJson.length + " gene set(s) of size (" + genesJson.map(function(l){return l.length}) + ") from (" + genesPaths + ")")
+	console.log("Read " + genesJson.length + " gene set(s) of size [" + genesJson.map(function(l){return l.length}) + "] from [" + genesPaths + "]")
 
     var moveRate = util.extend ({}, defaultMoveRate)
     Object.keys(defaultMoveRate).forEach (function(r) {
