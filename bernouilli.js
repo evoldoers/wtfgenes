@@ -82,10 +82,18 @@
 	return this
     }
 
-    function sampleParams(params) {
+    function sampleParams(generator,params) {
 	params = params || this.params.newParams()
+	// quick & dirty hack to bypass jStat's hardwired use of Math.random()...
+	var oldRandom = Math.random
+	if (generator)
+	    Math.random = generator.random.bind(generator)
+	// sample...
 	for (var param in params._params)
             params.setParam (param, jStat.beta.sample (this.succ[param] + 1, this.fail[param] + 1))
+	// restore...
+	Math.random = oldRandom
+	// return
 	return params
     }
 
