@@ -42,6 +42,8 @@ var opt = getopt.create([
     ['q' , 'quiet'            , 'don\'t log the usual things ("data", "progress")'],
     ['r' , 'rnd-seed=N'       , 'seed random number generator (default=' + defaultSeed + ')'],
     ['m' , 'simulate=N'       , 'instead of doing inference, simulate N gene sets'],
+    ['x' , 'exclude-redundant', 'exclude redundant terms from simulation'],
+    ['b' , 'benchmark '       , 'benchmark by running inference on simulated data'],
     ['h' , 'help'             , 'display this help message']
 ])              // create Getopt instance
 .bindHelp()     // bind option 'help' to default action
@@ -95,22 +97,35 @@ var prior = {
     }
 }
 
-if (opt.options['simulate']) {
+var simResults, genesJson
+var wantSim = opt.options['simulate'] || opt.options['benchmark']
+var wantInference = !opt.options['simulate'] || opt.options['benchmark']
+if (wantSim) {
     var sim = new Simulator ({ assocs: assocs,
 			       seed: seed,
-			       prior: prior })
+			       prior: prior,
+			       excludeRedundantTerms: opt.options['exclude-redundant'] })
 
-    var geneSets = sim.sampleGeneSets (parseInt (opt.options['simulate']))
-    console.log (JSON.stringify (geneSets, null, 2))
+    simResults = sim.sampleGeneSets (parseInt (opt.options['simulate'] || '1'))
+
+    if (wantInference) {
+	genesJson = simResults.simulation.samples.map (function(sample) { return sample.gene.observed })
+
+	if (logging('data'))
+	    console.log("Simulated " + genesJson.length + " gene set(s) of size [" + genesJson.map(function(l){return l.length}) + "]")
+
+    } else
+	console.log (JSON.stringify (simResults, null, 2))
     
 } else {
-    // MCMC inference
-
     var genesPaths = opt.options['genes'] || inputError("You must specify at least one gene set")
-    var genesJson = genesPaths.map (function(genesPath) { return readJsonFileSync (genesPath) })
+    genesJson = genesPaths.map (function(genesPath) { return readJsonFileSync (genesPath) })
 
     if (logging('data'))
 	console.log("Read " + genesJson.length + " gene set(s) of size [" + genesJson.map(function(l){return l.length}) + "] from [" + genesPaths + "]")
+}
+
+if (wantInference) {
 
     var moveRate = util.extend ({}, defaultMoveRate)
     Object.keys(defaultMoveRate).forEach (function(r) {
@@ -141,5 +156,15 @@ if (opt.options['simulate']) {
 	console.log("Model has " + mcmc.nVariables() + " variables; running MCMC for " + nSamples + " steps")
 
     mcmc.run (nSamples)
-    console.log (JSON.stringify (mcmc.summary(), null, 2))
+
+    var results = mcmc.summary()
+    if (wantSim) {
+	results.summary.forEach (function (summ, idx) {
+	    simResults.simulation.samples[idx].inferenceResults = summ
+	})
+	simResults.mcmc = results.mcmc
+	results = simResults
+    }
+
+    console.log (JSON.stringify (results, null, 2))
 }

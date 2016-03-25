@@ -70,10 +70,14 @@
     function run(samples) {
 	var mcmc = this
 
-	var sumModelWeight = util.sumList (mcmc.modelWeight)
+	if (util.sumList(mcmc.modelWeight) == 0) {
+	    console.log ("Refusing to run MCMC on a model with no variables")
+	    return
+	}
+
 	var moveRate = { flip: mcmc.moveRate.flip,
-			 randomize: mcmc.moveRate.randomize
-		       }
+			 swap: 0,  // set this later: it depends on number of active terms
+			 randomize: mcmc.moveRate.randomize }
 
 	for (var sample = 0; sample < samples; ++sample) {
 	    
@@ -165,8 +169,11 @@
     function summary (threshold) {
 	var mcmc = this
         threshold = threshold || .01
-	return { samples: mcmc.samples,
-		 prior: mcmc.prior.toJSON(),
+	return { model: { prior: mcmc.prior.toJSON() },
+	         mcmc: {
+		     samples: mcmc.samples,
+		     moveRate: mcmc.moveRate
+		 },
 		 summary: mcmc.models.map (function (model, modelIndex) {
 		     return {
 			 hypergeometricPValue: hypergeometricSummary (mcmc, modelIndex),

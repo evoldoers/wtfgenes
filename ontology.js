@@ -75,6 +75,14 @@
         return true;
     }
 
+    function toposortTermOrder() {
+	var onto = this
+	var L = toposortTermIndexOrDie (onto)
+	var order = onto.termName.map (function() { return null })
+	L.forEach (function (term, index) { order[term] = index })
+	return order
+    }
+
     function buildChildren (onto) {
         onto.children = onto.parents.map (function() { return [] })
         for (var c = 0; c < onto.terms(); ++c)
@@ -120,6 +128,7 @@
                   'isCyclic': isCyclic,
                   'isToposorted': isToposorted,
                   'toposort': toposort,
+		  'toposortTermOrder': toposortTermOrder,
                   'equals': equals,
                   'transitiveClosure': transitiveClosure })
 

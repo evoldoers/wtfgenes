@@ -9,21 +9,27 @@
     function sampleGeneSets(n) {
 	var sim = this
 	n = n || 1
+	var ontology = sim.assocs.ontology
 	var parameterization = sim.parameterization
 	var params = sim.prior.sampleParams (sim.generator)
 	var samples = []
 	for (var i = 0; i < n; ++i) {
 	    var geneState = sim.geneName.map (function() { return false })
 	    var termState = sim.termName.map (function() { return false })
-	    sim.assocs.relevantTerms().forEach (function(term) {
-		var state = sim.generator.random() < params.getParam (parameterization.names.termPrior[term])
-		if (state) {
-		    termState[term] = true
-		    sim.assocs.genesByTerm[term].forEach (function (gene) {
-			geneState[gene] = true
-		    })
-		}
-	    })
+	    var implicitTermState = sim.termName.map (function() { return false })
+	    util.sortIndices (ontology.toposortTermOrder(), sim.assocs.relevantTerms())
+		.forEach (function(term) {
+		    implicitTermState[term] = ontology.parents[term].some (function(p) { return implicitTermState[p] })
+		    if (!sim.excludeRedundantTerms || !implicitTermState[term]) {
+			var state = sim.generator.random() < params.getParam (parameterization.names.termPrior[term])
+			if (state) {
+			    termState[term] = implicitTermState[term] = true
+			    sim.assocs.genesByTerm[term].forEach (function (gene) {
+				geneState[gene] = true
+			    })
+			}
+		    }
+		})
 	    var geneObservedState = geneState.map (function(state,gene) {
 		var falseParam = state ? parameterization.names.geneFalseNeg : parameterization.names.geneFalsePos
 		var isFalse = sim.generator.random() < params.getParam (falseParam[gene])
@@ -32,12 +38,22 @@
 	    var geneSet = sim.geneName.filter (function(name,gene) {
 		return geneObservedState[gene]
 	    })
-	    samples.push ({ terms: sim.termName.filter (function(name,term) { return termState[term] }),
-			    trueGenes: sim.geneName.filter (function(name,gene) { return geneState[gene] }),
-			    observedGenes: geneSet
+	    samples.push ({ term: sim.termName.filter (function(name,term) { return termState[term] }),
+			    gene: {
+				true: sim.geneName.filter (function(name,gene) { return geneState[gene] }),
+				falsePos: sim.geneName.filter (function(name,gene) {
+				    return !geneState[gene] && geneObservedState[gene] }),
+				falseNeg: sim.geneName.filter (function(name,gene) {
+				    return geneState[gene] && !geneObservedState[gene] }),
+				observed: geneSet
+			    }
 			  })
 	}
-	return { params: params, samples: samples }
+	return { model: { prior: sim.prior.toJSON() },
+		 simulation: {
+		     params: params,
+		     samples: samples
+		 } }
     }
     
     function Simulator (conf) {
@@ -57,12 +73,14 @@
                     assocs: assocs,
 		    termName: termName,
 		    geneName: geneName,
-		    parameterization: parameterization,
-
-                    prior: prior,
 
                     genes: function() { return this.assocs.genes() },
                     terms: function() { return this.assocs.terms() },
+
+		    parameterization: parameterization,
+                    prior: prior,
+
+		    excludeRedundantTerms: conf.excludeRedundantTerms,
 
 		    generator: conf.generator || new MersenneTwister (conf.seed),
 

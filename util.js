@@ -70,10 +70,10 @@
 	})
     }
 
-    function sortIndices (list, sortFunc) {
+    function sortIndices (order, indexList, sortFunc) {
 	sortFunc = sortFunc || numCmp
-	return iota(list.length).sort (function(a,b) {
-	    return sortFunc (list[a], list[b])
+	return (indexList || iota(order.length)).sort (function(a,b) {
+	    return sortFunc (order[a], order[b])
 	})
     }
 

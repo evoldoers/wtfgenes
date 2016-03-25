@@ -190,8 +190,6 @@
                 throw new Error ("Genes not found in the associations list: " + missingGenes)
 	}
 
-	assert (geneSet.length > 0, "No genes in enrichment set!")
-
 	if (conf.terms)
 	    conf.terms.forEach (function(term) { isActive[term] = true })
         var termState = termName.map (conf.termState || util.objPredicate(isActive))
@@ -200,8 +198,6 @@
         var relevantTerms = util.removeDups (geneSet.reduce (function(termList,g) {
 	    return termList.concat (assocs.termsByGene[g])
 	}, [])).sort(util.numCmp)
-
-	assert (relevantTerms.length > 0, "No terms annotated to enrichment set!")
 
         var isRelevant = util.listToCounts (relevantTerms)
         function relevantFilter(termList) {
