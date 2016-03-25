@@ -31,6 +31,12 @@
         }
     }
 
+    function negate (predicateFunc) {
+	return function () {
+            return !predicateFunc.apply(this, arguments)
+	}
+    }
+
     function sumList (list) {
 	return list.reduce (function(tot,x) { return tot+x }, 0)
     }
@@ -135,6 +141,7 @@
     module.exports.removeDups = removeDups
     module.exports.parseDecInt = parseDecInt
     module.exports.objPredicate = objPredicate
+    module.exports.negate = negate
     module.exports.sumList = sumList
     module.exports.randomElement = randomElement
     module.exports.randomIndex = randomIndex
