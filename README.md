@@ -30,6 +30,7 @@ Usage: node wtfgenes.js
   -l, --log=TAG+           log various extra things (e.g. "move", "state")
   -q, --quiet              don't log the usual things ("data", "progress")
   -r, --rnd-seed=N         seed random number generator (default=123456789)
+  -m, --simulate=N         instead of inference, simulate model output
   -h, --help               display this help
 
 </code></pre>
