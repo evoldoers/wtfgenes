@@ -182,13 +182,13 @@ describe('MCMC', function() {
 
     function testTermOccupancy (mcmc, stdevs) {
 	var summary = mcmc.summary()
-	var marginalPosterior = summary.summary[0].marginalPosterior.term
+	var posteriorMarginal = summary.summary[0].posteriorMarginal.term
 	assert (termPostProb.every (function (postProb, term) {
 	    var name = onto.termName[term]
-	    if (postProb == 0 && !(name in marginalPosterior))
+	    if (postProb == 0 && !(name in posteriorMarginal))
 		return true
-	    return binomApproxEqual (mcmc.samples, marginalPosterior[name], postProb*mcmc.samples, stdevs, name)
-	}), "\nTrue: " + JSON.stringify(termPostProbByName,null,1) + "\nEstimated: " + JSON.stringify(marginalPosterior,null,1))
+	    return binomApproxEqual (mcmc.samples, posteriorMarginal[name], postProb*mcmc.samples, stdevs, name)
+	}), "\nTrue: " + JSON.stringify(termPostProbByName,null,1) + "\nEstimated: " + JSON.stringify(posteriorMarginal,null,1))
     }
 
     function testStateOccupancy (mcmc, stateOccupancy, stdevs) {

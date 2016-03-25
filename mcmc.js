@@ -131,43 +131,51 @@
 	}
     }
 
-    function termSummary (mcmc, modelIndex) {
+    function termSummary (mcmc, modelIndex, threshold) {
+        threshold = threshold || .01
 	return util.keyValListToObj (mcmc.termStateOccupancy[modelIndex].map (function (occ, term) {
 	    return [mcmc.assocs.ontology.termName[term], occ / mcmc.samples]
-	}).filter (function (keyVal) { return keyVal[1] > 0 }))
+	}).filter (function (keyVal) { return keyVal[1] >= threshold }))
     }
 
-    function geneSummary (mcmc, modelIndex, wantGeneSet) {
+    function geneSummary (mcmc, modelIndex, wantGeneSet, threshold) {
 	var model = mcmc.models[modelIndex]
+        threshold = threshold || .01
 	return util.keyValListToObj (mcmc.geneFalseOccupancy[modelIndex].map (function (occ, gene) {
 	    return [gene, occ / mcmc.samples]
 	}).filter (function (keyVal) {
 	    var inGeneSet = model.inGeneSet[keyVal[0]]
-	    return keyVal[1] > 0 && (wantGeneSet ? inGeneSet : !inGeneSet)
+	    return keyVal[1] >= threshold && (wantGeneSet ? inGeneSet : !inGeneSet)
 	}).map (function (keyVal) {
 	    return [mcmc.assocs.geneName[keyVal[0]], keyVal[1]]
 	}))
     }
 
     function hypergeometricSummary (mcmc, modelIndex, maxPValue) {
-	maxPValue = maxPValue || (.05 / mcmc.assocs.terms())  // 5% significance + Bonferroni correction
-	return util.keyValListToObj (mcmc.hypergeometric[modelIndex].map (function (pvalue, term) {
-	    return [mcmc.assocs.ontology.termName[term], pvalue]
-	}).filter (function (keyVal) { return keyVal[1] <= maxPValue }))
+	maxPValue = maxPValue || .05  // default 95% significance
+        var multiMaxPValue = maxPValue / mcmc.assocs.terms()  // Bonferroni correction
+	return { maxThreshold: maxPValue,
+                 bonferroniMaxThreshold: multiMaxPValue,
+                 term: util.keyValListToObj (mcmc.hypergeometric[modelIndex].map (function (pvalue, term) {
+	             return [mcmc.assocs.ontology.termName[term], pvalue]
+	         }).filter (function (keyVal) { return keyVal[1] <= multiMaxPValue }))
+               }
     }
 
-    function summary() {
+    function summary (threshold) {
 	var mcmc = this
+        threshold = threshold || .01
 	return { samples: mcmc.samples,
 		 prior: mcmc.prior.toJSON(),
 		 summary: mcmc.models.map (function (model, modelIndex) {
 		     return {
 			 hypergeometricPValue: hypergeometricSummary (mcmc, modelIndex),
-			 marginalPosterior: {
-			     term: termSummary (mcmc, modelIndex),
+			 posteriorMarginal: {
+                             minThreshold: threshold,
+			     term: termSummary (mcmc, modelIndex, threshold),
 			     gene: {
-				 falsePos: geneSummary (mcmc, modelIndex, true),
-				 falseNeg: geneSummary (mcmc, modelIndex, false)
+				 falsePos: geneSummary (mcmc, modelIndex, true, threshold),
+				 falseNeg: geneSummary (mcmc, modelIndex, false, threshold)
 			     }
 			 }
 		     }
