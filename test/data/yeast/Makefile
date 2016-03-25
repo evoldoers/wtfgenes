@@ -41,3 +41,7 @@ goslim_%.obo:
 
 goslim_%.json: goslim_%.obo
 	$(GO2JSON) $< >$@
+
+# Simulation
+sim.json:
+	$(WTFGENES) -o go-basic.json -a gene_association.sgd.json -B 1000 -x >$@
