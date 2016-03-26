@@ -135,7 +135,6 @@ if (opt.options['benchmark'] || opt.options['bench-reps']) {
         benchmarker.add (simResults, infResults)
     }
 
-    console.log(benchmarker)
     benchmarker.analyze()
     showResults (benchmarker.results)
 
