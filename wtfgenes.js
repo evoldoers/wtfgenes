@@ -3,7 +3,6 @@
 var fs = require('fs'),
     path = require('path'),
     getopt = require('node-getopt'),
-    jStat = require('jStat').jStat,
     MersenneTwister = require('mersennetwister'),
     assert = require('assert'),
     util = require('./util'),
@@ -11,7 +10,8 @@ var fs = require('fs'),
     Assocs = require('./assocs'),
     Model = require('./model'),
     MCMC = require('./mcmc'),
-    Simulator = require('./simulator')
+    Simulator = require('./simulator'),
+    Benchmarker = require('./benchmarker')
 
 var defaultSeed = 123456789
 var defaultSamplesPerTerm = 100
@@ -118,45 +118,26 @@ function generator() {
 if (opt.options['benchmark'] || opt.options['bench-reps']) {
     var benchReps = opt.options['bench-reps'] ? parseInt(opt.options['bench-reps']) : defaultBenchReps
     var benchResults = { model: null, mcmc: null, benchmark: [] }
+    var benchmarker = new Benchmarker ({ assocs: assocs })
     for (var benchRep = 0; benchRep < benchReps; ++benchRep) {
 
 	if (logging('progress'))
 	    console.warn("Starting benchmark repetition #" + (benchRep+1))
 
-	var simResults = util.extend( { benchmarkDataset: benchRep+1 },
-				      runSimulation() )
-	var genesJson = simResults.simulation.samples.map (function(sample) { return sample.gene.observed })
+	var simResults = runSimulation()
 
+	var genesJson = simResults.simulation.samples.map (function(sample) { return sample.gene.observed })
 	if (logging('data'))
 	    console.warn("Simulated " + genesJson.length + " gene set(s) of size [" + genesJson.map(function(l){return l.length}) + "]")
 
 	var infResults = runInference (genesJson)
 
-	// inject inference results back into simulation data structure
-	infResults.summary.forEach (function (summ, idx) {
-	    simResults.simulation.samples[idx].inferenceResults = summ
-	})
-	benchResults.model = simResults.model
-	benchResults.mcmc = infResults.mcmc
-	benchResults.benchmark.push (simResults)
-	delete simResults.model
+        benchmarker.add (simResults, infResults)
     }
 
-    function benchList (selector) {
-	return benchResults.benchmark.reduce (function (list, benchmarkDataset) {
-	    return list.concat (benchmarkDataset.simulation.samples.map (selector))
-	}, [])
-    }
-    var trueTerms = benchList (function(sample) { return sample.term })
-    var hyperScores = benchList (function(sample) { return sample.inferenceResults.hypergeometricPValue.term })
-    var termProbs = benchList (function(sample) { return sample.inferenceResults.posteriorMarginal.term })
-
-    benchResults.analysis = {
-	hypergeometric: analyzeBenchmark (trueTerms, hyperScores, function(pvalue,threshold) { return pvalue <= threshold }),
-	model: analyzeBenchmark (trueTerms, termProbs, function(postprob,threshold) { return postprob >= threshold })
-    }
-
-    showResults(benchResults)
+    console.log(benchmarker)
+    benchmarker.analyze()
+    showResults (benchmarker.results)
 
 } else if (opt.options['simulate']) {
     showResults (runSimulation())
@@ -206,53 +187,6 @@ function runInference (genesJson) {
     mcmc.run (nSamples)
 
     return mcmc.summary()
-}
-
-function analyzeBenchmark (trueTermLists, termScoreObjects, scoreCmp) {
-    function getCounts (trueTermList, termScoreObject, threshold) {
-	function isPastThreshold(term) {
-	    return scoreCmp (termScoreObject[term], threshold)
-	}
-	var isNotPastThreshold = util.negate (isPastThreshold)
-	var isTrueTerm = util.objPredicate (util.listToCounts (trueTermList))
-	var isNotTrueTerm = util.negate (isTrueTerm)
-	var termsPastThreshold = Object.keys(termScoreObject).filter (isPastThreshold)
-	var count = { tp: trueTermList.filter(isPastThreshold).length,
-		      fp: termsPastThreshold.filter(isNotTrueTerm).length,
-		      fn: trueTermList.filter(isNotPastThreshold).length }
-	count.tn = ontology.terms() - count.tp - count.fp - count.fn
-	return count
-    }
-    function getStats(threshold) {
-	var counts = trueTermLists.map (function(ttl,idx) {
-	    return getCounts (ttl, termScoreObjects[idx], threshold)
-	})
-
-	function calc (param1, param2) {
-	    var x = counts
-		.filter (function(c) { return c[param1] + c[param2] > 0 })
-		.map (function(c) { return c[param1] / (c[param1] + c[param2]) })
-	    return { mean: jStat.mean(x), stdev: jStat.stdev(x,true) }
-	}
-
-	return { threshold: threshold,
-		 recall: calc('tp','fn'),
-		 specificity: calc('tn','fp'),
-		 precision: calc('tp','fp'),
-		 fpr: calc('fp','tn')
-	       }
-    }
-
-    assert (trueTermLists.length == termScoreObjects.length)
-    var termScores = termScoreObjects.reduce (function (termScoreList, termScoreObj) {
-	return termScoreList.concat (Object.keys(termScoreObj).map(function(term){return termScoreObj[term]}))
-    }, []).sort (util.numCmp)
-    var termScoreCentiles = util.removeDups (util.iota(101).map (function(centile) {
-	return Math.floor (centile * (termScores.length - 1) / 100)
-    }).map (function(index) {
-	return termScores[index]
-    })).map(parseFloat).sort(util.numCmp)
-    return termScoreCentiles.map (getStats)
 }
 
 function showResults (results) {

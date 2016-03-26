@@ -95,6 +95,10 @@
 	return obj
     }
 
+    function values (obj) {
+        return Object.keys(obj).map (function(k) { return obj[k] })
+    }
+    
     function logBinomialCoefficient (n, k) {
 	return jStat.gammaln(n+1) - jStat.gammaln(k+1) - jStat.gammaln(n-k+1)
     }
@@ -150,6 +154,7 @@
     module.exports.sortIndices = sortIndices
     module.exports.permuteList = permuteList
     module.exports.keyValListToObj = keyValListToObj
+    module.exports.values = values
     module.exports.logBinomialCoefficient = logBinomialCoefficient
     module.exports.logBetaBinomial = logBetaBinomial
     module.exports.logBetaBernouilli = logBetaBernouilli
