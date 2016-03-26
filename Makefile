@@ -5,7 +5,7 @@ dep:
 	npm install -g mocha mersennetwister jstat node-getopt
 
 unit-tests:
-	mocha
+	mocha -t 5000
 
 integration-tests:
 	cd test/data/yeast; make
