@@ -153,7 +153,7 @@ if (opt.options['benchmark'] || opt.options['bench-reps']) {
 
 } else {
     var genesPaths = opt.options['genes'] || inputError("You must specify at least one gene set")
-    var genesJson = genesPaths.map (function(genesPath) { return readJsonFileSync (genesPath) })
+    var genesJson = genesPaths.map (function(genesPath) { return readJsonFileSync (genesPath, converters.flatfile2list) })
 
     if (logging('data'))
 	console.warn("Read " + genesJson.length + " gene set(s) of size [" + genesJson.map(function(l){return l.length}) + "] from [" + genesPaths + "]")

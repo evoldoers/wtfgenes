@@ -49,14 +49,14 @@
 	    conf = { goa: conf }
 	
 	var goaString = conf['goa']
-	var useSymbol = conf['useSymbol']
+	var useDatabaseID = conf['useDatabaseID']
 	
 	var assocs = []
 	goaString.split("\n").forEach (function (line) {
 	    if (!line.match(/^\s*\!/)) {
 		var fields = line.split("\t")
 		if (fields.length >= 7) {
-		    var id = fields[useSymbol ? 2 : 1]
+		    var id = fields[useDatabaseID ? 1 : 2]
 		    var qualifier = fields[3]
 		    var go_id = fields[4]
 		    if (qualifier != "NOT")
@@ -66,7 +66,24 @@
 	})
 	return assocs
     }
-    
+
+    function flatfile2list (conf) {
+
+	if (typeof(conf) == 'string')
+	    conf = { text: conf }
+	
+	var text = conf['text']
+        var filter = conf.filter || function(line) { return line.length > 0 }
+	
+	var list = []
+	text.split("\n").forEach (function (line) {
+            list.push (line)
+	})
+
+	return list.filter (filter)
+    }
+
     module.exports.obo2json = obo2json
     module.exports.goa2json = goa2json
+    module.exports.flatfile2list = flatfile2list
 }) ()

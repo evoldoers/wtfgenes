@@ -6,7 +6,7 @@ var fs = require('fs'),
     goa2json = require('./converters').goa2json
 
 var opt = getopt.create([
-    ['s' , 'symbol'           , 'use gene symbol, rather than database ID'],
+    ['d' , 'database-id'      , 'use database ID, rather than gene symbol'],
     ['h' , 'help'             , 'display this help message']
 ])              // create Getopt instance
 .bindHelp()     // bind option 'help' to default action
@@ -17,7 +17,7 @@ function inputError(err) {
 }
 
 opt.argv.length || inputError ("You must specify a GOA format input file")
-var useSymbol = opt.options['symbol']
+var useDatabaseID = opt.options['database-id']
 
 var text = ""
 opt.argv.forEach (function (filename) {
@@ -28,4 +28,4 @@ opt.argv.forEach (function (filename) {
 })
 
 console.log (JSON.stringify (goa2json ({ goa: text,
-					 useSymbol: useSymbol })))
+					 useDatabaseID: useDatabaseID })))

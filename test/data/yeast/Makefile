@@ -22,7 +22,7 @@ gene_association.%.gz:
 	curl -O http://geneontology.org/gene-associations/$@
 
 gene_association.%.json: gene_association.%
-	$(GOA2JSON) --symbol $< >$@
+	$(GOA2JSON) $< >$@
 
 # GO-basic
 go-basic.obo: 
