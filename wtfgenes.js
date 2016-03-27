@@ -11,7 +11,8 @@ var fs = require('fs'),
     Model = require('./model'),
     MCMC = require('./mcmc'),
     Simulator = require('./simulator'),
-    Benchmarker = require('./benchmarker')
+    Benchmarker = require('./benchmarker'),
+    converters = require('./converters')
 
 var defaultSeed = 123456789
 var defaultSamplesPerTerm = 100
@@ -69,19 +70,28 @@ if (!opt.options['quiet'])
     logTags.push('data','progress')
 function logging(tag) { return logTags.some(function(x) { return tag == x }) }
 
-function readJsonFileSync (filename) {
+function readJsonFileSync (filename, alternateParser) {
     if (!fs.existsSync (filename))
         inputError ("File does not exist: " + filename)
     var data = fs.readFileSync (filename)
-    return JSON.parse (data)
+    var result
+    try {
+	result = JSON.parse (data)
+    } catch (err) {
+	if (alternateParser)
+	    result = alternateParser (data.toString())
+	else
+	    throw err
+    }
+    return result
 }
 
-var ontologyJson = readJsonFileSync (ontologyPath)
+var ontologyJson = readJsonFileSync (ontologyPath, converters.obo2json)
 var ontology = new Ontology ({termParents:ontologyJson})
 if (logging('data'))
     console.warn("Read " + ontology.terms() + "-term ontology from " + ontologyPath)
 
-var assocJson = readJsonFileSync (assocPath)
+var assocJson = readJsonFileSync (assocPath, converters.goa2json)
 var assocs = new Assocs ({ ontology: ontology,
 			   assocs: assocJson,
 			   ignoreMissingTerms: opt.options['ignore-missing'] })

@@ -2,7 +2,8 @@
 
 var fs = require('fs'),
     path = require('path'),
-    getopt = require('node-getopt')
+    getopt = require('node-getopt'),
+    goa2json = require('./converters').goa2json
 
 var opt = getopt.create([
     ['s' , 'symbol'           , 'use gene symbol, rather than database ID'],
@@ -18,23 +19,13 @@ function inputError(err) {
 opt.argv.length || inputError ("You must specify a GOA format input file")
 var useSymbol = opt.options['symbol']
 
-var assocs = []
+var text = ""
 opt.argv.forEach (function (filename) {
     if (!fs.existsSync (filename))
         inputError ("File does not exist: " + filename)
     var data = fs.readFileSync (filename)
-    data.toString().split("\n").forEach (function (line) {
-	if (!line.match(/^\s*\!/)) {
-	    var fields = line.split("\t")
-	    if (fields.length >= 7) {
-		var id = fields[useSymbol ? 2 : 1]
-		var qualifier = fields[3]
-		var go_id = fields[4]
-		if (qualifier != "NOT")
-		    assocs.push ([id, go_id])
-	    }
-	}
-    })
+    text += data.toString()
 })
 
-console.log(assocs)
+console.log (JSON.stringify (goa2json ({ goa: text,
+					 useSymbol: useSymbol })))

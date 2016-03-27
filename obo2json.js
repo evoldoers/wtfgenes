@@ -2,9 +2,11 @@
 
 var fs = require('fs'),
     path = require('path'),
-    getopt = require('node-getopt')
+    getopt = require('node-getopt'),
+    obo2json = require('./converters').obo2json
 
 var opt = getopt.create([
+    ['e' , 'expand'           , 'do not compress output'],
     ['h' , 'help'             , 'display this help message']
 ])              // create Getopt instance
 .bindHelp()     // bind option 'help' to default action
@@ -15,42 +17,17 @@ function inputError(err) {
 }
 
 opt.argv.length || inputError ("You must specify an OBO format input file")
+var expand = opt.options['expand']
 
-var terms = [], currentTerm, termIndex = {}
-function clear() { currentTerm = { parents: [] } }
-clear()
-
-function addTerm() {
-    if (currentTerm.id) {
-	termIndex[currentTerm.id] = terms.length
-	terms.push ([currentTerm.id].concat (currentTerm.parents))
-	clear()
-    }
-}
-
+var text = ""
 opt.argv.forEach (function (filename) {
     if (!fs.existsSync (filename))
         inputError ("File does not exist: " + filename)
     var data = fs.readFileSync (filename)
-    data.toString().split("\n").forEach (function (line) {
-	var m
-	if (line.match (/^\[Term\]/))
-	    addTerm()
-	else if (m = line.match (/^id: (GO:\d+)/))
-	    currentTerm.id = m[1]
-	else if (m = line.match (/^is_a: (GO:\d+)/))
-	    currentTerm.parents.push (m[1])
-	else if (m = line.match (/^relationship: part_of (GO:\d+)/))
-	    currentTerm.parents.push (m[1])
-	else if (line.match(/^is_obsolete/))
-	    clear()
-    })
-    addTerm()
+    text += data.toString()
 })
 
-terms.forEach (function (termParents) {
-    for (var i = 1; i < termParents.length; ++i)
-	termParents[i] = termIndex[termParents[i]]
-})
-
-console.log (JSON.stringify(terms))
+console.log (JSON.stringify (obo2json ({ obo: text,
+					 compress: !expand }),
+			     null,
+			     expand ? 2 : undefined))
