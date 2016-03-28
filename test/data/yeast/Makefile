@@ -1,6 +1,6 @@
 
 # Scripts
-SCRIPTDIR = ../../..
+SCRIPTDIR = ../../../bin
 OBO2JSON = $(SCRIPTDIR)/obo2json.js
 GOA2JSON = $(SCRIPTDIR)/goa2json.js
 WTFGENES = $(SCRIPTDIR)/wtfgenes.js
