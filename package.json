@@ -42,7 +42,6 @@
     "bundleDependencies": [],
     "private": false,
     "directories": {
-        "perl": "perl",
         "test": "test"
     },
     "main": "wtfgenes.js",
