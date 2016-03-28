@@ -1,7 +1,7 @@
 // for use with mocha test framework
 
-var Ontology = require('../ontology'),
-    Assocs = require('../assocs'),
+var Ontology = require('../lib/ontology'),
+    Assocs = require('../lib/assocs'),
     assert = require('assert')
 
 describe('Assocs', function() {

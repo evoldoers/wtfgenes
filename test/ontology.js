@@ -1,6 +1,6 @@
 // for use with mocha test framework
 
-var Ontology = require('../ontology'),
+var Ontology = require('../lib/ontology'),
     assert = require('assert')
 
 describe('Ontology', function() {

@@ -1,11 +1,11 @@
 // for use with mocha test framework
 
-var Ontology = require('../ontology'),
-    Assocs = require('../assocs'),
-    Model = require('../model'),
-    MCMC = require('../mcmc'),
+var Ontology = require('../lib/ontology'),
+    Assocs = require('../lib/assocs'),
+    Model = require('../lib/model'),
+    MCMC = require('../lib/mcmc'),
     MersenneTwister = require('mersennetwister'),
-    util = require('../util'),
+    util = require('../lib/util'),
     assert = require('assert')
 
 describe('MCMC', function() {

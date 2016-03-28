@@ -3,7 +3,7 @@
 var fs = require('fs'),
     path = require('path'),
     getopt = require('node-getopt'),
-    goa2json = require('./converters').goa2json
+    goa2json = require('../lib/converters').goa2json
 
 var opt = getopt.create([
     ['d' , 'database-id'      , 'use database ID, rather than gene symbol'],

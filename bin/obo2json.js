@@ -3,7 +3,7 @@
 var fs = require('fs'),
     path = require('path'),
     getopt = require('node-getopt'),
-    obo2json = require('./converters').obo2json
+    obo2json = require('../lib/converters').obo2json
 
 var opt = getopt.create([
     ['e' , 'expand'           , 'do not compress output'],
