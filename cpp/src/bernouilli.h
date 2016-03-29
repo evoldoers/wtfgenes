@@ -7,24 +7,24 @@
 #include "vguard.h"
 #include "logsumexp.h"
 
-LogProb logBetaBernouilli (double alpha, double beta, double succ, double fail);
+LogProb logBetaBernoulli (double alpha, double beta, double succ, double fail);
 
-typedef string BernouilliParamName;
-typedef int BernouilliParamIndex;
-typedef vector<double> BernouilliParams;
+typedef string BernoulliParamName;
+typedef int BernoulliParamIndex;
+typedef vector<double> BernoulliParams;
 
-class BernouilliCounts {
+class BernoulliCounts {
 public:
-  map<BernouilliParamIndex,int> succ, fail;
+  map<BernoulliParamIndex,int> succ, fail;
 
-  LogProb logBetaBernouilli (const BernouilliCounts& prior) const;
-  LogProb deltaLogBetaBernouilli (const BernouilliCounts& old) const;
+  LogProb logBetaBernoulli (const BernoulliCounts& prior) const;
+  LogProb deltaLogBetaBernoulli (const BernoulliCounts& old) const;
 
   template<class Generator>
-  BernouilliParams sampleParams (Generator& generator) const {
-    map<BernouilliParamIndex,int> mySucc(succ), myFail(fail);  // copy to leverage default-constructible property of map
+  BernoulliParams sampleParams (Generator& generator) const {
+    map<BernoulliParamIndex,int> mySucc(succ), myFail(fail);  // copy to leverage default-constructible property of map
     auto idx = allIndices();
-    BernouilliParams p (idx.size() ? (*idx.rbegin() + 1) : 0);
+    BernoulliParams p (idx.size() ? (*idx.rbegin() + 1) : 0);
     for (auto i : allIndices()) {
       gamma_distribution<double> gamma (mySucc[i] + 1, myFail[i] + 1);
       p[i] = gamma (generator);
@@ -32,24 +32,24 @@ public:
     return p;
   }
 
-  BernouilliCounts& operator+= (const BernouilliCounts& c);
+  BernoulliCounts& operator+= (const BernoulliCounts& c);
 
 private:
-  set<BernouilliParamIndex> allIndices() const;
-  set<BernouilliParamIndex> combinedIndices (const BernouilliCounts& other) const;
+  set<BernoulliParamIndex> allIndices() const;
+  set<BernoulliParamIndex> combinedIndices (const BernoulliCounts& other) const;
 };
 
-struct BernouilliParamSet {
-  vguard<BernouilliParamName> paramName;
-  map<BernouilliParamName,BernouilliParamIndex> paramIndex;
+struct BernoulliParamSet {
+  vguard<BernoulliParamName> paramName;
+  map<BernoulliParamName,BernoulliParamIndex> paramIndex;
 
-  void addParam (const BernouilliParamName& name) {
+  void addParam (const BernoulliParamName& name) {
     if (!paramIndex.count(name)) {
       paramIndex[name] = params();
       paramName.push_back (name);
     }
   }
-  BernouilliParamIndex params() const { return paramName.size(); }
+  BernoulliParamIndex params() const { return paramName.size(); }
 };
 
 #endif /* BERNOUILLI_INCLUDED */

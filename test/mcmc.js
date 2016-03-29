@@ -145,7 +145,7 @@ describe('MCMC', function() {
 	    model.setTermStates (bitVecToTermStateAssignment (bitVec))
 	    assert.equal (getModelStateAsBitVec (model), bitVec)
 	    var counts = model.getCounts()
-	    var ll = counts.logBetaBernouilliLikelihood (prior)
+	    var ll = counts.logBetaBernoulliLikelihood (prior)
 	    state.push (model.toJSON())
 	    stateLogLike.push (ll)
 	    if (bitVec == 0 || ll > maxLogLike)

@@ -1,18 +1,18 @@
 #include <gsl/gsl_sf_gamma.h>
-#include "bernouilli.h"
+#include "bernoulli.h"
 
-LogProb logBetaBernouilli (double alpha, double beta, double succ, double fail) {
+LogProb logBetaBernoulli (double alpha, double beta, double succ, double fail) {
   return gsl_sf_lnbeta (alpha + succ, beta + fail) - gsl_sf_lnbeta (alpha, beta);
 }
 
-set<BernouilliParamIndex> BernouilliCounts::combinedIndices (const BernouilliCounts& other) const {
-  set<BernouilliParamIndex> idx = allIndices(), otherIdx = other.allIndices();
+set<BernoulliParamIndex> BernoulliCounts::combinedIndices (const BernoulliCounts& other) const {
+  set<BernoulliParamIndex> idx = allIndices(), otherIdx = other.allIndices();
   idx.insert (otherIdx.begin(), otherIdx.end());
   return idx;
 }
 
-set<BernouilliParamIndex> BernouilliCounts::allIndices() const {
-  set<BernouilliParamIndex> idx;
+set<BernoulliParamIndex> BernoulliCounts::allIndices() const {
+  set<BernoulliParamIndex> idx;
   for (auto& pc : succ)
     idx.insert (pc.first);
   for (auto& pc : fail)
@@ -20,16 +20,16 @@ set<BernouilliParamIndex> BernouilliCounts::allIndices() const {
   return idx;
 }
 
-LogProb BernouilliCounts::logBetaBernouilli (const BernouilliCounts& prior) const {
+LogProb BernoulliCounts::logBetaBernoulli (const BernoulliCounts& prior) const {
   auto priorSucc(prior.succ), priorFail(prior.fail),
     mySucc(succ), myFail(fail);  // make copies to leverage default-constructible properties of map
   LogProb lp = 0;
   for (auto n : combinedIndices(prior))
-    lp += ::logBetaBernouilli (priorSucc[n] + 1, priorFail[n] + 1, mySucc[n], myFail[n]);
+    lp += ::logBetaBernoulli (priorSucc[n] + 1, priorFail[n] + 1, mySucc[n], myFail[n]);
   return lp;
 }
 
-LogProb BernouilliCounts::deltaLogBetaBernouilli (const BernouilliCounts& delta) const {
+LogProb BernoulliCounts::deltaLogBetaBernoulli (const BernoulliCounts& delta) const {
   auto deltaSucc(delta.succ), deltaFail(delta.fail),
     oldSucc(succ), oldFail(fail);  // make copies to leverage default-constructible properties of map
   LogProb lp = 0;
@@ -39,7 +39,7 @@ LogProb BernouilliCounts::deltaLogBetaBernouilli (const BernouilliCounts& delta)
   return lp;
 }
 
-BernouilliCounts& BernouilliCounts::operator+= (const BernouilliCounts& c) {
+BernoulliCounts& BernoulliCounts::operator+= (const BernoulliCounts& c) {
   for (auto pc : c.succ)
     if ((succ[pc.first] += pc.second) == 0)
       succ.erase (pc.first);

@@ -1,9 +1,9 @@
 // for use with mocha test framework
 
-var Bernouilli = require('../lib/bernouilli').BernouilliParams,
+var Bernoulli = require('../lib/bernoulli').BernoulliParams,
     assert = require('assert')
 
-describe('BernouilliParams', function() {
+describe('BernoulliParams', function() {
 
     var json = { 'c': .5,
 		 'b': .25,
@@ -11,7 +11,7 @@ describe('BernouilliParams', function() {
 
     var params = [ 'a', 'b', 'c' ]
 
-    var bern = new Bernouilli (json)
+    var bern = new Bernoulli (json)
 
     describe('#constructor', function() {
         it('should parse correct number of params', function() {
@@ -58,7 +58,7 @@ describe('BernouilliParams', function() {
             assert.equal (a3b1Counts.fail.b, 1)
         })
 
-	describe('BernouilliCounts', function() {
+	describe('BernoulliCounts', function() {
 	    describe('#toJSON', function() {
 		it('should serialize and deserialize idempotently', function() {
 		    assert.deepEqual (a3b1Counts.toJSON(), a3b1Json)
@@ -108,7 +108,7 @@ describe('BernouilliParams', function() {
                 var abcMidJson = { 'c': .5,
 		                   'b': .5,
 		                   'a': .5 }
-                var midBern = new Bernouilli (abcMidJson)
+                var midBern = new Bernoulli (abcMidJson)
 	        var abcLaplace = midBern.newCounts(abcLaplaceJson)
 		it('should compute log of beta prior', function() {
 		    assert.equal (abcLaplace.logPrior(midBern), 3*Math.log(1.5))

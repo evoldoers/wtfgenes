@@ -155,7 +155,7 @@ describe('Model', function() {
     })
             
     describe('#getCounts', function() {
-        it('should return Bernouilli parameter counts', function() {
+        it('should return Bernoulli parameter counts', function() {
             assert.deepEqual (mutCount.toJSON(), {succ:{fp:3},fail:{t:8,fp:2}})
             assert.deepEqual (normCount.toJSON(), {succ:{fp:2},fail:{t:6,fp:3}})
 
