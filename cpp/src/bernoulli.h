@@ -49,7 +49,9 @@ struct BernoulliParamSet {
       paramName.push_back (name);
     }
   }
+
   BernoulliParamIndex params() const { return paramName.size(); }
+  BernoulliCounts laplaceCounts() const;
 };
 
 #endif /* BERNOUILLI_INCLUDED */

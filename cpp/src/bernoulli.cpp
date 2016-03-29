@@ -47,4 +47,12 @@ BernoulliCounts& BernoulliCounts::operator+= (const BernoulliCounts& c) {
     if ((fail[pc.first] += pc.second) == 0)
       fail.erase (pc.first);
   return *this;
+
+}
+
+BernoulliCounts BernoulliParamSet::laplaceCounts() const {
+  BernoulliCounts c;
+  for (BernoulliParamIndex p = 0; p < params(); ++p)
+    c.succ[p] = c.fail[p] = 1;
+  return c;
 }
