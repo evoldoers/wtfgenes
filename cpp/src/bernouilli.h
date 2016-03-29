@@ -13,12 +13,12 @@ typedef string BernouilliParamName;
 typedef int BernouilliParamIndex;
 typedef vector<double> BernouilliParams;
 
-class BernouilliParamCounts {
+class BernouilliCounts {
 public:
   map<BernouilliParamIndex,int> succ, fail;
 
-  LogProb logBetaBernouilli (const BernouilliParamCounts& prior) const;
-  LogProb deltaLogBetaBernouilli (const BernouilliParamCounts& old) const;
+  LogProb logBetaBernouilli (const BernouilliCounts& prior) const;
+  LogProb deltaLogBetaBernouilli (const BernouilliCounts& old) const;
 
   template<class Generator>
   BernouilliParams sampleParams (Generator& generator) const {
@@ -32,11 +32,11 @@ public:
     return p;
   }
 
-  BernouilliParamCounts& operator+= (const BernouilliParamCounts& c);
+  BernouilliCounts& operator+= (const BernouilliCounts& c);
 
 private:
   set<BernouilliParamIndex> allIndices() const;
-  set<BernouilliParamIndex> combinedIndices (const BernouilliParamCounts& other) const;
+  set<BernouilliParamIndex> combinedIndices (const BernouilliCounts& other) const;
 };
 
 struct BernouilliParamSet {

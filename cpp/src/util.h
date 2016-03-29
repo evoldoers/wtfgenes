@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <random>
 #include <functional>
 #include <cassert>
 #include <mutex>
@@ -122,4 +123,23 @@ std::vector<TV> extract_values(std::map<TK, TV> const& input_map) {
   }
   return retval;
 }    
+
+template<class T,class Generator>
+const T& random_element (const vector<T>& v, Generator& generator) {
+  std::uniform_int_distribution<size_t> distrib (0, v.size() - 1);
+  return v[distrib(generator)];
+}
+
+template<class T,class Generator>
+size_t random_index (const vector<T>& weights, Generator& generator) {
+  const T norm = accumulate (weights.begin(), weights.end(), 0);
+  Assert (norm > 0, "Negative weights in random_index");
+  std::uniform_real_distribution<T> distrib (0, norm);
+  T variate = distrib (generator);
+  size_t n = 0;
+  while (n < weights.size() && variate > 0)
+    variate -= weights[n++];
+  return n;
+}
+
 #endif /* UTIL_INCLUDED */
