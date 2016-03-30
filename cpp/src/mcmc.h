@@ -7,8 +7,8 @@ struct MCMC {
   typedef Ontology::TermName TermName;
   typedef Assocs::GeneName GeneName;
 
-  typedef map<TermName,double> TermProb;
-  typedef map<GeneName,double> GeneProb;
+  typedef Assocs::TermProb TermProb;
+  typedef Assocs::GeneProb GeneProb;
 
   typedef Model::RandomGenerator RandomGenerator;
 
@@ -35,7 +35,7 @@ struct MCMC {
 
   Parameterization parameterization;
 
-  vguard<GeneIndexSet> geneSets;
+  vguard<Assocs::GeneIndexSet> geneSets;
   vguard<Model> models;
   int nVariables;
 
@@ -61,7 +61,7 @@ struct MCMC {
     moveRate[Model::Flip] = moveRate[Model::Swap] = 1;
   }
 
-  void initModels (const vguard<GeneNameSet>& geneSets);
+  void initModels (const vguard<Assocs::GeneNameSet>& geneSets);
 
   BernoulliCounts computeCounts() const;
   BernoulliCounts computeCountsWithPrior() const;

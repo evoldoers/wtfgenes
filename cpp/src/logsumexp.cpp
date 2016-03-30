@@ -1,5 +1,6 @@
 #include <iostream>
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_sf_gamma.h>
 #include "logsumexp.h"
 #include "util.h"
 
@@ -78,4 +79,8 @@ double logDirichletPdf (const vector<double>& prob, const vector<double>& count)
   for (auto& c : countPlusOne)
     ++c;
   return log (gsl_ran_dirichlet_pdf (prob.size(), countPlusOne.data(), prob.data()));
+}
+
+double logBinomialCoefficient (int n, int k) {
+  return gsl_sf_lngamma(n+1) - gsl_sf_lngamma(k+1) - gsl_sf_lngamma(n-k+1);
 }

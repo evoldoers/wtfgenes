@@ -111,4 +111,6 @@ double logBetaPdf (double prob, double yesCount, double noCount);
 double logGammaPdf (double rate, double eventCount, double waitTime);
 double logDirichletPdf (const vector<double>& prob, const vector<double>& count);
 
+double logBinomialCoefficient (int n, int k);
+
 #endif /* LOGSUMEXP_INCLUDED */

@@ -1,6 +1,6 @@
 #include "mcmc.h"
 
-void MCMC::initModels (const vguard<GeneNameSet>& geneSets) {
+void MCMC::initModels (const vguard<Assocs::GeneNameSet>& geneSets) {
   models.reserve (models.size() + geneSets.size());
   for (auto& gs : geneSets) {
     models.push_back (Model (assocs, parameterization));
@@ -64,4 +64,23 @@ void MCMC::run (size_t nSamples) {
 	++geneFalseOccupancy[n][g];
     }
   }
+}
+
+MCMC::Summary MCMC::summary() const {
+  Summary summ;
+  summ.prior = prior;
+  summ.moveRate = moveRate;
+  for (ModelIndex m = 0; m < models.size(); ++m) {
+    auto& model = models[m];
+    GeneSetSummary gss;
+    for (auto t: model.relevantTerms)
+      gss.termPosterior[assocs.ontology.termName[t]] = termStateOccupancy[m][t] / (double) samples;
+    for (Assocs::GeneIndex g = 0; g < assocs.genes(); ++g) {
+      GeneProb& geneProb (model.inGeneSet[g] ? gss.geneFalsePosPosterior : gss.geneFalseNegPosterior);
+      geneProb[assocs.geneName[g]] = geneFalseOccupancy[m][g] / (double) samples;
+    }
+    gss.hypergeometricPValue = assocs.hypergeometricPValues (geneSets[m]);
+    summ.geneSetSummary.push_back (gss);
+  }
+  return summ;
 }

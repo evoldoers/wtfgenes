@@ -3,8 +3,11 @@
 
 #include <algorithm>
 #include <list>
+#include <map>
+#include <set>
 #include "ontology.h"
 #include "util.h"
+#include "logsumexp.h"
 
 struct Assocs {
   typedef string GeneName;
@@ -13,6 +16,12 @@ struct Assocs {
   typedef Ontology::TermName TermName;
 
   typedef list<pair<GeneName,TermName> > GeneTermList;
+
+  typedef set<GeneIndex> GeneIndexSet;
+  typedef list<GeneName> GeneNameSet;
+
+  typedef map<TermName,double> TermProb;
+  typedef map<GeneName,double> GeneProb;
 
   const Ontology& ontology;
   vguard<GeneName> geneName;
@@ -59,6 +68,32 @@ struct Assocs {
     }
     if (missing.size())
       throw new runtime_error((string("Terms not found in the ontology: ") + join(missing)).c_str());
+  }
+
+  TermProb hypergeometricPValues (const GeneIndexSet& geneSet) const {
+    TermProb hyp;
+    for (TermIndex t = 0; t < terms(); ++t) {
+      int genesForTermInSet = 0;
+      for (auto g: genesByTerm[t])
+	if (geneSet.count(g))
+	  ++genesForTermInSet;
+      const int n = genes(),
+	nPresent = genesByTerm[t].size(),
+	nAbsent = n - nPresent,
+	nInSet = geneSet.size(),
+	logDenominator = logBinomialCoefficient(n,nInSet);
+      double p = 0;
+      for (int nPresentInSet = genesForTermInSet;
+	   nPresentInSet <= nInSet && nPresentInSet <= nPresent;
+	   ++nPresentInSet) {
+	const int nAbsentInSet = nInSet - nPresentInSet;
+	p += exp (logBinomialCoefficient(nPresent,nPresentInSet)
+		  + logBinomialCoefficient(nAbsent,nAbsentInSet)
+		  - logDenominator);
+      }
+      hyp[ontology.termName[t]] = p;
+    }
+    return hyp;
   }
 };
 
