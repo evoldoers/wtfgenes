@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <deque>
 #include "ontology.h"
+#include "regexmacros.h"
 
 vguard<Ontology::TermIndex> Ontology::toposortTermIndex() const {
   deque<TermIndex> S;
@@ -55,7 +56,44 @@ vguard<set<Ontology::TermIndex> > Ontology::transitiveClosure() const {
   return tc;
 }
 
-void Ontology::parseOBO (ifstream& in) {
-  // WRITE ME
-  throw new runtime_error("unimplemented");
+
+const regex term_re ("\\[Term\\]" RE_DOT_STAR, regex_constants::basic);
+const regex id_re ("id: " RE_GROUP("GO:" RE_PLUS(RE_NUMERIC_CHAR_CLASS)) RE_DOT_STAR, regex_constants::basic);
+const regex isa_re ("is_a: " RE_GROUP("GO:" RE_PLUS(RE_NUMERIC_CHAR_CLASS)) RE_DOT_STAR, regex_constants::basic);
+const regex relationship_re ("relationship: part_of " RE_GROUP("GO:" RE_PLUS(RE_NUMERIC_CHAR_CLASS)) RE_DOT_STAR, regex_constants::basic);
+const regex obsolete_re ("is_obsolete" RE_DOT_STAR, regex_constants::basic);
+
+void Ontology::parseOBO (istream& in) {
+  smatch sm;
+  TermName id;
+  set<TermName> parents;
+  TermParentsMap tp;
+  auto clear = [&]() -> void
+    {
+	id.clear();
+	parents.clear();
+    };
+  auto addTerm = [&]() -> void
+    {
+      if (id.size()) {
+	tp[id] = parents;
+	clear();
+      }
+    };
+  while (in && !in.eof()) {
+    string line;
+    getline(in,line);
+    if (regex_match (line, term_re))
+      addTerm();
+    else if (regex_match (line, sm, id_re))
+      id = sm.str(1);
+    else if (regex_match (line, sm, isa_re))
+      parents.insert (sm.str(1));
+    else if (regex_match (line, sm, relationship_re))
+      parents.insert (sm.str(1));
+    else if (regex_match (line, obsolete_re))
+      clear();
+  }
+  addTerm();
+  init (tp);
 }
