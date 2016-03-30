@@ -56,7 +56,6 @@ vguard<set<Ontology::TermIndex> > Ontology::transitiveClosure() const {
   return tc;
 }
 
-
 const regex term_re ("\\[Term\\]" RE_DOT_STAR, regex_constants::basic);
 const regex id_re ("id: " RE_GROUP("GO:" RE_PLUS(RE_NUMERIC_CHAR_CLASS)) RE_DOT_STAR, regex_constants::basic);
 const regex isa_re ("is_a: " RE_GROUP("GO:" RE_PLUS(RE_NUMERIC_CHAR_CLASS)) RE_DOT_STAR, regex_constants::basic);

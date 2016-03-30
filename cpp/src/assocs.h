@@ -71,7 +71,8 @@ struct Assocs {
   }
 
   void parseGOA (istream& in);
-
+  static GeneNameSet parseGeneSet (istream& in);
+  
   TermProb hypergeometricPValues (const GeneIndexSet& geneSet) const {
     TermProb hyp;
     for (TermIndex t = 0; t < terms(); ++t) {
