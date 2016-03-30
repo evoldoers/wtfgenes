@@ -81,8 +81,8 @@ void Ontology::parseOBO (istream& in) {
 	clear();
       }
     };
+  string line;
   while (in && !in.eof()) {
-    string line;
     getline(in,line);
     if (regex_search (line, term_re))
       addTerm();

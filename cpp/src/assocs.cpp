@@ -6,8 +6,8 @@ const regex nonwhite_re (RE_NONWHITE_CHAR_CLASS, regex_constants::basic);
 
 void Assocs::parseGOA (istream& in) {
   GeneTermList gt;
+  string line;
   while (in && !in.eof()) {
-    string line;
     getline(in,line);
     if (regex_search (line, bang_re))
       continue;
@@ -27,8 +27,8 @@ void Assocs::parseGOA (istream& in) {
 
 Assocs::GeneNameSet Assocs::parseGeneSet (istream& in) {
   GeneNameSet gs;
+  string line;
   while (in && !in.eof()) {
-    string line;
     getline(in,line);
     if (regex_search (line, nonwhite_re))
       gs.push_back (line);
