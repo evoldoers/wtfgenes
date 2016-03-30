@@ -70,6 +70,8 @@ struct Assocs {
       throw new runtime_error((string("Terms not found in the ontology: ") + join(missing)).c_str());
   }
 
+  void parseGOA (istream& in);
+
   TermProb hypergeometricPValues (const GeneIndexSet& geneSet) const {
     TermProb hyp;
     for (TermIndex t = 0; t < terms(); ++t) {

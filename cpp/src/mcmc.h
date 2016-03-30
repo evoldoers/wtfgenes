@@ -27,6 +27,7 @@ struct MCMC {
     BernoulliCounts prior;
     MoveRate moveRate;
     vguard<GeneSetSummary> geneSetSummary;
+    string toJSON() const;
   };
 
   const Assocs& assocs;

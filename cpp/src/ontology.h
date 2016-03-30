@@ -22,7 +22,7 @@ struct Ontology {
   vguard<set<TermIndex> > transitiveClosure() const;
 
   void init (const TermParentsMap& termParents);
-  void parseOBO (ifstream& in);
+  void parseOBO (istream& in);
 };
 
 #endif /* ONTOLOGY_INCLUDED */
