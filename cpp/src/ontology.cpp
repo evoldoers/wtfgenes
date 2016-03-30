@@ -32,6 +32,8 @@ void Ontology::init (const TermParentsMap& termParents) {
   for (auto& tp : termParents) {
     termIndex[tp.first] = terms();
     termName.push_back (tp.first);
+    parents.push_back (vguard<TermIndex>());
+    children.push_back (vguard<TermIndex>());
   }
   for (auto& tp : termParents) {
     const TermIndex t = termIndex[tp.first];
@@ -56,11 +58,11 @@ vguard<set<Ontology::TermIndex> > Ontology::transitiveClosure() const {
   return tc;
 }
 
-const regex term_re ("\\[Term\\]" RE_DOT_STAR, regex_constants::basic);
-const regex id_re ("id: " RE_GROUP("GO:" RE_PLUS(RE_NUMERIC_CHAR_CLASS)) RE_DOT_STAR, regex_constants::basic);
-const regex isa_re ("is_a: " RE_GROUP("GO:" RE_PLUS(RE_NUMERIC_CHAR_CLASS)) RE_DOT_STAR, regex_constants::basic);
-const regex relationship_re ("relationship: part_of " RE_GROUP("GO:" RE_PLUS(RE_NUMERIC_CHAR_CLASS)) RE_DOT_STAR, regex_constants::basic);
-const regex obsolete_re ("is_obsolete" RE_DOT_STAR, regex_constants::basic);
+const regex term_re ("^\\[Term\\]", regex_constants::basic);
+const regex id_re ("^id: " RE_GROUP("GO:" RE_PLUS(RE_NUMERIC_CHAR_CLASS)), regex_constants::basic);
+const regex isa_re ("^is_a: " RE_GROUP("GO:" RE_PLUS(RE_NUMERIC_CHAR_CLASS)), regex_constants::basic);
+const regex relationship_re ("^relationship: part_of " RE_GROUP("GO:" RE_PLUS(RE_NUMERIC_CHAR_CLASS)), regex_constants::basic);
+const regex obsolete_re ("^is_obsolete", regex_constants::basic);
 
 void Ontology::parseOBO (istream& in) {
   smatch sm;
@@ -82,15 +84,15 @@ void Ontology::parseOBO (istream& in) {
   while (in && !in.eof()) {
     string line;
     getline(in,line);
-    if (regex_match (line, term_re))
+    if (regex_search (line, term_re))
       addTerm();
-    else if (regex_match (line, sm, id_re))
+    else if (regex_search (line, sm, id_re))
       id = sm.str(1);
-    else if (regex_match (line, sm, isa_re))
+    else if (regex_search (line, sm, isa_re))
       parents.insert (sm.str(1));
-    else if (regex_match (line, sm, relationship_re))
+    else if (regex_search (line, sm, relationship_re))
       parents.insert (sm.str(1));
-    else if (regex_match (line, obsolete_re))
+    else if (regex_search (line, obsolete_re))
       clear();
   }
   addTerm();

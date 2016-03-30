@@ -67,7 +67,7 @@ struct Assocs {
       }
     }
     if (missing.size())
-      throw new runtime_error((string("Terms not found in the ontology: ") + join(missing)).c_str());
+      throw runtime_error((string("Terms not found in the ontology: ") + join(missing)).c_str());
   }
 
   void parseGOA (istream& in);

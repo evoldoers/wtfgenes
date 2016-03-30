@@ -36,7 +36,7 @@ BOOSTFLAGS =
 BOOSTLIBS =
 ifneq (,$(BOOSTPREFIX))
 BOOSTFLAGS := -DUSE_BOOST -I$(BOOSTPREFIX)/include
-BOOSTLIBS := -L$(BOOSTPREFIX)/lib -lboost_regex
+BOOSTLIBS := -L$(BOOSTPREFIX)/lib -lboost_regex -lboost_program_options
 endif
 
 # install dir

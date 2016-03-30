@@ -41,7 +41,7 @@ public:
       case Flip: model->proposeFlipMove (*this, generator); break;
       case Swap: model->proposeSwapMove (*this, generator); break;
       case Randomize: model->proposeRandomizeMove (*this, generator); break;
-      default: throw new runtime_error("Unknown move type"); break;
+      default: throw runtime_error("Unknown move type"); break;
       }
     }
   };
