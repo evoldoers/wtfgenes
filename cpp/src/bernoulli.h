@@ -11,22 +11,24 @@ LogProb logBetaBernoulli (double alpha, double beta, double succ, double fail);
 
 typedef string BernoulliParamName;
 typedef int BernoulliParamIndex;
-typedef vector<double> BernoulliParams;
+typedef vguard<double> BernoulliParams;
 
 class BernoulliCounts {
 public:
-  map<BernoulliParamIndex,int> succ, fail;
+  vguard<int> succ, fail;
+
+  BernoulliCounts() { }
+  BernoulliCounts (size_t nParams) : succ(nParams), fail(nParams) { }
+  size_t nParams() const { return succ.size(); }
 
   LogProb logBetaBernoulli (const BernoulliCounts& prior) const;
   LogProb deltaLogBetaBernoulli (const BernoulliCounts& old) const;
 
   template<class Generator>
   BernoulliParams sampleParams (Generator& generator) const {
-    map<BernoulliParamIndex,int> mySucc(succ), myFail(fail);  // copy to leverage default-constructible property of map
-    auto idx = allIndices();
-    BernoulliParams p (idx.size() ? (*idx.rbegin() + 1) : 0);
-    for (auto i : allIndices()) {
-      gamma_distribution<double> gamma (mySucc[i] + 1, myFail[i] + 1);
+    BernoulliParams p (nParams());
+    for (BernoulliParamIndex i = 0; i < nParams(); ++i) {
+      gamma_distribution<double> gamma (succ[i] + 1, fail[i] + 1);
       p[i] = gamma (generator);
     }
     return p;
@@ -37,10 +39,7 @@ public:
   string toJSON (const vguard<BernoulliParamName>& params) const;
   
 private:
-  static string countsToJSON (const vguard<BernoulliParamName>& params, const map<int,int>& c);
-
-  set<BernoulliParamIndex> allIndices() const;
-  set<BernoulliParamIndex> combinedIndices (const BernoulliCounts& other) const;
+  static string countsToJSON (const vguard<BernoulliParamName>& params, const vguard<int>& c);
 };
 
 struct BernoulliParamSet {
@@ -49,12 +48,12 @@ struct BernoulliParamSet {
 
   void addParam (const BernoulliParamName& name) {
     if (!paramIndex.count(name)) {
-      paramIndex[name] = params();
+      paramIndex[name] = nParams();
       paramName.push_back (name);
     }
   }
 
-  BernoulliParamIndex params() const { return paramName.size(); }
+  BernoulliParamIndex nParams() const { return paramName.size(); }
   BernoulliCounts laplaceCounts() const;
 };
 

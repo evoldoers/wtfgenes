@@ -14,6 +14,7 @@ struct Parameterization {
   vguard<BernoulliParamIndex> termPrior, geneFalsePos, geneFalseNeg;
   BernoulliParamSet params;
   Parameterization (const Assocs& assocs);
+  int nParams() const { return params.nParams(); }
 };
 
 #ifdef LOG_RANDOM_NUMBERS

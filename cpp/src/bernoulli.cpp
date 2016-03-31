@@ -6,27 +6,10 @@ LogProb logBetaBernoulli (double alpha, double beta, double succ, double fail) {
   return gsl_sf_lnbeta (alpha + succ, beta + fail) - gsl_sf_lnbeta (alpha, beta);
 }
 
-set<BernoulliParamIndex> BernoulliCounts::combinedIndices (const BernoulliCounts& other) const {
-  set<BernoulliParamIndex> idx = allIndices(), otherIdx = other.allIndices();
-  idx.insert (otherIdx.begin(), otherIdx.end());
-  return idx;
-}
-
-set<BernoulliParamIndex> BernoulliCounts::allIndices() const {
-  set<BernoulliParamIndex> idx;
-  for (auto& pc : succ)
-    idx.insert (pc.first);
-  for (auto& pc : fail)
-    idx.insert (pc.first);
-  return idx;
-}
-
 LogProb BernoulliCounts::logBetaBernoulli (const BernoulliCounts& prior) const {
-  auto priorSucc(prior.succ), priorFail(prior.fail),
-    mySucc(succ), myFail(fail);  // make copies to leverage default-constructible properties of map
   LogProb lp = 0;
-  for (auto n : combinedIndices(prior))
-    lp += ::logBetaBernoulli (priorSucc[n] + 1, priorFail[n] + 1, mySucc[n], myFail[n]);
+  for (int n = 0; n < nParams(); ++n)
+    lp += ::logBetaBernoulli (prior.succ[n] + 1, prior.fail[n] + 1, succ[n], fail[n]);
   return lp;
 }
 
@@ -42,43 +25,38 @@ double cached_gsl_sf_lnbeta (int alpha, int beta) {
 }
 
 LogProb BernoulliCounts::deltaLogBetaBernoulli (const BernoulliCounts& delta) const {
-  auto deltaSucc(delta.succ), deltaFail(delta.fail),
-    oldSucc(succ), oldFail(fail);  // make copies to leverage default-constructible properties of map
   LogProb lp = 0;
-  for (auto n : combinedIndices(delta))
-    lp += gsl_sf_lnbeta (oldSucc[n] + deltaSucc[n] + 1, oldFail[n] + deltaFail[n] + 1)
-      - gsl_sf_lnbeta (oldSucc[n] + 1, oldFail[n] + 1);
+  for (int n = 0; n < nParams(); ++n)
+    if (delta.succ[n] != 0 || delta.fail[n] != 0)
+      lp += gsl_sf_lnbeta (succ[n] + delta.succ[n] + 1, fail[n] + delta.fail[n] + 1)
+	- gsl_sf_lnbeta (succ[n] + 1, fail[n] + 1);
   return lp;
 }
 
 BernoulliCounts& BernoulliCounts::operator+= (const BernoulliCounts& c) {
-  for (auto pc : c.succ)
-    if ((succ[pc.first] += pc.second) == 0)
-      succ.erase (pc.first);
-  for (auto pc : c.fail)
-    if ((fail[pc.first] += pc.second) == 0)
-      fail.erase (pc.first);
+  for (int n = 0; n < nParams(); ++n) {
+    succ[n] += c.succ[n];
+    fail[n] += c.fail[n];
+  }
   return *this;
-
 }
 
 string BernoulliCounts::toJSON (const vguard<BernoulliParamName>& params) const {
   return string("{\"succ\":") + countsToJSON(params,succ) + ",\"fail\":" + countsToJSON(params,fail) + "}";
 }
   
-string BernoulliCounts::countsToJSON (const vguard<BernoulliParamName>& params, const map<int,int>& c) {
+string BernoulliCounts::countsToJSON (const vguard<BernoulliParamName>& params, const vguard<int>& c) {
   ostringstream json;
   json << "{";
-  int n = 0;
-  for (auto& pc: c)
-    json << (n++ ? "," : "") << "\"" << params[pc.first] << "\":" << pc.second;
+  for (size_t n = 0; n < c.size(); ++n)
+    json << (n ? "," : "") << "\"" << params[n] << "\":" << c[n];
   json << "}";
   return json.str();
 }
 
 BernoulliCounts BernoulliParamSet::laplaceCounts() const {
-  BernoulliCounts c;
-  for (BernoulliParamIndex p = 0; p < params(); ++p)
+  BernoulliCounts c (nParams());
+  for (BernoulliParamIndex p = 0; p < nParams(); ++p)
     c.succ[p] = c.fail[p] = 1;
   return c;
 }

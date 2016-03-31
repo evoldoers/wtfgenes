@@ -93,8 +93,7 @@ Model::TermStateAssignment Model::invert (const TermStateAssignment& tsa) const 
 void Model::countTerm (BernoulliCounts& counts, int inc, TermIndex t, bool state) const {
   auto& countMap = state ? counts.succ : counts.fail;
   BernoulliParamIndex countParam = parameterization.termPrior[t];
-  if ((countMap[countParam] += inc) == 0)
-    countMap.erase (countParam);
+  countMap[countParam] += inc;
 }
 
 void Model::countObs (BernoulliCounts& counts, int inc, bool isActive, GeneIndex g) const {
@@ -102,12 +101,11 @@ void Model::countObs (BernoulliCounts& counts, int inc, bool isActive, GeneIndex
     isFalse = isActive ? !gInSet : gInSet;
   auto& countMap = isFalse ? counts.succ : counts.fail;
   BernoulliParamIndex countParam = (isActive ? parameterization.geneFalseNeg : parameterization.geneFalsePos)[g];
-  if ((countMap[countParam] += inc) == 0)
-    countMap.erase (countParam);
+  countMap[countParam] += inc;
 }
-    
+
 BernoulliCounts Model::getCounts() const {
-  BernoulliCounts counts;
+  BernoulliCounts counts (parameterization.nParams());
   for (auto t : relevantTerms)
     countTerm (counts, +1, t, termState[t]);
   for (GeneIndex g = 0; g < genes(); ++g)
@@ -117,7 +115,7 @@ BernoulliCounts Model::getCounts() const {
 
 BernoulliCounts Model::getCountDelta (const TermStateAssignment& tsa) const {
   map<GeneIndex,int> newActiveTermsByGene;
-  BernoulliCounts cd;
+  BernoulliCounts cd (parameterization.nParams());
   for (auto& ts : tsa) {
     const TermIndex t = ts.first;
     const bool val = ts.second;

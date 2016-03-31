@@ -85,7 +85,7 @@ int main (int argc, char** argv) {
     Parameterization parameterization (assocs);
     BernoulliParamSet& params (parameterization.params);
     
-    BernoulliCounts prior;
+    BernoulliCounts prior (params.nParams());
     prior.succ[params.paramIndex["t"]] = vm["terms"].as<int>();
     prior.fail[params.paramIndex["t"]] = vm.count("absent-terms") ? vm["absent-terms"].as<int>() : assocs.relevantTerms().size();
     prior.succ[params.paramIndex["fn"]] = vm["false-negatives"].as<int>();
