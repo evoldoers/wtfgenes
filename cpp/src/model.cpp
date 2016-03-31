@@ -17,7 +17,9 @@ Model::Model (const Assocs& assocs, const Parameterization& param)
     geneName (assocs.geneName),
     inGeneSet (assocs.genes(), false),
     isRelevant (assocs.terms(), false),
-    relevantNeighbors (assocs.terms())
+    relevantNeighbors (assocs.terms()),
+    termState (assocs.terms(), false),
+    nActiveTermsByGene (assocs.genes(), 0)
 { }
 
 void Model::init (const GeneNameSet& geneNames) {
@@ -173,4 +175,14 @@ bool Model::sampleMoveCollapsed (Move& move, BernoulliCounts& counts, RandomGene
   } else
     move.accepted = false;
   return move.accepted;
+}
+
+void Model::Move::propose (vguard<Model>& models, const vguard<double>& modelWeight, RandomGenerator& generator) {
+  model = &models [random_index (modelWeight, generator)];
+  switch (type) {
+  case Flip: model->proposeFlipMove (*this, generator); break;
+  case Swap: model->proposeSwapMove (*this, generator); break;
+  case Randomize: model->proposeRandomizeMove (*this, generator); break;
+  default: throw runtime_error("Unknown move type"); break;
+  }
 }

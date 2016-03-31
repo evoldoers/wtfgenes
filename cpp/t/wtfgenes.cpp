@@ -6,6 +6,7 @@
 #include "../src/bernoulli.h"
 #include "../src/model.h"
 #include "../src/mcmc.h"
+#include "../src/logger.h"
 
 namespace po = boost::program_options;
 
@@ -30,12 +31,15 @@ int main (int argc, char** argv) {
       ("swap-rate,S", po::value<int>()->default_value(1), "relative rate of term-swapping moves")
       ("randomize-rate,R", po::value<int>()->default_value(1), "relative rate of term-randomizing moves")
       ("rnd-seed,r", po::value<int>()->default_value(123456789), "seed random number generator")
+      ("verbose,v", po::value<int>()->default_value(1), "verbosity level")
       ;
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);    
-  
+
+    logger.setVerbose (vm["verbose"].as<int>());
+    
     if (vm.count("help")) {
       cout << desc << "\n";
       return 1;
@@ -46,7 +50,7 @@ int main (int argc, char** argv) {
       auto ontologyPath = vm["ontology"].as<string>();
       ifstream in (ontologyPath);
       ontology.parseOBO (in);
-      cerr << "Read " << ontology.terms() << "-term ontology from " << ontologyPath << endl;
+      LogThisAt(1,"Read " << ontology.terms() << "-term ontology from " << ontologyPath << endl);
     } else {
       throw runtime_error ("You must specify an ontology");
     }
@@ -56,22 +60,21 @@ int main (int argc, char** argv) {
       auto assocsPath = vm["assocs"].as<string>();
       ifstream in (assocsPath);
       assocs.parseGOA (in);
-      cerr << "Read " << assocs.nAssocs << " associations (" << assocs.genes() << " genes, " << assocs.relevantTerms().size() << " terms) from " << assocsPath << endl;
+      LogThisAt(1,"Read " << assocs.nAssocs << " associations (" << assocs.genes() << " genes, " << assocs.relevantTerms().size() << " terms) from " << assocsPath << endl);
     } else {
       throw runtime_error ("You must specify a gene-term associations file");
     }
 
-    list<Assocs::GeneNameSet> geneSets;
+    vguard<Assocs::GeneNameSet> geneSets;
     if (vm.count("genes")) {
       auto geneSetPaths = vm["genes"].as<vector<string> >();
       for (const auto& geneSetPath: geneSetPaths) {
 	ifstream in (geneSetPath);
 	geneSets.push_back (Assocs::parseGeneSet (in));
-	cerr << "Read " << geneSets.back().size() << " genes from " << geneSetPath << endl;
+	LogThisAt(1,"Read " << geneSets.back().size() << " genes from " << geneSetPath << endl);
       }
-    } else {
+    } else
       throw runtime_error ("You must specify at least one file of gene names (one per line)");
-    }
 
     Parameterization parameterization (assocs);
     BernoulliParamSet& params (parameterization.params);
@@ -90,7 +93,11 @@ int main (int argc, char** argv) {
     mcmc.moveRate[Model::Swap] = vm["swap-rate"].as<int>();
     mcmc.moveRate[Model::Randomize] = vm["randomize-rate"].as<int>();
     
-    const int nSamples = vm["samples"].as<int>();
+    mcmc.initModels (geneSets);
+
+    const int samplesPerTerm = vm["samples"].as<int>(), nSamples = samplesPerTerm * mcmc.nVariables;
+    LogThisAt(1,"Model has " << mcmc.nVariables << " variables; running MCMC for " << nSamples << " steps" << endl);
+    
     mcmc.run (nSamples);
 
     auto summ = mcmc.summary();

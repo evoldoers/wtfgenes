@@ -136,10 +136,10 @@ size_t random_index (const std::vector<T>& weights, Generator& generator) {
   Assert (norm > 0, "Negative weights in random_index");
   std::uniform_real_distribution<T> distrib (0, norm);
   T variate = distrib (generator);
-  size_t n = 0;
-  while (n < weights.size() && variate > 0)
-    variate -= weights[n++];
-  return n;
+  for (size_t n = 0; n < weights.size(); ++n)
+    if ((variate -= weights[n]) <= 0)
+      return n;
+  return weights.size();
 }
 
 #endif /* UTIL_INCLUDED */

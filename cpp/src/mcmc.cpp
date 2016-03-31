@@ -1,16 +1,19 @@
 #include "mcmc.h"
+#include "logger.h"
 
-void MCMC::initModels (const vguard<Assocs::GeneNameSet>& geneSets) {
+void MCMC::initModels (const vguard<Assocs::GeneNameSet>& geneNameSets) {
   models.reserve (models.size() + geneSets.size());
-  for (auto& gs : geneSets) {
+  for (auto& gs : geneNameSets) {
     models.push_back (Model (assocs, parameterization));
     models.back().init (gs);
+    geneSets.push_back (models.back().geneSet);
     const size_t vars = models.back().relevantTerms.size();
     modelWeight.push_back (vars);
     nVariables += vars;
     termStateOccupancy.push_back (vguard<int> (assocs.terms()));
     geneFalseOccupancy.push_back (vguard<int> (assocs.genes()));
   }
+  countsWithPrior = computeCountsWithPrior();
 }
 
 BernoulliCounts MCMC::computeCounts() const {
@@ -40,7 +43,13 @@ void MCMC::run (size_t nSamples) {
   MoveRate mr = moveRate;
   mr[Model::Swap] = 0;  // set this later: it depends on number of active terms
 
+  ProgressLog (plog, 1);
+  plog.initProgress ("MCMC sampling run (%u models, %u variables)", models.size(), nVariables);
+
   for (size_t sample = 0; sample < nSamples; ++sample) {
+
+    plog.logProgress (sample / (double) (nSamples - 1), "sample %u/%u", sample + 1, nSamples);
+
     vguard<size_t> nActiveTerms;
     nActiveTerms.reserve (models.size());
     for (auto& m : models)

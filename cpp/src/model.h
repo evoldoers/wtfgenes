@@ -35,15 +35,7 @@ public:
     double proposalHastingsRatio, hastingsRatio;
     bool accepted;
     Move() : proposalHastingsRatio(1) { }
-    void propose (vguard<Model>& models, const vguard<double>& modelWeight, RandomGenerator& generator) {
-      model = &models [random_index (modelWeight, generator)];
-      switch (type) {
-      case Flip: model->proposeFlipMove (*this, generator); break;
-      case Swap: model->proposeSwapMove (*this, generator); break;
-      case Randomize: model->proposeRandomizeMove (*this, generator); break;
-      default: throw runtime_error("Unknown move type"); break;
-      }
-    }
+    void propose (vguard<Model>& models, const vguard<double>& modelWeight, RandomGenerator& generator);
   };
 
   const Assocs& assocs;

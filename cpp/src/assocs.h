@@ -32,6 +32,7 @@ struct Assocs {
 
   Assocs (const Ontology& ontology)
     : ontology(ontology),
+      genesByTerm(ontology.terms()),
       nAssocs(0)
   { }
 

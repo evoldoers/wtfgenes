@@ -41,7 +41,7 @@ struct MCMC {
 
   vguard<Assocs::GeneIndexSet> geneSets;
   vguard<Model> models;
-  int nVariables;
+  size_t nVariables;
 
   BernoulliCounts countsWithPrior;
 

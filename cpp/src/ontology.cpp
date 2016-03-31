@@ -29,19 +29,20 @@ vguard<Ontology::TermIndex> Ontology::toposortTermIndex() const {
 }
 
 void Ontology::init (const TermParentsMap& termParents) {
-  for (auto& tp : termParents) {
-    termIndex[tp.first] = terms();
-    termName.push_back (tp.first);
-    parents.push_back (vguard<TermIndex>());
-    children.push_back (vguard<TermIndex>());
-  }
+  auto newTerm = [&](const TermName& term) -> void
+    {
+      termIndex[term] = terms();
+      termName.push_back (term);
+      parents.push_back (vguard<TermIndex>());
+      children.push_back (vguard<TermIndex>());
+    };
+  for (auto& tp : termParents)
+    newTerm (tp.first);
   for (auto& tp : termParents) {
     const TermIndex t = termIndex[tp.first];
     for (auto& pn : tp.second) {
-      if (!termIndex.count(pn)) {
-	termIndex[pn] = terms();
-	termName.push_back (pn);
-      }
+      if (!termIndex.count(pn))
+	newTerm (pn);
       const TermIndex p = termIndex[pn];
       parents[t].push_back (p);
       children[p].push_back (t);
@@ -52,9 +53,11 @@ void Ontology::init (const TermParentsMap& termParents) {
 vguard<set<Ontology::TermIndex> > Ontology::transitiveClosure() const {
   vguard<set<TermIndex> > tc (terms());
   auto L = toposortTermIndex();
-  for (TermIndex n : L)
+  for (TermIndex n : L) {
+    tc[n].insert (n);
     for (TermIndex p : parents[n])
       tc[n].insert (tc[p].begin(), tc[p].end());
+  }
   return tc;
 }
 
