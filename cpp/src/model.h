@@ -36,6 +36,7 @@ public:
     bool accepted;
     Move() : proposalHastingsRatio(1) { }
     void propose (vguard<Model>& models, const vguard<double>& modelWeight, RandomGenerator& generator);
+    string toJSON() const;
   };
 
   const Assocs& assocs;
@@ -81,6 +82,8 @@ public:
 
   bool sampleMoveCollapsed (Move& move, BernoulliCounts& counts, RandomGenerator& generator);
 
+  string tsaToJSON (const TermStateAssignment& tsa) const;
+  
 private:
   void countTerm (BernoulliCounts& counts, int inc, TermIndex t, bool state) const;
   void countObs (BernoulliCounts& counts, int inc, bool isActive, GeneIndex g) const;

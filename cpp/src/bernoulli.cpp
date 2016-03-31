@@ -1,3 +1,4 @@
+#include <sstream>
 #include <gsl/gsl_sf_gamma.h>
 #include "bernoulli.h"
 
@@ -48,6 +49,20 @@ BernoulliCounts& BernoulliCounts::operator+= (const BernoulliCounts& c) {
       fail.erase (pc.first);
   return *this;
 
+}
+
+string BernoulliCounts::toJSON (const vguard<BernoulliParamName>& params) const {
+  return string("{\"succ\":") + countsToJSON(params,succ) + ",\"fail\":" + countsToJSON(params,fail) + "}";
+}
+  
+string BernoulliCounts::countsToJSON (const vguard<BernoulliParamName>& params, const map<int,int>& c) {
+  ostringstream json;
+  json << "{";
+  int n = 0;
+  for (auto& pc: c)
+    json << (n++ ? "," : "") << "\"" << params[pc.first] << "\":" << pc.second;
+  json << "}";
+  return json.str();
 }
 
 BernoulliCounts BernoulliParamSet::laplaceCounts() const {

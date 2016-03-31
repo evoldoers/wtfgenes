@@ -34,7 +34,11 @@ public:
 
   BernoulliCounts& operator+= (const BernoulliCounts& c);
 
+  string toJSON (const vguard<BernoulliParamName>& params) const;
+  
 private:
+  static string countsToJSON (const vguard<BernoulliParamName>& params, const map<int,int>& c);
+
   set<BernoulliParamIndex> allIndices() const;
   set<BernoulliParamIndex> combinedIndices (const BernoulliCounts& other) const;
 };

@@ -39,6 +39,7 @@ Assocs::GeneNameSet Assocs::parseGeneSet (istream& in) {
 void Assocs::init (GeneTermList& geneTermList) {
   auto closure = ontology.transitiveClosure();
   set<TermName> missing;
+  vguard<set<GeneIndex> > genesByTerm_set (terms());
   for (auto& gt : geneTermList) {
     if (!geneIndex.count(gt.first)) {
       geneIndex[gt.first] = genes();
@@ -52,10 +53,14 @@ void Assocs::init (GeneTermList& geneTermList) {
       const auto& terms = closure[ontology.termIndex.at(gt.second)];
       termsByGene[g].insert (terms.begin(), terms.end());
       for (auto t : terms)
-	genesByTerm[t].push_back (g);
+	genesByTerm_set[t].insert (g);
       nAssocs += terms.size();
     }
   }
   if (missing.size())
     throw runtime_error((string("Terms not found in the ontology: ") + join(missing)).c_str());
+  for (TermIndex t = 0; t < terms(); ++t) {
+    genesByTerm_set[t].insert (genesByTerm[t].begin(), genesByTerm[t].end());
+    genesByTerm[t] = vguard<GeneIndex> (genesByTerm_set[t].begin(), genesByTerm_set[t].end());
+  }
 }

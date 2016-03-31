@@ -63,6 +63,8 @@ void MCMC::run (size_t nSamples) {
     move.propose (models, modelWeight, generator);
     move.model->sampleMoveCollapsed (move, countsWithPrior, generator);
 
+    LogThisAt(2,"Move #" << (samples+1) << ": " << move.toJSON() << endl);
+    
     ++samples;
 
     for (ModelIndex n = 0; n < models.size(); ++n) {
@@ -75,7 +77,7 @@ void MCMC::run (size_t nSamples) {
   }
 }
 
-MCMC::Summary MCMC::summary() const {
+MCMC::Summary MCMC::summary (double postProbThreshold, double pValueThreshold) const {
   Summary summ;
   summ.params = params;
   summ.prior = prior;
@@ -83,13 +85,18 @@ MCMC::Summary MCMC::summary() const {
   for (ModelIndex m = 0; m < models.size(); ++m) {
     auto& model = models[m];
     GeneSetSummary gss;
-    for (auto t: model.relevantTerms)
-      gss.termPosterior[assocs.ontology.termName[t]] = termStateOccupancy[m][t] / (double) samples;
+    for (auto t: model.relevantTerms) {
+      const double p = termStateOccupancy[m][t] / (double) samples;
+      if (p >= postProbThreshold)
+	gss.termPosterior[assocs.ontology.termName[t]] = p;
+    }
     for (Assocs::GeneIndex g = 0; g < assocs.genes(); ++g) {
       GeneProb& geneProb (model.inGeneSet[g] ? gss.geneFalsePosPosterior : gss.geneFalseNegPosterior);
-      geneProb[assocs.geneName[g]] = geneFalseOccupancy[m][g] / (double) samples;
+      const double p = geneFalseOccupancy[m][g] / (double) samples;
+      if (p >= postProbThreshold)
+	geneProb[assocs.geneName[g]] = p;
     }
-    gss.hypergeometricPValue = assocs.hypergeometricPValues (geneSets[m]);
+    gss.hypergeometricPValue = assocs.hypergeometricPValues (geneSets[m], pValueThreshold);
     summ.geneSetSummary.push_back (gss);
   }
   return summ;

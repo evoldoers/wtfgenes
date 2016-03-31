@@ -52,7 +52,7 @@ struct Assocs {
 
   static GeneNameSet parseGeneSet (istream& in);
   
-  TermProb hypergeometricPValues (const GeneIndexSet& geneSet) const {
+  TermProb hypergeometricPValues (const GeneIndexSet& geneSet, double pValueThreshold = .05) const {
     TermProb hyp;
     for (TermIndex t = 0; t < terms(); ++t) {
       int genesForTermInSet = 0;
@@ -73,7 +73,8 @@ struct Assocs {
 		  + logBinomialCoefficient(nAbsent,nAbsentInSet)
 		  - logDenominator);
       }
-      hyp[ontology.termName[t]] = p;
+      if (p <= pValueThreshold)
+	hyp[ontology.termName[t]] = p;
     }
     return hyp;
   }

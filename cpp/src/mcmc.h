@@ -72,7 +72,7 @@ struct MCMC {
   LogProb collapsedLogLikelihood() const;
 
   void run (size_t nSamples);
-  Summary summary() const;
+  Summary summary (double postProbThreshold = .01, double pValueThreshold = .05) const;
 };
 
 #endif /* MCMC_INCLUDED */

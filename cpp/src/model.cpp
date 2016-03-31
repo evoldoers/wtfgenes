@@ -186,3 +186,20 @@ void Model::Move::propose (vguard<Model>& models, const vguard<double>& modelWei
   default: throw runtime_error("Unknown move type"); break;
   }
 }
+
+string Model::tsaToJSON (const TermStateAssignment& tsa) const {
+  ostringstream json;
+  json << "{";
+  int n = 0;
+  for (auto& ts: tsa)
+    json << (n++ ? "," : "") << "\"" << termName[ts.first] << "\":" << ts.second;
+  json << "}";
+  return json.str();
+}
+
+string Model::Move::toJSON() const {
+  ostringstream json;
+  json << "{\"termStates\":" << model->tsaToJSON(termStates) << ",\"delta\":" << delta.toJSON(model->parameterization.params.paramName) << ",\"hastingsRatio\":" << hastingsRatio << ",\"accepted\":" << accepted << "}";
+  return json.str();
+}
+
