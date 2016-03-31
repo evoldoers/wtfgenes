@@ -69,7 +69,7 @@ std::string to_string_join (const Container& c, const char* sep = " ") {
 }
 
 /* split */
-std::vector<std::string> split (const std::string& s, const char* splitChars = " \t\n");
+std::vector<std::string> split (const std::string& s, const char* splitChars = " \t\n", bool allowEmptyFields = false);
 
 /* toupper */
 std::string toupper (const std::string& s);

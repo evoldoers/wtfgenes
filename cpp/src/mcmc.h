@@ -21,9 +21,12 @@ struct MCMC {
   struct GeneSetSummary {
     TermProb hypergeometricPValue, termPosterior;
     GeneProb geneFalsePosPosterior, geneFalseNegPosterior;
+    string toJSON() const;
+    static string probsToJson (const map<string,double>& p);
   };
 
   struct Summary {
+    BernoulliParamSet params;
     BernoulliCounts prior;
     MoveRate moveRate;
     vguard<GeneSetSummary> geneSetSummary;

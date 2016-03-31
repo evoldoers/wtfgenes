@@ -105,12 +105,13 @@ std::string plural (long n, const char* singular, const char* plural) {
   return s;
 }
 
-std::vector<std::string> split (const std::string& s, const char* splitChars) {
+std::vector<std::string> split (const std::string& s, const char* splitChars, bool allowEmptyFields) {
   std::vector<std::string> result;
   auto b = s.begin();
   while (true) {
-    while (b != s.end() && strchr (splitChars, *b) != NULL)
-      ++b;
+    if (!allowEmptyFields)
+      while (b != s.end() && strchr (splitChars, *b) != NULL)
+	++b;
     if (b == s.end())
       break;
     auto e = b;
@@ -118,6 +119,8 @@ std::vector<std::string> split (const std::string& s, const char* splitChars) {
       ++e;
     result.push_back (string (b, e));
     b = e;
+    if (b != s.end() && strchr (splitChars, *b) != NULL)
+      ++b;
   }
   return result;
 }

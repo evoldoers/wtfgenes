@@ -68,6 +68,7 @@ void MCMC::run (size_t nSamples) {
 
 MCMC::Summary MCMC::summary() const {
   Summary summ;
+  summ.params = params;
   summ.prior = prior;
   summ.moveRate = moveRate;
   for (ModelIndex m = 0; m < models.size(); ++m) {
@@ -83,4 +84,25 @@ MCMC::Summary MCMC::summary() const {
     summ.geneSetSummary.push_back (gss);
   }
   return summ;
+}
+
+string MCMC::GeneSetSummary::probsToJson (const map<string,double>& p) {
+  ostringstream json;
+  json << "{";
+  int n = 0;
+  for (auto& sd : p)
+    json << (n++ ? "," : "") << "\"" << sd.first << "\":" << sd.second;
+  json << "}";
+  return json.str();
+}
+
+string MCMC::GeneSetSummary::toJSON() const {
+  return string("{\"hypergeometricPValue\":{\"term\":") + probsToJson(hypergeometricPValue) + "},\"posteriorMarginal\":{\"term\":" + probsToJson(termPosterior) + ",\"gene\":{\"falsePos\":" + probsToJson(geneFalsePosPosterior) + ",\"falseNeg\":" + probsToJson(geneFalseNegPosterior) + "}}}";
+}
+
+string MCMC::Summary::toJSON() const {
+  vguard<string> summJson;
+  for (auto& gss: geneSetSummary)
+    summJson.push_back (gss.toJSON());
+  return string("{\"summary\":[") + join(summJson,",") + "]}";
 }

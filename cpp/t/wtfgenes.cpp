@@ -2,6 +2,10 @@
 #include <stdexcept>
 #include <boost/program_options.hpp>
 #include "../src/ontology.h"
+#include "../src/assocs.h"
+#include "../src/bernoulli.h"
+#include "../src/model.h"
+#include "../src/mcmc.h"
 
 namespace po = boost::program_options;
 
@@ -16,6 +20,16 @@ int main (int argc, char** argv) {
       ("assocs,a", po::value<string>(), "path to gene-term association file")
       ("genes,g", po::value<vector<string> >(), "path to gene-set file(s)")
       ("samples,s", po::value<int>()->default_value(100), "number of samples per term")
+      ("terms,T", po::value<int>()->default_value(1), "pseudocount: active terms")
+      ("absent-terms,t", po::value<int>(), "pseudocount: inactive terms (default=#terms)")
+      ("false-negatives,N", po::value<int>()->default_value(1), "pseudocount: false negatives")
+      ("true-positives,p", po::value<int>(), "pseudocount: true positives (default=#genes)")
+      ("false-positives,P", po::value<int>()->default_value(1), "pseudocount: false positives")
+      ("true-negatives,n", po::value<int>(), "pseudocount: true negatives (default=#genes)")
+      ("flip-rate,F", po::value<int>()->default_value(1), "relative rate of term-toggling moves")
+      ("swap-rate,S", po::value<int>()->default_value(1), "relative rate of term-swapping moves")
+      ("randomize-rate,R", po::value<int>()->default_value(1), "relative rate of term-randomizing moves")
+      ("rnd-seed,r", po::value<int>()->default_value(123456789), "seed random number generator")
       ;
 
     po::variables_map vm;
@@ -37,6 +51,51 @@ int main (int argc, char** argv) {
       throw runtime_error ("You must specify an ontology");
     }
 
+    Assocs assocs (ontology);
+    if (vm.count("assocs")) {
+      auto assocsPath = vm["assocs"].as<string>();
+      ifstream in (assocsPath);
+      assocs.parseGOA (in);
+      cerr << "Read " << assocs.nAssocs << " associations (" << assocs.genes() << " genes, " << assocs.relevantTerms().size() << " terms) from " << assocsPath << endl;
+    } else {
+      throw runtime_error ("You must specify a gene-term associations file");
+    }
+
+    list<Assocs::GeneNameSet> geneSets;
+    if (vm.count("genes")) {
+      auto geneSetPaths = vm["genes"].as<vector<string> >();
+      for (const auto& geneSetPath: geneSetPaths) {
+	ifstream in (geneSetPath);
+	geneSets.push_back (Assocs::parseGeneSet (in));
+	cerr << "Read " << geneSets.back().size() << " genes from " << geneSetPath << endl;
+      }
+    } else {
+      throw runtime_error ("You must specify at least one file of gene names (one per line)");
+    }
+
+    Parameterization parameterization (assocs);
+    BernoulliParamSet& params (parameterization.params);
+    
+    BernoulliCounts prior;
+    prior.succ[params.paramIndex["t"]] = vm["terms"].as<int>();
+    prior.fail[params.paramIndex["t"]] = vm.count("absent-terms") ? vm["absent-terms"].as<int>() : ontology.terms();
+    prior.succ[params.paramIndex["fn"]] = vm["false-negatives"].as<int>();
+    prior.fail[params.paramIndex["fn"]] = vm.count("true-positives") ? vm["true-positives"].as<int>() : assocs.genes();
+    prior.succ[params.paramIndex["fp"]] = vm["false-positives"].as<int>();
+    prior.fail[params.paramIndex["fp"]] = vm.count("true-negatives") ? vm["true-negatives"].as<int>() : assocs.genes();
+    
+    Model::RandomGenerator generator (vm["rnd-seed"].as<int>());
+    MCMC mcmc (assocs, parameterization.params, prior);
+    mcmc.moveRate[Model::Flip] = vm["flip-rate"].as<int>();
+    mcmc.moveRate[Model::Swap] = vm["swap-rate"].as<int>();
+    mcmc.moveRate[Model::Randomize] = vm["randomize-rate"].as<int>();
+    
+    const int nSamples = vm["samples"].as<int>();
+    mcmc.run (nSamples);
+
+    auto summ = mcmc.summary();
+    cout << summ.toJSON() << endl;
+    
   } catch (const std::exception& e) {
     cerr << e.what() << endl;
   }
