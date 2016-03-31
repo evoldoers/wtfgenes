@@ -30,6 +30,17 @@ LogProb BernoulliCounts::logBetaBernoulli (const BernoulliCounts& prior) const {
   return lp;
 }
 
+map<int,map<int,double> > gsl_sf_lnbeta_cache;
+double cached_gsl_sf_lnbeta (int alpha, int beta) {
+  auto i = gsl_sf_lnbeta_cache.find(alpha);
+  if (i != gsl_sf_lnbeta_cache.end()) {
+    auto j = i->second.find(beta);
+    if (j != i->second.end())
+      return j->second;
+  }
+  return gsl_sf_lnbeta_cache[alpha][beta] = gsl_sf_lnbeta(alpha,beta);
+}
+
 LogProb BernoulliCounts::deltaLogBetaBernoulli (const BernoulliCounts& delta) const {
   auto deltaSucc(delta.succ), deltaFail(delta.fail),
     oldSucc(succ), oldFail(fail);  // make copies to leverage default-constructible properties of map
