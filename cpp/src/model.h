@@ -1,15 +1,28 @@
 #ifndef MODEL_INCLUDED
 #define MODEL_INCLUDED
 
+#include <iostream>
 #include "ontology.h"
 #include "assocs.h"
 #include "bernoulli.h"
+#include "stacktrace.h"
+
+// uncomment to log random numbers
+// #define LOG_RANDOM_NUMBERS
 
 struct Parameterization {
   vguard<BernoulliParamIndex> termPrior, geneFalsePos, geneFalseNeg;
   BernoulliParamSet params;
   Parameterization (const Assocs& assocs);
 };
+
+#ifdef LOG_RANDOM_NUMBERS
+struct MTLogger : mt19937 {
+  MTLogger() : mt19937() { }
+  MTLogger(uint_fast32_t seed) : mt19937(seed) { }
+  uint_fast32_t operator()() { uint_fast32_t r = mt19937::operator()(); cerr << r << endl; return r; }
+};
+#endif /* LOG_RANDOM_NUMBERS */
 
 class Model {
 public:
@@ -22,7 +35,11 @@ public:
 
   typedef map<TermIndex,bool> TermStateAssignment;
 
+#ifdef LOG_RANDOM_NUMBERS
+  typedef MTLogger RandomGenerator;
+#else
   typedef mt19937 RandomGenerator;
+#endif /* LOG_RANDOM_NUMBERS */
 
   enum MoveType : size_t { Flip = 0, Swap = 1, Randomize = 2, TotalMoveTypes };
   struct Move {

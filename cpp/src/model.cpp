@@ -43,13 +43,16 @@ void Model::init (const GeneNameSet& geneNames) {
   relevantTerms = vguard<TermIndex> (relevant.begin(), relevant.end());
   for (auto t : relevantTerms)
     isRelevant[t] = true;
+
   for (auto t : relevantTerms) {
+    set<TermIndex> nbr;
     for (auto p : assocs.ontology.parents[t])
       if (isRelevant[p])
-	relevantNeighbors[t].push_back (p);
+	nbr.insert (p);
     for (auto c : assocs.ontology.children[t])
       if (isRelevant[c])
-	relevantNeighbors[t].push_back (c);
+	nbr.insert (c);
+    relevantNeighbors[t] = vguard<TermIndex> (nbr.begin(), nbr.end());
   }
 }
 
@@ -125,7 +128,7 @@ BernoulliCounts Model::getCountDelta (const TermStateAssignment& tsa) const {
       const int delta = val ? +1 : -1;
       for (auto g : assocs.genesByTerm[t]) {
 	const int oldCount = newActiveTermsByGene.count(g) ? newActiveTermsByGene[g] : nActiveTermsByGene[g];
-	const int newCount = (newActiveTermsByGene[g] += delta);
+	const int newCount = newActiveTermsByGene[g] = oldCount + delta;
 	const bool oldActive = oldCount > 0, newActive = newCount > 0;
 	if (oldActive != newActive) {
 	  countObs (cd, -1, oldActive, g);
@@ -159,16 +162,16 @@ void Model::proposeSwapMove (Move& move, RandomGenerator& generator) const {
 }
 
 void Model::proposeRandomizeMove (Move& move, RandomGenerator& generator) const {
-  bernoulli_distribution distrib (0.5);
   for (auto t : relevantTerms)
-    move.termStates[t] = distrib(generator);
+    move.termStates[t] = random_double(generator) > .5;
 }
 
 bool Model::sampleMoveCollapsed (Move& move, BernoulliCounts& counts, RandomGenerator& generator) {
   move.delta = getCountDelta (move.termStates);
+  //  cerr << counts.toJSON(parameterization.params.paramName) << endl;
   move.logLikelihoodRatio = counts.deltaLogBetaBernoulli (move.delta);
   move.hastingsRatio = move.proposalHastingsRatio * exp (move.logLikelihoodRatio);
-  if (move.hastingsRatio >= 1 || bernoulli_distribution(move.hastingsRatio)(generator)) {
+  if (move.hastingsRatio >= 1 || random_double(generator) < move.hastingsRatio) {
     setTermStates (move.termStates);
     move.accepted = true;
     counts += move.delta;

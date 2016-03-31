@@ -45,7 +45,6 @@ struct MCMC {
 
   BernoulliCounts countsWithPrior;
 
-  RandomGenerator generator;
   MoveRate moveRate;
   vguard<double> modelWeight;
 
@@ -71,7 +70,7 @@ struct MCMC {
   BernoulliCounts computeCountsWithPrior() const;
   LogProb collapsedLogLikelihood() const;
 
-  void run (size_t nSamples);
+  void run (size_t nSamples, RandomGenerator& generator);
   Summary summary (double postProbThreshold = .01, double pValueThreshold = .05) const;
 };
 

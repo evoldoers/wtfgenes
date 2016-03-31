@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <iostream>
 #include <algorithm>
 #include <random>
 #include <functional>
@@ -124,18 +125,21 @@ std::vector<TV> extract_values(std::map<TK, TV> const& input_map) {
   return retval;
 }    
 
+template<class Generator>
+double random_double (Generator& generator) {
+  return generator() / (((double) std::numeric_limits<typename Generator::result_type>::max()) + 1);
+}
+
 template<class T,class Generator>
 const T& random_element (const std::vector<T>& v, Generator& generator) {
-  std::uniform_int_distribution<size_t> distrib (0, v.size() - 1);
-  return v[distrib(generator)];
+  return v[(int) (random_double(generator) * v.size())];
 }
 
 template<class T,class Generator>
 size_t random_index (const std::vector<T>& weights, Generator& generator) {
-  const T norm = accumulate (weights.begin(), weights.end(), 0);
+  const T norm = std::accumulate (weights.begin(), weights.end(), 0);
   Assert (norm > 0, "Negative weights in random_index");
-  std::uniform_real_distribution<T> distrib (0, norm);
-  T variate = distrib (generator);
+  T variate = random_double(generator) * norm;
   for (size_t n = 0; n < weights.size(); ++n)
     if ((variate -= weights[n]) <= 0)
       return n;

@@ -124,6 +124,8 @@ function generator() {
     _generator = _generator || new MersenneTwister (seed)
     return _generator
 }
+// uncomment to log random numbers
+// var rnd = generator().int; generator().int = function() { var r = rnd.apply(this,arguments); console.log(r); return r }
 
 if (opt.options['benchmark'] || opt.options['bench-reps']) {
     var benchReps = opt.options['bench-reps'] ? parseInt(opt.options['bench-reps']) : defaultBenchReps

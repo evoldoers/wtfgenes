@@ -49,6 +49,8 @@ int main (int argc, char** argv) {
     if (vm.count("ontology")) {
       auto ontologyPath = vm["ontology"].as<string>();
       ifstream in (ontologyPath);
+      if (!in)
+	Abort ("File not found: %s", ontologyPath.c_str());
       ontology.parseOBO (in);
       LogThisAt(1,"Read " << ontology.terms() << "-term ontology from " << ontologyPath << endl);
     } else {
@@ -59,6 +61,8 @@ int main (int argc, char** argv) {
     if (vm.count("assocs")) {
       auto assocsPath = vm["assocs"].as<string>();
       ifstream in (assocsPath);
+      if (!in)
+	Abort ("File not found: %s", assocsPath.c_str());
       assocs.parseGOA (in);
       LogThisAt(1,"Read " << assocs.nAssocs << " associations (" << assocs.genes() << " genes, " << assocs.relevantTerms().size() << " terms) from " << assocsPath << endl);
     } else {
@@ -70,6 +74,8 @@ int main (int argc, char** argv) {
       auto geneSetPaths = vm["genes"].as<vector<string> >();
       for (const auto& geneSetPath: geneSetPaths) {
 	ifstream in (geneSetPath);
+	if (!in)
+	  Abort ("File not found: %s", geneSetPath.c_str());
 	geneSets.push_back (Assocs::parseGeneSet (in));
 	LogThisAt(1,"Read " << geneSets.back().size() << " genes from " << geneSetPath << endl);
       }
@@ -81,13 +87,14 @@ int main (int argc, char** argv) {
     
     BernoulliCounts prior;
     prior.succ[params.paramIndex["t"]] = vm["terms"].as<int>();
-    prior.fail[params.paramIndex["t"]] = vm.count("absent-terms") ? vm["absent-terms"].as<int>() : ontology.terms();
+    prior.fail[params.paramIndex["t"]] = vm.count("absent-terms") ? vm["absent-terms"].as<int>() : assocs.relevantTerms().size();
     prior.succ[params.paramIndex["fn"]] = vm["false-negatives"].as<int>();
     prior.fail[params.paramIndex["fn"]] = vm.count("true-positives") ? vm["true-positives"].as<int>() : assocs.genes();
     prior.succ[params.paramIndex["fp"]] = vm["false-positives"].as<int>();
     prior.fail[params.paramIndex["fp"]] = vm.count("true-negatives") ? vm["true-negatives"].as<int>() : assocs.genes();
     
     Model::RandomGenerator generator (vm["rnd-seed"].as<int>());
+
     MCMC mcmc (assocs, parameterization.params, prior);
     mcmc.moveRate[Model::Flip] = vm["flip-rate"].as<int>();
     mcmc.moveRate[Model::Swap] = vm["swap-rate"].as<int>();
@@ -98,7 +105,7 @@ int main (int argc, char** argv) {
     const int samplesPerTerm = vm["samples"].as<int>(), nSamples = samplesPerTerm * mcmc.nVariables;
     LogThisAt(1,"Model has " << mcmc.nVariables << " variables; running MCMC for " << nSamples << " steps" << endl);
     
-    mcmc.run (nSamples);
+    mcmc.run (nSamples, generator);
 
     auto summ = mcmc.summary();
     cout << summ.toJSON() << endl;

@@ -34,7 +34,7 @@ LogProb MCMC::collapsedLogLikelihood() const {
   return computeCounts().logBetaBernoulli (prior);
 }
 
-void MCMC::run (size_t nSamples) {
+void MCMC::run (size_t nSamples, RandomGenerator& generator) {
   if (accumulate (modelWeight.begin(), modelWeight.end(), 0) <= 0) {
     Warn ("Refusing to run MCMC on a model with no variables");
     return;
@@ -60,6 +60,7 @@ void MCMC::run (size_t nSamples) {
     move.samples = sample;
     move.totalSamples = nSamples;
     move.type = (MoveType) random_index (mr, generator);
+    //    cerr << "mr=" << to_string_join(mr) << " move.type = " << (move.type == Model::Flip ? "Flip" : (move.type == Model::Swap ? "Swap" : "Randomize")) << endl;
     move.propose (models, modelWeight, generator);
     move.model->sampleMoveCollapsed (move, countsWithPrior, generator);
 
