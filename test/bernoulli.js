@@ -1,9 +1,12 @@
 // for use with mocha test framework
 
-var Bernoulli = require('../lib/bernoulli').BernoulliParams,
+var bernoulli = require('../lib/bernoulli'),
+    BernoulliParamSet = bernoulli.BernoulliParamSet,
+    BernoulliParamAssignment = bernoulli.BernoulliParamAssignment,
+    BernoulliCounts = bernoulli.BernoulliCounts,
     assert = require('assert')
 
-describe('BernoulliParams', function() {
+describe('BernoulliParamAssignment', function() {
 
     var json = { 'c': .5,
 		 'b': .25,
@@ -11,11 +14,11 @@ describe('BernoulliParams', function() {
 
     var params = [ 'a', 'b', 'c' ]
 
-    var bern = new Bernoulli (json)
+    var bern = new BernoulliParamAssignment (json)
 
     describe('#constructor', function() {
         it('should parse correct number of params', function() {
-            assert.deepEqual (bern.params(), params)
+            assert.deepEqual (bern.paramNames(), params)
         })
     })
 
@@ -114,13 +117,31 @@ describe('BernoulliParams', function() {
                 var abcMidJson = { 'c': .5,
 		                   'b': .5,
 		                   'a': .5 }
-                var midBern = new Bernoulli (abcMidJson)
+                var midBern = new BernoulliParamAssignment (abcMidJson)
 	        var abcLaplace = midBern.newCounts(abcLaplaceJson)
 		it('should compute log of beta prior', function() {
 		    assert.equal (abcLaplace.logPrior(midBern), 3*Math.log(1.5))
 		})
 	    })
+        })
+    })
+
+})
+
+describe('BernoulliCounts', function() {
+    describe('#modalParams', function() {
+	var a3b1Json = {succ:{a:3,b:1},fail:{a:1,b:1}}
+	var a3b1Counts = new BernoulliCounts (a3b1Json)
+	it('should return mode of beta distribution', function() {
+	    assert.deepEqual (a3b1Counts.modalParams().toJSON(), {a:.75,b:.5})
 	})
     })
 
+    describe('#meanParams', function() {
+	var a2b1Json = {succ:{a:2,b:1},fail:{a:1,b:2}}
+	var a2b1Counts = new BernoulliCounts (a2b1Json)
+	it('should return mean of beta distribution', function() {
+	    assert.deepEqual (a2b1Counts.meanParams().toJSON(), {a:.6,b:.4})
+	})
+    })
 })

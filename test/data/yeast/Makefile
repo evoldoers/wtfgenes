@@ -33,7 +33,7 @@ go-basic.json: go-basic.obo
 
 # Cerevisiae mating pathway
 cerevisiae-test: go-basic.json gene_association.sgd.json
-	$(WTFGENES) -o go-basic.json -a gene_association.sgd.json -g cerevisiae-mating.json -s 100 -i -l data
+	$(WTFGENES) -o go-basic.json -a gene_association.sgd.json -g cerevisiae-mating.json -s 100 -l data
 
 # Simulation
 sim.json:

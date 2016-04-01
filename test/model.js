@@ -57,7 +57,7 @@ describe('Model', function() {
             assert.deepEqual (mutantModel.relevantNeighbors, [[5,7],[3,7],[0],[1,4,6],[3,5],[0,4,8],[3],[0,1],[5]])
         })
         it('should create default params', function() {
-            assert.deepEqual (mutantModel.params.params(), ['fn','fp','t'])
+            assert.deepEqual (mutantModel.paramSet.paramNames(), ['fn','fp','t'])
         })
         it('should create default Laplace prior', function() {
             assert.deepEqual (mutantModel.prior.toJSON(), {succ:{fn:1,fp:1,t:1},fail:{fn:1,fp:1,t:1}})
