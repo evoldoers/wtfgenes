@@ -42,7 +42,7 @@ public:
   typedef mt19937 RandomGenerator;
 #endif /* LOG_RANDOM_NUMBERS */
 
-  enum MoveType : size_t { Flip = 0, Step = 1, Randomize = 2, TotalMoveTypes };
+  enum MoveType : size_t { Flip = 0, Step = 1, Jump = 2, Randomize = 3, TotalMoveTypes };
   struct Move {
     size_t samples, totalSamples;
     Model *model;
@@ -96,6 +96,7 @@ public:
 
   void proposeFlipMove (Move& move, RandomGenerator& generator) const;
   void proposeStepMove (Move& move, RandomGenerator& generator) const;
+  void proposeJumpMove (Move& move, RandomGenerator& generator) const;
   void proposeRandomizeMove (Move& move, RandomGenerator& generator) const;
 
   bool sampleMoveCollapsed (Move& move, BernoulliCounts& counts, RandomGenerator& generator);

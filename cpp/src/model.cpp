@@ -159,6 +159,19 @@ void Model::proposeStepMove (Move& move, RandomGenerator& generator) const {
   }
 }
 
+void Model::proposeJumpMove (Move& move, RandomGenerator& generator) const {
+  if (!_activeTerms.empty()) {
+    const vguard<TermIndex> actives (_activeTerms.begin(), _activeTerms.end());
+    const TermIndex term = random_element (actives, generator);
+    const TermIndex nbr = random_element (relevantTerms, generator);
+    if (!termState[nbr]) {
+      move.termStates[term] = false;
+      move.termStates[nbr] = true;
+      move.proposalHastingsRatio = 1;
+    }
+  }
+}
+
 void Model::proposeRandomizeMove (Move& move, RandomGenerator& generator) const {
   for (auto t : relevantTerms)
     move.termStates[t] = random_double(generator) > .5;
@@ -183,6 +196,7 @@ void Model::Move::propose (vguard<Model>& models, const vguard<double>& modelWei
   switch (type) {
   case Flip: model->proposeFlipMove (*this, generator); break;
   case Step: model->proposeStepMove (*this, generator); break;
+  case Jump: model->proposeJumpMove (*this, generator); break;
   case Randomize: model->proposeRandomizeMove (*this, generator); break;
   default: throw runtime_error("Unknown move type"); break;
   }
