@@ -25,7 +25,7 @@ var defaultTermPseudocount = 1
 var defaultFalseNegPseudocount = 1
 var defaultFalsePosPseudocount = 1
 
-var defaultMoveRate = { flip: 1, swap: 1, randomize: 0 }
+var defaultMoveRate = { flip: 1, step: 1, randomize: 0 }
 var defaultBenchReps = 1
 
 var opt = getopt.create([
@@ -41,7 +41,7 @@ var opt = getopt.create([
     ['P',  'false-positives=N', 'pseudocount: false positives (default='+defaultFalsePosPseudocount+')'],
     ['n',  'true-negatives=N' , 'pseudocount: true negatives (default=#genes)'],
     ['F',  'flip-rate=N'      , 'relative rate of term-toggling moves (default='+defaultMoveRate.flip+')'],
-    ['S',  'swap-rate=N'      , 'relative rate of term-swapping moves (default='+defaultMoveRate.swap+')'],
+    ['S',  'step-rate=N'      , 'relative rate of term-stepping moves (default='+defaultMoveRate.step+')'],
     ['R',  'randomize-rate=N' , 'relative rate of term-randomizing moves (default='+defaultMoveRate.randomize+')'],
     ['l',  'log=TAG+'         , 'log various extra things (e.g. "move", "state", "mixing")'],
     ['q' , 'quiet'            , 'don\'t log the usual things ("data", "progress")'],

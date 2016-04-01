@@ -28,7 +28,7 @@ int main (int argc, char** argv) {
       ("false-positives,P", po::value<int>()->default_value(1), "pseudocount: false positives")
       ("true-negatives,n", po::value<int>(), "pseudocount: true negatives (default=#genes)")
       ("flip-rate,F", po::value<int>()->default_value(1), "relative rate of term-toggling moves")
-      ("swap-rate,S", po::value<int>()->default_value(1), "relative rate of term-swapping moves")
+      ("step-rate,S", po::value<int>()->default_value(1), "relative rate of term-stepping moves")
       ("randomize-rate,R", po::value<int>()->default_value(0), "relative rate of term-randomizing moves")
       ("rnd-seed,r", po::value<int>()->default_value(123456789), "seed random number generator")
       ("verbose,v", po::value<int>()->default_value(1), "verbosity level")
@@ -97,7 +97,7 @@ int main (int argc, char** argv) {
 
     MCMC mcmc (assocs, parameterization.params, prior);
     mcmc.moveRate[Model::Flip] = vm["flip-rate"].as<int>();
-    mcmc.moveRate[Model::Swap] = vm["swap-rate"].as<int>();
+    mcmc.moveRate[Model::Step] = vm["step-rate"].as<int>();
     mcmc.moveRate[Model::Randomize] = vm["randomize-rate"].as<int>();
     
     mcmc.initModels (geneSets);

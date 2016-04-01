@@ -61,7 +61,7 @@ struct MCMC {
       moveRate(Model::TotalMoveTypes),
       samples(0)
   {
-    moveRate[Model::Flip] = moveRate[Model::Swap] = 1;
+    moveRate[Model::Flip] = moveRate[Model::Step] = 1;
   }
 
   void initModels (const vguard<Assocs::GeneNameSet>& geneSets);

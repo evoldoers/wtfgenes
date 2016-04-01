@@ -25,15 +25,15 @@ Usage: node wtfgenes.js
   -P, --false-positives=N  pseudocount: false positives (default=1)
   -n, --true-negatives=N   pseudocount: true negatives (default=#genes)
   -F, --flip-rate=N        relative rate of term-toggling moves (default=1)
-  -S, --swap-rate=N        relative rate of term-swapping moves (default=1)
+  -S, --step-rate=N        relative rate of term-stepping moves (default=1)
   -R, --randomize-rate=N   relative rate of term-randomizing moves (default=0)
-  -l, --log=TAG+           log various extra things (e.g. "move", "state")
+  -l, --log=TAG+           log various extra things (e.g. "move", "state", "mixing")
   -q, --quiet              don't log the usual things ("data", "progress")
   -r, --rnd-seed=N         seed random number generator (default=123456789)
   -m, --simulate=N         instead of doing inference, simulate N gene sets
   -x, --exclude-redundant  exclude redundant terms from simulation
   -b, --benchmark          benchmark by running inference on simulated data
-  -B, --bench-reps         number of repetitions of benchmark (default=1)
+  -B, --bench-reps=N       number of repetitions of benchmark (default=1)
   -h, --help               display this help message
 
 </code></pre>
