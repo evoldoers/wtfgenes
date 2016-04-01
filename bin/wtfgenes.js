@@ -25,7 +25,7 @@ var defaultTermPseudocount = 1
 var defaultFalseNegPseudocount = 1
 var defaultFalsePosPseudocount = 1
 
-var defaultMoveRate = { flip: 1, step: 1, randomize: 0 }
+var defaultMoveRate = { flip: 1, step: 1, jump: 0, randomize: 0 }
 var defaultBenchReps = 1
 
 var opt = getopt.create([
@@ -41,6 +41,7 @@ var opt = getopt.create([
     ['P',  'false-positives=N', 'pseudocount: false positives (default='+defaultFalsePosPseudocount+')'],
     ['n',  'true-negatives=N' , 'pseudocount: true negatives (default=#genes)'],
     ['F',  'flip-rate=N'      , 'relative rate of term-toggling moves (default='+defaultMoveRate.flip+')'],
+    ['J',  'jump-rate=N'      , 'relative rate of term-jumping moves (default='+defaultMoveRate.jump+')'],
     ['S',  'step-rate=N'      , 'relative rate of term-stepping moves (default='+defaultMoveRate.step+')'],
     ['R',  'randomize-rate=N' , 'relative rate of term-randomizing moves (default='+defaultMoveRate.randomize+')'],
     ['l',  'log=TAG+'         , 'log various extra things (e.g. "move", "state", "mixing")'],
@@ -116,7 +117,7 @@ var moveRate = util.extend ({}, defaultMoveRate)
 Object.keys(defaultMoveRate).forEach (function(r) {
     var arg = r + '-rate'
     if (arg in opt.options)
-	moveRate[r] = parseInt (opt.options[arg])
+	moveRate[r] = parseFloat (opt.options[arg])
 })
 
 var _generator
