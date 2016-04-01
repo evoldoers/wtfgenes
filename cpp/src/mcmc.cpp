@@ -40,9 +40,6 @@ void MCMC::run (size_t nSamples, RandomGenerator& generator) {
     return;
   }
 
-  MoveRate mr = moveRate;
-  mr[Model::Swap] = 0;  // set this later: it depends on number of active terms
-
   ProgressLog (plog, 1);
   plog.initProgress ("MCMC sampling run (%u models, %u variables)", models.size(), nVariables);
 
@@ -50,17 +47,10 @@ void MCMC::run (size_t nSamples, RandomGenerator& generator) {
 
     plog.logProgress (sample / (double) (nSamples - 1), "sample %u/%u", sample + 1, nSamples);
 
-    vguard<size_t> nActiveTerms;
-    nActiveTerms.reserve (models.size());
-    for (auto& m : models)
-      nActiveTerms.push_back (m.activeTerms().size());
-    mr[Model::Swap] = moveRate[Model::Swap] * accumulate (nActiveTerms.begin(), nActiveTerms.end(), 0);
-
     Move move;
     move.samples = sample;
     move.totalSamples = nSamples;
-    move.type = (MoveType) random_index (mr, generator);
-    //    cerr << "mr=" << to_string_join(mr) << " move.type = " << (move.type == Model::Flip ? "Flip" : (move.type == Model::Swap ? "Swap" : "Randomize")) << endl;
+    move.type = (MoveType) random_index (moveRate, generator);
     move.propose (models, modelWeight, generator);
     move.model->sampleMoveCollapsed (move, countsWithPrior, generator);
 

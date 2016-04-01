@@ -93,7 +93,7 @@ describe('MCMC', function() {
 
     function addLogLikeRatioTest (mcmc) {
 	var llOld
-	function recordOldLogLike (mcmc, move) {
+	function recordOldLogLike (mcmc) {
 	    llOld = mcmc.collapsedLogLikelihood()
 	}
 
