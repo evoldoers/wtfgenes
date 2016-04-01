@@ -17,7 +17,6 @@ Usage: node wtfgenes.js
   -a, --assoc=PATH         path to gene-term association file
   -g, --genes=PATH+        path to gene-set file(s)
   -s, --samples=N          number of samples per term (default=100)
-  -i, --ignore-missing     ignore missing terms & genes
   -T, --terms=N            pseudocount: active terms (default=1)
   -t, --absent-terms=N     pseudocount: inactive terms (default=#terms)
   -N, --false-negatives=N  pseudocount: false negatives (default=1)
@@ -25,6 +24,7 @@ Usage: node wtfgenes.js
   -P, --false-positives=N  pseudocount: false positives (default=1)
   -n, --true-negatives=N   pseudocount: true negatives (default=#genes)
   -F, --flip-rate=N        relative rate of term-toggling moves (default=1)
+  -J, --jump-rate=N        relative rate of term-jumping moves (default=0)
   -S, --step-rate=N        relative rate of term-stepping moves (default=1)
   -R, --randomize-rate=N   relative rate of term-randomizing moves (default=0)
   -l, --log=TAG+           log various extra things (e.g. "move", "state", "mixing")
