@@ -58,7 +58,7 @@ void Assocs::init (GeneTermList& geneTermList) {
     }
   }
   if (missing.size())
-    throw runtime_error((string("Terms not found in the ontology: ") + join(missing)).c_str());
+    Warn ("Terms not found in the ontology: %s", join(missing).c_str());
   for (TermIndex t = 0; t < terms(); ++t) {
     genesByTerm_set[t].insert (genesByTerm[t].begin(), genesByTerm[t].end());
     genesByTerm[t] = vguard<GeneIndex> (genesByTerm_set[t].begin(), genesByTerm_set[t].end());

@@ -33,7 +33,6 @@ var opt = getopt.create([
     ['a' , 'assoc=PATH'       , 'path to gene-term association file'],
     ['g' , 'genes=PATH+'      , 'path to gene-set file(s)'],
     ['s' , 'samples=N'        , 'number of samples per term (default='+defaultSamplesPerTerm+')'],
-    ['i' , 'ignore-missing'   , 'ignore missing terms & genes'],
     ['T',  'terms=N'          , 'pseudocount: active terms (default='+defaultTermPseudocount+')'],
     ['t',  'absent-terms=N'   , 'pseudocount: inactive terms (default=#terms)'],
     ['N',  'false-negatives=N', 'pseudocount: false negatives (default='+defaultFalseNegPseudocount+')'],
@@ -94,8 +93,7 @@ if (logging('data'))
 
 var assocJson = readJsonFileSync (assocPath, converters.goa2json)
 var assocs = new Assocs ({ ontology: ontology,
-			   assocs: assocJson,
-			   ignoreMissingTerms: opt.options['ignore-missing'] })
+			   assocs: assocJson })
 
 if (logging('data'))
     console.warn("Read " + assocs.nAssocs + " associations (" + assocs.genes() + " genes, " + assocs.relevantTerms().length + " terms) from " + assocPath)
@@ -185,8 +183,7 @@ function runInference (genesJson) {
 			   geneSets: genesJson,
 			   generator: generator(),
 			   prior: prior,
-			   moveRate: moveRate,
-			   ignoreMissingGenes: opt.options['ignore-missing']
+			   moveRate: moveRate
 			 })
 
     if (logging('move'))

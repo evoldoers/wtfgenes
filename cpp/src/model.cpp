@@ -30,7 +30,7 @@ void Model::init (const GeneNameSet& geneNames) {
     else
       missing.insert (n);
   if (missing.size())
-    throw runtime_error ((string("Genes not found in the associations list: ") + join(missing)).c_str());
+    Warn ("Genes not found in the associations list: %s", join(missing).c_str());
 
   set<TermIndex> relevant;
   for (auto g : geneSet) {
