@@ -44,7 +44,7 @@ PREFIX = /usr/local
 
 # other flags
 # CPPFLAGS = -DUSE_VECTOR_GUARDS -std=c++11 -g $(GSLFLAGS) $(BOOSTFLAGS)
-CPPFLAGS = -std=c++11 -O $(GSLFLAGS) $(BOOSTFLAGS)
+CPPFLAGS = -std=c++11 -O3 $(GSLFLAGS) $(BOOSTFLAGS)
 LIBFLAGS = -lstdc++ -lz $(GSLLIBS) $(BOOSTLIBS)
 
 CPPFILES = $(wildcard src/*.cpp)

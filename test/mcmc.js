@@ -89,6 +89,7 @@ describe('MCMC', function() {
 
     function testCounts (mcmc, move) {
 	assert.deepEqual (mcmc.computeCountsWithPrior().toJSON(), mcmc.countsWithPrior.toJSON())
+	assert.deepEqual (mcmc.countsWithPrior.subtract(mcmc.prior).toJSON(), mcmc.computeCounts().toJSON())
     }
 
     function addLogLikeRatioTest (mcmc) {
@@ -103,6 +104,8 @@ describe('MCMC', function() {
 	    var llNew = mcmc.collapsedLogLikelihood()
 	    util.assertApproxEqual (llNew - llOld, move.logLikelihoodRatio)
 	    move.model.setTermStates(inv)
+
+	    assert.equal (mcmc.collapsedLogLikelihood(), mcmc.quickCollapsedLogLikelihood())
 	}
 
 	mcmc.preMoveCallback.push (recordOldLogLike)

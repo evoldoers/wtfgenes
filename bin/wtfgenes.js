@@ -43,7 +43,7 @@ var opt = getopt.create([
     ['F',  'flip-rate=N'      , 'relative rate of term-toggling moves (default='+defaultMoveRate.flip+')'],
     ['S',  'swap-rate=N'      , 'relative rate of term-swapping moves (default='+defaultMoveRate.swap+')'],
     ['R',  'randomize-rate=N' , 'relative rate of term-randomizing moves (default='+defaultMoveRate.randomize+')'],
-    ['l',  'log=TAG+'         , 'log various extra things (e.g. "move", "state")'],
+    ['l',  'log=TAG+'         , 'log various extra things (e.g. "move", "state", "mixing")'],
     ['q' , 'quiet'            , 'don\'t log the usual things ("data", "progress")'],
     ['r' , 'rnd-seed=N'       , 'seed random number generator (default=' + defaultSeed + ')'],
     ['m' , 'simulate=N'       , 'instead of doing inference, simulate N gene sets'],
@@ -124,8 +124,14 @@ function generator() {
     _generator = _generator || new MersenneTwister (seed)
     return _generator
 }
-// uncomment to log random numbers
-// var rnd = generator().int; generator().int = function() { var r = rnd.apply(this,arguments); console.log(r); return r }
+if (logging('rnd')) {
+    var rnd = generator().int, nRnd = 0
+    generator().int = function() {
+	var r = rnd.apply (this, arguments)
+	console.warn ("Random number #" + (++nRnd) + ": " + r)
+	return r
+    }
+}
 
 if (opt.options['benchmark'] || opt.options['bench-reps']) {
     var benchReps = opt.options['bench-reps'] ? parseInt(opt.options['bench-reps']) : defaultBenchReps
@@ -190,6 +196,9 @@ function runInference (genesJson) {
 
     if (logging('progress'))
 	mcmc.logProgress()
+
+    if (logging('mixing'))
+	mcmc.analyzeMixing()
 
     var nSamples = samplesPerTerm * mcmc.nVariables()
     if (logging('data'))

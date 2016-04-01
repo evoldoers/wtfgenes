@@ -89,6 +89,12 @@ describe('BernoulliParams', function() {
 		    assert.deepEqual (a1c5Counts.toJSON(), a1c5Json)
 		})
 	    })
+	    describe('#subtract', function() {
+		it('should be inverse of add', function() {
+		    var a1c5Copy = a3b1Counts.add(a1c5Counts).subtract(a1c5Counts)
+		    assert.deepEqual (a3b1Counts.toJSON(), a1c5Copy.toJSON())
+		})
+	    })
 	    describe('#logLikelihood', function() {
 		it('should compute log-likelihood', function() {
 		    assert.equal (a3b1Counts.logLikelihood(bern),
