@@ -90,20 +90,6 @@ Model::TermStateAssignment Model::invert (const TermStateAssignment& tsa) const 
   return inv;
 }
 
-void Model::countTerm (BernoulliCounts& counts, int inc, TermIndex t, bool state) const {
-  auto& countMap = state ? counts.succ : counts.fail;
-  BernoulliParamIndex countParam = parameterization.termPrior[t];
-  countMap[countParam] += inc;
-}
-
-void Model::countObs (BernoulliCounts& counts, int inc, bool isActive, GeneIndex g) const {
-  const bool gInSet = inGeneSet[g],
-    isFalse = isActive ? !gInSet : gInSet;
-  auto& countMap = isFalse ? counts.succ : counts.fail;
-  BernoulliParamIndex countParam = (isActive ? parameterization.geneFalseNeg : parameterization.geneFalsePos)[g];
-  countMap[countParam] += inc;
-}
-
 BernoulliCounts Model::getCounts() const {
   BernoulliCounts counts (parameterization.nParams());
   for (auto t : relevantTerms)
@@ -119,14 +105,23 @@ BernoulliCounts Model::getCountDelta (const TermStateAssignment& tsa) const {
   for (auto& ts : tsa) {
     const TermIndex t = ts.first;
     const bool val = ts.second;
-    Assert (isRelevant[t], "Attempt to set non-relevant term %s", assocs.ontology.termName[t].c_str());
+    //    Assert (isRelevant[t], "Attempt to set non-relevant term %s", assocs.ontology.termName[t].c_str());
     if (termState[t] != val) {
       countTerm (cd, -1, t, termState[t]);
       countTerm (cd, +1, t, val);
       const int delta = val ? +1 : -1;
       for (auto g : assocs.genesByTerm[t]) {
-	const int oldCount = newActiveTermsByGene.count(g) ? newActiveTermsByGene[g] : nActiveTermsByGene[g];
-	const int newCount = newActiveTermsByGene[g] = oldCount + delta;
+	int oldCount, newCount;
+	auto countIter = newActiveTermsByGene.find(g);
+	if (countIter == newActiveTermsByGene.end()) {
+	  oldCount = nActiveTermsByGene[g];
+	  newCount = oldCount + delta;
+	  newActiveTermsByGene[g] = newCount;
+	} else {
+	  oldCount = countIter->second;
+	  newCount = oldCount + delta;
+	  countIter->second = newCount;
+	}
 	const bool oldActive = oldCount > 0, newActive = newCount > 0;
 	if (oldActive != newActive) {
 	  countObs (cd, -1, oldActive, g);

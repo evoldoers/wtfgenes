@@ -104,8 +104,19 @@ public:
   string tsaToJSON (const TermStateAssignment& tsa) const;
   
 private:
-  void countTerm (BernoulliCounts& counts, int inc, TermIndex t, bool state) const;
-  void countObs (BernoulliCounts& counts, int inc, bool isActive, GeneIndex g) const;
+  inline void countTerm (BernoulliCounts& counts, int inc, TermIndex t, bool state) const {
+    auto& countMap = state ? counts.succ : counts.fail;
+    BernoulliParamIndex countParam = parameterization.termPrior[t];
+    countMap[countParam] += inc;
+  }
+
+  inline void countObs (BernoulliCounts& counts, int inc, bool isActive, GeneIndex g) const {
+    const bool gInSet = inGeneSet[g],
+      isFalse = isActive ? !gInSet : gInSet;
+    auto& countMap = isFalse ? counts.succ : counts.fail;
+    BernoulliParamIndex countParam = (isActive ? parameterization.geneFalseNeg : parameterization.geneFalsePos)[g];
+    countMap[countParam] += inc;
+  }
 };
 
 #endif /* MODEL_INCLUDED */
