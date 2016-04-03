@@ -36,8 +36,19 @@ void Model::init (const GeneNameSet& geneNames) {
   for (auto g : geneSet) {
     inGeneSet[g] = true;
     _falseGenes.insert (g);
-    for (auto t : assocs.termsByGene[g])
-      relevant.insert (t);
+    for (auto t : assocs.termsByGene[g]) {
+      bool sameAsChildren = false;
+      if (!assocs.ontology.children[t].empty()) {
+	sameAsChildren = true;
+	for (auto c : assocs.ontology.children[t])
+	  if (assocs.genesByTerm[c] != assocs.genesByTerm[t]) {
+	    sameAsChildren = false;
+	    break;
+	  }
+      }
+      if (!sameAsChildren)
+	relevant.insert (t);
+    }
   }
 
   relevantTerms = vguard<TermIndex> (relevant.begin(), relevant.end());
