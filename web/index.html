@@ -9,13 +9,18 @@
     <!-- JQuery -->
     <script type="text/javascript" src="jquery-1.12.2.min.js"></script>
 
+    <!-- d3 -->
+    <script type="text/javascript" src="d3.v3.min.js"></script>
+
     <!-- WTFgenes -->
     <script type="text/javascript" src="wtfgenes.js"></script>
     <script type="text/javascript">
+      $(function(){
       var conf = { ontology: "../test/data/yeast/go-basic.json",
                    assocs: "../test/data/yeast/gene_association.sgd.json",
                    example: "../test/data/yeast/cerevisiae-mating.txt" }
       var wtf = new WTFgenes (conf)
+      })
     </script>
 
 </body>
