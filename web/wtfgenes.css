@@ -1,0 +1,72 @@
+.wtfparent {
+    width: 800px;
+    float: left;
+    clear: both;
+}
+
+.wtflog {
+    clear: both;
+    background-color: #e0e0e0;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
+    padding: 10px;
+}
+
+.wtfstartbutton {
+    clear: left;
+}
+
+.wtfgenesettextarea {
+    clear: left;
+    width: 100%;
+    rows: 10;
+}
+
+.wtfcontrolstatus {
+    width: 40%;
+    float: left;
+    clear: left;
+}
+
+.wtfcontrol {
+    width: 100%;
+    height: 200px;
+    float: left;
+    clear: left;
+    background-color: #e0e0e0;
+    margin: 10px 10px 10px 0px;
+    padding: 10px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
+}
+
+.wtfstatus {
+    width: 100%;
+    clear: both;
+    background-color: #e0e0e0;
+    margin: 10px 10px 10px 0px;
+    padding: 10px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
+}
+
+.wtfloglike {
+    float: right;
+    clear: right;
+    margin: 10px 0px 10px 10px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
+}
+
+.wtftermtable {
+    float: left;
+    clear: both;
+}
+
+.wtfcontrolplot {
+    clear: both;
+}

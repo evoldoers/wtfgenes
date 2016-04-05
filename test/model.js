@@ -48,13 +48,13 @@ describe('Model', function() {
     
     describe('#constructor', function() {
         it('should identify relevant terms', function() {
-            assert.deepEqual (mutantModel.relevantTerms, [0,1,3,4,5,6,7,8])
-            assert.deepEqual (normalModel.relevantTerms, [0,1,2,3,4,7])
-            assert (normalModel.isRelevant[1])
+            assert.deepEqual (mutantModel.relevantTerms, [0,3,4,5,6,7,8])
+            assert.deepEqual (normalModel.relevantTerms, [0,2,3,4,7])
+            assert (normalModel.isRelevant[3])
             assert (!normalModel.isRelevant[5])
         })
         it('should identify neighbors of relevant terms', function() {
-            assert.deepEqual (mutantModel.relevantNeighbors, [[5,7],[3,7],[0],[1,4,6],[3,5],[0,4,8],[3],[0,1],[5]])
+            assert.deepEqual (mutantModel.relevantNeighbors, [[5,7],[3,7],[0],[4,6],[3,5],[0,4,8],[3],[0],[5]])
         })
         it('should create default params', function() {
             assert.deepEqual (mutantModel.paramSet.paramNames(), ['fn','fp','t'])
@@ -74,7 +74,7 @@ describe('Model', function() {
     describe('#setTermState', function() {
         it('should update termState & isActiveTerm', function() {
             for (var t = 0; t < 9; ++t)
-                if (t != 2) {
+                if (t != 1 && t != 2) {
                     mutantModel.setTermState(t,1);
                     for (var s = 0; s < 9; ++s)
                         assert.equal (mutantModel.getTermState(s), s == t ? 1 : 0)
@@ -87,13 +87,11 @@ describe('Model', function() {
             assert.deepEqual (mutantModel._termState, [0,0,0,0,0,0,0,0,0])
         })
         it('should update nActiveTermsByGene', function() {
-            mutantModel.setTermState(1,1);
             mutantModel.setTermState(3,1);
             mutantModel.setTermState(8,1);
-            assert.equal (mutantModel._nActiveTermsByGene[2], 2)
+            assert.equal (mutantModel._nActiveTermsByGene[2], 1)
             assert.equal (mutantModel._nActiveTermsByGene[3], 0)
-            assert.equal (mutantModel._nActiveTermsByGene[4], 3)
-            mutantModel.setTermState(1,0);
+            assert.equal (mutantModel._nActiveTermsByGene[4], 2)
             mutantModel.setTermState(3,0);
             mutantModel.setTermState(8,0);
         })
@@ -111,7 +109,7 @@ describe('Model', function() {
     describe('#toJSON', function() {
         it('should convert term state to JSON', function() {
             for (var t = 0; t < 9; ++t)
-                if (t != 2) {
+                if (t != 1 && t != 2) {
                     mutantModel.setTermState(t,1);
                     assert.deepEqual (mutantModel.toJSON(), [onto.termName[t]])
                     mutantModel.setTermState(t,0);
@@ -156,12 +154,12 @@ describe('Model', function() {
             
     describe('#getCounts', function() {
         it('should return Bernoulli parameter counts', function() {
-            assert.deepEqual (mutCount.toJSON(), {succ:{fp:3},fail:{t:8,fp:2}})
-            assert.deepEqual (normCount.toJSON(), {succ:{fp:2},fail:{t:6,fp:3}})
+            assert.deepEqual (mutCount.toJSON(), {succ:{fp:3},fail:{t:7,fp:2}})
+            assert.deepEqual (normCount.toJSON(), {succ:{fp:2},fail:{t:5,fp:3}})
 
             normalModel.setTermState (7, 1)
             var newNormCount = normalModel.getCounts()
-            assert.deepEqual (newNormCount.toJSON(), {succ:{t:1,fn:3},fail:{t:5,fn:2}})
+            assert.deepEqual (newNormCount.toJSON(), {succ:{t:1,fn:3},fail:{t:4,fn:2}})
             normalModel.setTermState (7, 0)
         })
     })
@@ -186,11 +184,11 @@ describe('Model', function() {
         it('should correctly identify new false negatives', function() {
 	    var m2 = new Model ({ assocs: assocs, geneSet: mutants, terms: ['arachnid','primate','gorilla'] })
 	    var c2 = m2.getCounts()
-	    assert.deepEqual (c2.toJSON(), {succ:{t:3,fn:2},fail:{t:5,fn:3}})
+	    assert.deepEqual (c2.toJSON(), {succ:{t:3,fn:2},fail:{t:4,fn:3}})
 	    var d2 = m2.getCountDelta({0:0})
 	    assert.deepEqual (d2.toJSON(), {succ:{t:-1,fn:-1},fail:{t:1,fp:1}})
 	    m2.setTermStates({0:0})
-	    assert.deepEqual (m2.getCounts().toJSON(), {succ:{t:2,fn:1},fail:{t:6,fn:3,fp:1}})
+	    assert.deepEqual (m2.getCounts().toJSON(), {succ:{t:2,fn:1},fail:{t:5,fn:3,fp:1}})
             assert.deepEqual (c2.add(d2).toJSON(), m2.getCounts().toJSON())
 	})
     })

@@ -247,7 +247,7 @@ describe('MCMC', function() {
     }
 
     function testRelevantTerms(mcmc,move) {
-        assert.deepEqual (move.model.relevantTerms, [0,1,3,4,5,6,7,8])
+        assert.deepEqual (move.model.relevantTerms, [0,3,4,5,6,7,8])
     }
 
     describe('#randomize', function() {

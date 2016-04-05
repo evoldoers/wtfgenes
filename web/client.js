@@ -109,9 +109,13 @@
         var wtf = this
         Plotly.plot( wtf.ui.logLikePlot[0], [{
 	    y: wtf.mcmc.logLikelihoodTrace }],
-                     { title: "Convergence",
-                       xaxis: { title: "Number of samples" },
-                       yaxis: { title: "Log-likelihood" } } )
+                     { title: "MCMC convergence",
+		       xaxis: { title: "Number of samples" },
+                       yaxis: { title: "Log-likelihood" },
+		       margin: 0,
+		       width: 400,
+		       height: 400 } )
+
         setTimeout (redrawLogLikelihood.bind(wtf), 100)
     }
 
@@ -167,7 +171,7 @@
             resumeAnalysis.call(wtf)
             wtf.ui.startButton.prop('disabled',false)
 
-	    wtf.ui.interButton = $('<button>Track co-occurence</button>')
+	    wtf.ui.interButton.show()
 	    wtf.ui.interButton.click (function() {
 		wtf.ui.interButton.prop('disabled',true)
 		wtf.mcmc.logTermPairs()
@@ -180,9 +184,10 @@
 	    wtf.ui.samplesPerTerm = $('<span>0</span>')
 	    wtf.ui.samplesPerSec = $('<span>0</span>')
 	    wtf.ui.mcmcStats = $('<span/>')
-	    wtf.ui.mcmcStats.append (" ", wtf.ui.totalSamples, " samples (", wtf.ui.samplesPerTerm, " samples/term, ", wtf.ui.samplesPerSec, " samples/sec)")
+	    wtf.ui.mcmcStats.append (wtf.ui.totalSamples, " samples<br/>", wtf.ui.samplesPerTerm, " samples/term<br/>", wtf.ui.samplesPerSec, " samples/sec")
 
-	    wtf.ui.inputDiv.append (wtf.ui.interButton, wtf.ui.mcmcStats)
+	    wtf.ui.statusDiv.append (wtf.ui.mcmcStats)
+	    wtf.ui.statusDiv.show()
             
             runMCMC.call(wtf)
             plotLogLikelihood.call(wtf)
@@ -219,7 +224,7 @@
     }
     
     function log() {
-        this.ui.parentDiv.append ('<br/><i>' + Array.prototype.slice.call(arguments).join('') + '</i>')
+        this.ui.logDiv.append ('<br/><i>' + Array.prototype.slice.call(arguments).join('') + '</i>')
     }
 
     function WTFgenes (conf) {
@@ -235,9 +240,12 @@
 
 	// initialize UI
         if (!wtf.ui.parentDiv) {
-            wtf.ui.parentDiv = $('<div id="wtf"/>')
+            wtf.ui.parentDiv = $('<div id="wtf" class="wtfparent"/>')
             $("body").append (wtf.ui.parentDiv)
         }
+
+	wtf.ui.logDiv = $('<div class="wtflog"/>')
+        wtf.ui.parentDiv.append (wtf.ui.logDiv)
 
         // load data files, initialize ontology & associations
         var ontologyReady = $.Deferred(),
@@ -254,7 +262,6 @@
 
 	// load associations
         ontologyReady.done (function() {
-            wtf.log()
             wtf.log ("Loading gene-term associations...")
             $.get(wtf.assocsURL)
                 .done (function (assocsJson) {
@@ -274,26 +281,35 @@
                 enableExampleLink (wtf)
             }
 
-            wtf.ui.geneSetTextArea = $('<textarea id="wtfgenes" rows="10" cols="80"/>')
-            wtf.ui.startButton = $('<button type="button">Start analysis</button>')
+            wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>')
+            wtf.ui.startButton = $('<button type="button" class="wtfstartbutton">Start analysis</button>')
                 .on('click', startAnalysis.bind(wtf))
 
-	    wtf.ui.inputDiv = $('<div/>')
-	    wtf.ui.inputDiv.append ('<br/><br/>',
-                                    wtf.ui.helpText,
-                                    '<br/>',
-                                    wtf.ui.geneSetTextArea,
-                                    '<br/>',
-                                    wtf.ui.startButton)
+	    wtf.ui.interButton = $('<button>Track co-occurence</button>')
+	    wtf.ui.interButton.hide()
 
-            wtf.ui.resultsDiv = $('<div/>')
-	    wtf.ui.logLikePlot = $('<div/>')
-	    wtf.ui.tableParent = $('<div/>')
-	    wtf.ui.resultsDiv.append (wtf.ui.logLikePlot, wtf.ui.tableParent)
+	    wtf.ui.controlDiv = $('<div class="wtfcontrol"/>')
+	    wtf.ui.statusDiv = $('<div class="wtfstatus"/>')
+	    wtf.ui.statusDiv.hide()
+
+	    wtf.ui.controlDiv.append (wtf.ui.helpText,
+                                      wtf.ui.geneSetTextArea,
+                                      wtf.ui.startButton,
+                                      wtf.ui.interButton)
+
+	    wtf.ui.logLikePlot = $('<div class="wtfloglike"/>')
+	    wtf.ui.tableParent = $('<div class="wtftermtable"/>')
+
+	    wtf.ui.controlAndStatus = $('<div class="wtfcontrolstatus"/>')
+	    wtf.ui.controlAndStatus.append (wtf.ui.controlDiv,
+					    wtf.ui.statusDiv)
+
+	    wtf.ui.controlAndPlot = $('<div class="wtfcontrolplot"/>')
+	    wtf.ui.controlAndPlot.append (wtf.ui.controlAndStatus,
+					  wtf.ui.logLikePlot)
             
-            wtf.ui.parentDiv.append (wtf.ui.inputDiv,
-				     '<br/>',
-                                     wtf.ui.resultsDiv)
+            wtf.ui.parentDiv.append (wtf.ui.controlAndPlot,
+				     wtf.ui.tableParent)
 
 	    setInterval (setRedraw.bind(wtf), 500)
 	})
