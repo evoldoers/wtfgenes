@@ -123,14 +123,8 @@ function generator() {
     _generator = _generator || new MersenneTwister (seed)
     return _generator
 }
-if (logging('rnd')) {
-    var rnd = generator().int, nRnd = 0
-    generator().int = function() {
-	var r = rnd.apply (this, arguments)
-	console.warn ("Random number #" + (++nRnd) + ": " + r)
-	return r
-    }
-}
+if (logging('rnd'))
+    util.logRandomNumbers (generator())
 
 if (opt.options['benchmark'] || opt.options['bench-reps']) {
     var benchReps = opt.options['bench-reps'] ? parseInt(opt.options['bench-reps']) : defaultBenchReps
