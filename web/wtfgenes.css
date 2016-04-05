@@ -1,5 +1,5 @@
 .wtfparent {
-    width: 800px;
+    width: 1200px;
     float: left;
     clear: both;
 }
@@ -15,38 +15,41 @@
 
 .wtfstartbutton {
     clear: left;
+    float: left;
 }
 
 .wtfgenesettextarea {
-    clear: left;
     width: 100%;
+    clear: both;
+    float: left;
     rows: 10;
 }
 
-.wtfcontrolstatus {
-    width: 40%;
-    float: left;
-    clear: left;
-}
-
 .wtfcontrol {
-    width: 100%;
+    width: 320px;
     height: 200px;
     float: left;
     clear: left;
     background-color: #e0e0e0;
-    margin: 10px 10px 10px 0px;
+    margin: 0px 10px 10px 0px;
     padding: 10px;
     border-width: 1px;
     border-style: solid;
     border-radius: 3px;
 }
 
+.wtfmcmc {
+    width: 400px;
+    float: right;
+    margin: 0px 0px 10px 10px;
+}
+
 .wtfstatus {
     width: 100%;
-    clear: both;
+    float: right;
+    clear: right;
     background-color: #e0e0e0;
-    margin: 10px 10px 10px 0px;
+    margin: 10px 0px 10px 10px;
     padding: 10px;
     border-width: 1px;
     border-style: solid;
@@ -56,7 +59,7 @@
 .wtfloglike {
     float: right;
     clear: right;
-    margin: 10px 0px 10px 10px;
+    margin: 0px 0px 10px 10px;
     border-width: 1px;
     border-style: solid;
     border-radius: 3px;
@@ -64,9 +67,20 @@
 
 .wtftermtable {
     float: left;
-    clear: both;
+    clear: left;
+    margin: 10px 10px 10px 0px;
+}
+
+.wtfgenetable {
+    float: left;
+    margin: 10px 10px 10px 10px;
+}
+
+.wtftermpair {
+    float: left;
 }
 
 .wtfcontrolplot {
+    margin: 10px 0px 10px 0px;
     clear: both;
 }

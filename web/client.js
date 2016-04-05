@@ -60,49 +60,73 @@
 	    wtf.ui.totalSamples.text (wtf.mcmc.samples.toString())
 	    wtf.ui.samplesPerTerm.text ((wtf.mcmc.samples / wtf.mcmc.nVariables()).toString())
 	    if (wtf.redraw) {
-		var table = $('<table></table>')
-		var termProb = wtf.mcmc.termSummary(0)
-		var terms = util.sortKeys(termProb).reverse()
-		var topTerms = []
-		terms.forEach (function (t) {
-		    if (termProb[t] > interactionThreshold)
-			topTerms.push (t)
-		})
-		var termPairProb
-		if (wtf.showPairs) {
-		    termPairProb = wtf.mcmc.termPairSummary (0, topTerms)
-		}
-		table.append ($('<tr><th>Term</th><th>Probability</th>'
-				+ (wtf.showPairs
-				   ? topTerms.map (function(t) {
-				       return '<th>' + t + '</th>'
-				   }).join('')
-				   : '')
-				+ '</tr>'))
-                terms.forEach (function (t,i) {
-		    var p = termProb[t]
-		    var pStyle = probStyle(p)
-		    table.append ($('<tr>'
-				    + '<td ' + pStyle + '><a target="_blank" href="' + wtf.termURL + t + '">' + t + '</a></td>'
-				    + '<td ' + pStyle + '>' + p.toPrecision(5) + '</td>'
-				    + (wtf.showPairs
-				       ? (p > interactionThreshold
-					  ? topTerms.map (function(t2,i2) {
-					      var ratio = termPairProb[t][t2] / (termProb[t] * termProb[t2])
-					      var rStyle = i==i2 ? blankStyle() : ratioStyle(ratio)
-					      return '<td ' + rStyle + '>' + (i == i2 ? '' : ratioText(ratio) + '</td>')
-					  }).join('')
-					  : topTerms.map (function() { return '<td></td>' }))
-				       : '')
-				    + '</tr>'))
-                })
-		wtf.ui.tableParent.empty()
-		wtf.ui.tableParent.append (table)
+		showTermTable (wtf)
+		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0), "false pos")
+		showGeneTable (wtf, wtf.ui.falseNegTableParent, wtf.mcmc.geneFalseNegSummary(0), "false neg")
 		wtf.redraw = false
 	    }
 	    wtf.samplesPerRun = wtf.mcmc.nVariables()
             setTimeout (runMCMC.bind(wtf), 10)
         }
+    }
+
+    function showTermTable (wtf) {
+	var termTable = $('<table></table>')
+	var termProb = wtf.mcmc.termSummary(0)
+	var terms = util.sortKeys(termProb).reverse()
+	var topTerms = []
+	terms.forEach (function (t) {
+	    if (termProb[t] > interactionThreshold)
+		topTerms.push (t)
+	})
+	var termPairProb
+	if (wtf.showPairs) {
+	    termPairProb = wtf.mcmc.termPairSummary (0, topTerms)
+	}
+	termTable.append ($('<tr><th>Term</th><th>P(Term)</th>'
+			    + (wtf.showPairs
+			       ? topTerms.map (function(t) {
+				   return '<th>' + t + '</th>'
+			       }).join('')
+			       : '')
+			    + '</tr>'))
+        terms.forEach (function (t,i) {
+	    var p = termProb[t]
+	    var pStyle = probStyle(p)
+	    termTable
+		.append ($('<tr>'
+			   + '<td ' + pStyle + '><a target="_blank" href="' + wtf.termURL + t + '">' + t + '</a></td>'
+			   + '<td ' + pStyle + '>' + p.toPrecision(5) + '</td>'
+			   + (wtf.showPairs
+			      ? (p > interactionThreshold
+				 ? topTerms.map (function(t2,i2) {
+				     var ratio = termPairProb[t][t2] / (termProb[t] * termProb[t2])
+				     var rStyle = i==i2 ? blankStyle() : ratioStyle(ratio)
+				     return '<td ' + rStyle + '>' + (i == i2 ? '' : ratioText(ratio) + '</td>')
+				 }).join('')
+				 : topTerms.map (function() { return '<td></td>' }))
+			      : '')
+			   + '</tr>'))
+        })
+	wtf.ui.termTableParent.empty()
+	wtf.ui.termTableParent.append (termTable)
+    }
+
+    function showGeneTable (wtf, parent, geneProb, label) {
+	var geneTable = $('<table></table>')
+	var genes = util.sortKeys(geneProb).reverse()
+	geneTable.append ($('<tr><th>Gene</th><th>P(' + label + ')</th></tr>'))
+        genes.forEach (function (g,i) {
+	    var p = geneProb[g]
+	    var pStyle = probStyle(p)
+	    geneTable
+		.append ($('<tr>'
+			   + '<td ' + pStyle + '>' + g + '</td>'
+			   + '<td ' + pStyle + '>' + p.toPrecision(5) + '</td>'
+			   + '</tr>'))
+        })
+	parent.empty()
+	parent.append (geneTable)
     }
 
     function plotLogLikelihood() {
@@ -170,6 +194,8 @@
             
             resumeAnalysis.call(wtf)
             wtf.ui.startButton.prop('disabled',false)
+
+	    wtf.ui.tablesDiv.show()
 
 	    wtf.ui.interButton.show()
 	    wtf.ui.interButton.click (function() {
@@ -274,43 +300,39 @@
 
 	// initialize form
         assocsReady.done (function() {
-            wtf.ui.helpText = $('<span>Enter gene names, one per line </span>')
+
+            wtf.ui.parentDiv
+		.prepend ($('<div class="wtfcontrolplot"/>')
+			  .append ($('<div class="wtfcontrol"/>')
+				   .append (wtf.ui.helpText = $('<span>Enter gene names, one per line </span>'),
+					    wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
+					    wtf.ui.startButton = $('<button class="wtfstartbutton">Start analysis</button>'),
+					    wtf.ui.interButton = $('<button>Track co-occurence</button>')),
+				   wtf.ui.termPairPlot = $('<div class="wtftermpair"/>'),
+				   $('<div class="wtfmcmc"/>')
+				   .append (wtf.ui.logLikePlot = $('<div class="wtfloglike"/>'),
+					    wtf.ui.statusDiv = $('<div class="wtfstatus"/>')),
+				   (wtf.ui.tablesDiv = $('<div/>'))
+				   .append ($('<div class="wtftermtable">Enriched terms</div>')
+					    .append (wtf.ui.termTableParent = $('<div/>')),
+					    $('<div class="wtfgenetable">Unexplained genes</div>')
+					    .append (wtf.ui.falsePosTableParent = $('<div/>')),
+					    $('<div class="wtfgenetable">Missing genes</div>')
+					    .append (wtf.ui.falseNegTableParent = $('<div/>')))
+				   .hide()))
+            wtf.ui.startButton
+                .on('click', startAnalysis.bind(wtf))
+
+	    wtf.ui.interButton.hide()
+	    wtf.ui.termPairPlot.hide()
+	    wtf.ui.statusDiv.hide()
+
             if (wtf.exampleURL) {
                 wtf.ui.exampleLink = $('<a href="#">(example)</a>')
                 wtf.ui.helpText.append(wtf.ui.exampleLink)
                 enableExampleLink (wtf)
             }
-
-            wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>')
-            wtf.ui.startButton = $('<button type="button" class="wtfstartbutton">Start analysis</button>')
-                .on('click', startAnalysis.bind(wtf))
-
-	    wtf.ui.interButton = $('<button>Track co-occurence</button>')
-	    wtf.ui.interButton.hide()
-
-	    wtf.ui.controlDiv = $('<div class="wtfcontrol"/>')
-	    wtf.ui.statusDiv = $('<div class="wtfstatus"/>')
-	    wtf.ui.statusDiv.hide()
-
-	    wtf.ui.controlDiv.append (wtf.ui.helpText,
-                                      wtf.ui.geneSetTextArea,
-                                      wtf.ui.startButton,
-                                      wtf.ui.interButton)
-
-	    wtf.ui.logLikePlot = $('<div class="wtfloglike"/>')
-	    wtf.ui.tableParent = $('<div class="wtftermtable"/>')
-
-	    wtf.ui.controlAndStatus = $('<div class="wtfcontrolstatus"/>')
-	    wtf.ui.controlAndStatus.append (wtf.ui.controlDiv,
-					    wtf.ui.statusDiv)
-
-	    wtf.ui.controlAndPlot = $('<div class="wtfcontrolplot"/>')
-	    wtf.ui.controlAndPlot.append (wtf.ui.controlAndStatus,
-					  wtf.ui.logLikePlot)
             
-            wtf.ui.parentDiv.append (wtf.ui.controlAndPlot,
-				     wtf.ui.tableParent)
-
 	    setInterval (setRedraw.bind(wtf), 500)
 	})
     }
