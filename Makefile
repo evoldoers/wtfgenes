@@ -14,14 +14,14 @@ README.md: bin/wtfgenes.js
 	bin/wtfgenes.js -h | perl -pe 's/</&lt;/g;s/>/&gt;/g;' | perl -e 'open FILE,"<README.md";while(<FILE>){last if/<pre>/;print}close FILE;print"<pre><code>\n";while(<>){print};print"</code></pre>\n"' >temp.md
 	mv temp.md $@
 
-webclient: jquery d3 web/wtfgenes.js
+webclient: jquery plotly web/wtfgenes.js
 
 jquery: web/jquery-1.12.2.min.js
 
-d3: web/d3.v3.min.js
+plotly: web/plotly-latest.min.js
 
-web/d3.v3.min.js:
-	cd web; curl -O https://d3js.org/d3.v3.min.js
+web/plotly-latest.min.js:
+	cd web; curl -O https://cdn.plot.ly/plotly-latest.min.js
 
 web/jquery-1.12.2.min.js:
 	cd web; curl -O https://code.jquery.com/jquery-1.12.2.min.js

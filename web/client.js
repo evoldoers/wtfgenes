@@ -57,6 +57,7 @@
 		wtf.ui.samplesPerSec.text ((wtf.samplesPerRun / elapsedSecs).toPrecision(2))
 	    }
 	    wtf.lastRun = now
+	    wtf.ui.totalSamples.text (wtf.mcmc.samples.toString())
 	    wtf.ui.samplesPerTerm.text ((wtf.mcmc.samples / wtf.mcmc.nVariables()).toString())
 	    if (wtf.redraw) {
 		var table = $('<table></table>')
@@ -67,12 +68,9 @@
 		    if (termProb[t] > interactionThreshold)
 			topTerms.push (t)
 		})
-		var termPairProb, termPairMarginal
+		var termPairProb
 		if (wtf.showPairs) {
 		    termPairProb = wtf.mcmc.termPairSummary (0, topTerms)
-		    termPairMarginal = util.keyValListToObj (topTerms.map (function(t) {
-			return [t, util.sumList (util.values (termPairProb[t]))]
-		    }))
 		}
 		table.append ($('<tr><th>Term</th><th>Probability</th>'
 				+ (wtf.showPairs
@@ -90,7 +88,7 @@
 				    + (wtf.showPairs
 				       ? (p > interactionThreshold
 					  ? topTerms.map (function(t2,i2) {
-					      var ratio = termPairProb[t][t2] / (termPairMarginal[t] * termPairMarginal[t2])
+					      var ratio = termPairProb[t][t2] / (termProb[t] * termProb[t2])
 					      var rStyle = i==i2 ? blankStyle() : ratioStyle(ratio)
 					      return '<td ' + rStyle + '>' + (i == i2 ? '' : ratioText(ratio) + '</td>')
 					  }).join('')
@@ -105,6 +103,22 @@
 	    wtf.samplesPerRun = wtf.mcmc.nVariables()
             setTimeout (runMCMC.bind(wtf), 10)
         }
+    }
+
+    function plotLogLikelihood() {
+        var wtf = this
+        Plotly.plot( wtf.ui.logLikePlot[0], [{
+	    y: wtf.mcmc.logLikelihoodTrace }],
+                     { title: "Convergence",
+                       xaxis: { title: "Number of samples" },
+                       yaxis: { title: "Log-likelihood" } } )
+        setTimeout (redrawLogLikelihood.bind(wtf), 100)
+    }
+
+    function redrawLogLikelihood() {
+        var wtf = this
+        Plotly.redraw( wtf.ui.logLikePlot[0] )
+        setTimeout (redrawLogLikelihood.bind(wtf), 100)
     }
 
     function cancelStart(wtf,msg) {
@@ -148,24 +162,30 @@
 				   seed: 123456789
 			         })
 
+            wtf.mcmc.logLogLikelihood()
+            
             resumeAnalysis.call(wtf)
             wtf.ui.startButton.prop('disabled',false)
 
-	    wtf.ui.interButton = $('<button>Track pairs</button>')
+	    wtf.ui.interButton = $('<button>Track co-occurence</button>')
 	    wtf.ui.interButton.click (function() {
 		wtf.ui.interButton.prop('disabled',true)
 		wtf.mcmc.logTermPairs()
 		wtf.showPairs = true
+                if (wtf.paused)
+                    resumeAnalysis.call(wtf)
 	    })
 
+	    wtf.ui.totalSamples = $('<span>0</span>')
 	    wtf.ui.samplesPerTerm = $('<span>0</span>')
 	    wtf.ui.samplesPerSec = $('<span>0</span>')
 	    wtf.ui.mcmcStats = $('<span/>')
-	    wtf.ui.mcmcStats.append (" ", wtf.ui.samplesPerTerm, " samples/term, ", wtf.ui.samplesPerSec, " samples/sec")
+	    wtf.ui.mcmcStats.append (" ", wtf.ui.totalSamples, " samples (", wtf.ui.samplesPerTerm, " samples/term, ", wtf.ui.samplesPerSec, " samples/sec)")
 
 	    wtf.ui.inputDiv.append (wtf.ui.interButton, wtf.ui.mcmcStats)
-
+            
             runMCMC.call(wtf)
+            plotLogLikelihood.call(wtf)
         }
     }
 
@@ -267,8 +287,9 @@
                                     wtf.ui.startButton)
 
             wtf.ui.resultsDiv = $('<div/>')
+	    wtf.ui.logLikePlot = $('<div/>')
 	    wtf.ui.tableParent = $('<div/>')
-	    wtf.ui.resultsDiv.append (wtf.ui.tableParent)
+	    wtf.ui.resultsDiv.append (wtf.ui.logLikePlot, wtf.ui.tableParent)
             
             wtf.ui.parentDiv.append (wtf.ui.inputDiv,
 				     '<br/>',

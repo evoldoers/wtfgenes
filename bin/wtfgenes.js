@@ -190,7 +190,7 @@ function runInference (genesJson) {
 	mcmc.logProgress()
 
     if (logging('mixing'))
-	mcmc.analyzeMixing()
+	mcmc.logMixing()
 
     var nSamples = samplesPerTerm * mcmc.nVariables()
     if (logging('data'))
