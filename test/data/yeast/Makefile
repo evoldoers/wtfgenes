@@ -29,7 +29,7 @@ go-basic.obo:
 	curl -O http://geneontology.org/ontology/$@
 
 go-basic.json: go-basic.obo
-	$(OBO2JSON) $< >$@
+	$(OBO2JSON) -n $< >$@
 
 # Cerevisiae mating pathway
 cerevisiae-test: go-basic.json gene_association.sgd.json

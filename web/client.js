@@ -48,6 +48,8 @@
 	    wtf.lastRun = now
 	    wtf.ui.totalSamples.text (wtf.mcmc.samplesIncludingBurn.toString())
 	    wtf.ui.samplesPerTerm.text ((wtf.mcmc.samplesIncludingBurn / wtf.mcmc.nVariables()).toString())
+
+            redrawLogLikelihood.call(wtf)
 	    if (wtf.redraw) {
 		showTermTable (wtf)
 		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0), "FalsePos")
@@ -77,24 +79,34 @@
     }
     
     function showTermTable (wtf) {
-	var termTable = $('<table></table>')
+	var termTable = $('<table class="wtftermtable"></table>')
 	var termProb = wtf.mcmc.termSummary(0)
 	var terms = util.sortKeys(termProb).reverse()
-	termTable.append ($('<tr><th>Term</th><th>P(Term)</th></tr>'))
+	termTable.append ($('<tr><th>Term ID</th><th>P(Term)</th><th>Term name</th><th>Explains</th><th>Also predicts</th></tr>'))
         terms.forEach (function (t,i) {
 	    var p = termProb[t]
 	    var pStyle = probStyle(p)
+	    var genes = wtf.assocs.genesByTerm[wtf.ontology.termIndex[t]]
+	    var inGeneSet = util.objPredicate (wtf.mcmc.models[0].inGeneSet)
+	    var explained = genes.filter (inGeneSet)
+		.map (function(g) { return wtf.assocs.geneName[g] })
+	    var predicted = genes.filter (util.negate (inGeneSet))
+		.map (function(g) { return wtf.assocs.geneName[g] })
 	    termTable
-		.append ($('<tr>'
-			   + '<td ' + pStyle + '>' + linkTerm(wtf,t) + '</td>'
-			   + '<td ' + pStyle + '>' + p.toPrecision(5) + '</td></tr>'))
+		.append ($('<tr ' + pStyle + '>'
+			   + '<td>' + linkTerm(wtf,t) + '</td>'
+			   + '<td>' + p.toPrecision(5) + '</td>'
+			   + '<td>' + wtf.ontology.getTermInfo(t) + '</td>'
+			   + '<td>' + explained.join(", ") + '</td>'
+			   + '<td>' + predicted.join(", ") + '</td>'
+			   + '</tr>'))
         })
 	wtf.ui.termTableParent.empty()
 	wtf.ui.termTableParent.append (termTable)
     }
 
     function showGeneTable (wtf, parent, geneProb, label) {
-	var geneTable = $('<table></table>')
+	var geneTable = $('<table class="wtfgenetable"></table>')
 	var genes = util.sortKeys(geneProb).reverse()
 	geneTable.append ($('<tr><th>Gene</th><th>P(' + label + ')</th></tr>'))
         genes.forEach (function (g,i) {
@@ -155,8 +167,6 @@
 		       width: 390,
 		       height: 200 },
 		     { displayModeBar: false })
-	
-        setTimeout (redrawLogLikelihood.bind(wtf), 100)
     }
 
     function redrawLogLikelihood() {
@@ -165,7 +175,6 @@
 	    getLogLikeRange (wtf)
             Plotly.redraw( wtf.ui.logLikePlot[0] )
 	}
-        setTimeout (redrawLogLikelihood.bind(wtf), 100)
     }
 
     function trackTermPairs() {
@@ -174,6 +183,7 @@
 	wtf.mcmc.logTermPairs()
 	wtf.showTermPairs = true
 	wtf.ui.termPairs.show()
+	wtf.ui.geneTables.show()
         if (wtf.paused)
             resumeAnalysis.call(wtf)
     }
@@ -225,9 +235,9 @@
 			  }))
 	    tableParent.empty()
 	    tableParent.append (table)
-	    tableParent.show()
+	    tableParent.parent().show()
 	} else
-	    tableParent.hide()
+	    tableParent.parent().hide()
     }
     
     function cancelStart (wtf, msg) {
@@ -260,8 +270,8 @@
 		},
 		fail: {
 		    t: wtf.assocs.relevantTerms().length,
-		    fp: wtf.assocs.genes(),
-		    fn: wtf.assocs.genes()
+		    fp: 100,  // wtf.assocs.genes(),
+		    fn: 100   // wtf.assocs.genes()
 		}
 	    }
 
@@ -293,8 +303,8 @@
 
 	    wtf.ui.statusDiv.append (wtf.ui.mcmcStats)
             
-            runMCMC.call(wtf)
             plotLogLikelihood.call(wtf)
+            runMCMC.call(wtf)
         }
     }
 
@@ -359,7 +369,7 @@
         wtf.log ("Loading ontology...")
         $.get(wtf.ontologyURL)
             .done (function (ontologyJson) {
-                wtf.ontology = new Ontology ({ termParents: ontologyJson })
+                wtf.ontology = new Ontology (ontologyJson)
                 wtf.log ("Loaded ontology with ", wtf.ontology.terms(), " terms")
                 ontologyReady.resolve()
             })
@@ -379,26 +389,29 @@
 	// initialize form
         assocsReady.done (function() {
 
-            wtf.ui.parentDiv
-		.prepend ($('<div class="wtfcontrolmcmc"/>')
-			  .append ($('<div class="wtfcontrol"/>')
-				   .append (wtf.ui.helpText = $('<span>Enter gene names, one per line </span>'),
-					    wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
-					    wtf.ui.startButton = $('<button class="wtfstartbutton">Start analysis</button>'),
-					    wtf.ui.pairButton = $('<button>Track co-occurence</button>')),
-				   (wtf.ui.mcmc = $('<div class="wtfmcmc"/>'))
-				   .append (wtf.ui.statusDiv = $('<div class="wtfstatus"/>'),
-					    wtf.ui.logLikePlot = $('<div class="wtfloglike"/>'))),
-			  (wtf.ui.results = $('<div class="wtfresults"/>'))
-			  .append ($('<div class="wtftable">Enriched terms</div>')
-				   .append (wtf.ui.termTableParent = $('<div/>')),
-				   $('<div class="wtftable">Unexplained genes</div>')
-				   .append (wtf.ui.falsePosTableParent = $('<div/>')),
-				   $('<div class="wtftable">Missing genes</div>')
-				   .append (wtf.ui.falseNegTableParent = $('<div/>')),
-				   (wtf.ui.termPairs = $('<div class="wtftermpair"/>')
-				    .append (wtf.ui.bosonTableParent = $('<div class="wtftable"/>'),
-					     wtf.ui.fermionTableParent = $('<div class="wtftable"/>')))))
+            wtf.ui.parentDiv.prepend
+	    ($('<div class="wtfcontrolmcmc"/>')
+	     .append ($('<div class="wtfcontrol"/>')
+		      .append (wtf.ui.helpText = $('<span>Enter gene names, one per line </span>'),
+			       wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
+			       wtf.ui.startButton = $('<button class="wtfstartbutton">Start analysis</button>'),
+			       wtf.ui.pairButton = $('<button>Track co-occurence</button>')),
+		      (wtf.ui.mcmc = $('<div class="wtfmcmc"/>'))
+		      .append (wtf.ui.statusDiv = $('<div class="wtfstatus"/>'),
+			       wtf.ui.logLikePlot = $('<div class="wtfloglike"/>'))),
+	     (wtf.ui.results = $('<div class="wtfresults"/>'))
+	     .append ($('<div class="wtftable wtftermtable">Enriched terms</div>')
+		      .append (wtf.ui.termTableParent = $('<div/>')),
+		      (wtf.ui.termPairs = $('<div class="wtftermpair"/>')
+		       .append ($('<div class="wtftable">Term interactions</div>')
+				.append (wtf.ui.bosonTableParent = $('<div/>')),
+				$('<div class="wtftable">Term interactions</div>')
+				.append (wtf.ui.fermionTableParent = $('<div/>')))),
+		      (wtf.ui.geneTables = $('<div class="wtfgenetables"/>'))
+		      .append ($('<div class="wtftable wtfgenetable">Unexplained genes</div>')
+			       .append (wtf.ui.falsePosTableParent = $('<div/>')),
+			       $('<div class="wtftable wtfgenetable">Missing genes</div>')
+			       .append (wtf.ui.falseNegTableParent = $('<div/>')))))
 	    
             wtf.ui.startButton
                 .on('click', startAnalysis.bind(wtf))
@@ -407,6 +420,7 @@
 	    wtf.ui.mcmc.hide()
 	    wtf.ui.results.hide()
 	    wtf.ui.termPairs.hide()
+	    wtf.ui.geneTables.hide()
 
             if (wtf.exampleURL) {
                 wtf.ui.exampleLink = $('<a href="#">(example)</a>')
@@ -414,7 +428,7 @@
                 enableExampleLink (wtf)
             }
             
-	    setInterval (setRedraw.bind(wtf), 500)
+	    setInterval (setRedraw.bind(wtf), 1000)
 	})
     }
 

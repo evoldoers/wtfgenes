@@ -7,6 +7,7 @@ var fs = require('fs'),
 
 var opt = getopt.create([
     ['e' , 'expand'           , 'do not compress output'],
+    ['n' , 'names'            , 'include term names'],
     ['h' , 'help'             , 'display this help message']
 ])              // create Getopt instance
 .bindHelp()     // bind option 'help' to default action
@@ -18,6 +19,7 @@ function inputError(err) {
 
 opt.argv.length || inputError ("You must specify an OBO format input file")
 var expand = opt.options['expand']
+var includeTermInfo = opt.options['names']
 
 var text = ""
 opt.argv.forEach (function (filename) {
@@ -28,6 +30,7 @@ opt.argv.forEach (function (filename) {
 })
 
 console.log (JSON.stringify (obo2json ({ obo: text,
-					 compress: !expand }),
+					 compress: !expand,
+					 includeTermInfo: includeTermInfo }),
 			     null,
 			     expand ? 2 : undefined))

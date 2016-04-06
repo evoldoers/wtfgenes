@@ -15,11 +15,16 @@ describe('Ontology', function() {
         ["kingkong", "primate"]  // 6
     ]
 
+    var info = json.map (function(tp) { return "term " + tp[0] })
+    
     var fullJson = json.slice()
     fullJson.push (["animal"])  // 7
 
-    var topJson = [7,0,1,2,3,4,6,5]  // Kahn's sort ordering (NB kingkong now precedes spiderman)
+    var kahnSortOrder = [7,0,1,2,3,4,6,5]  // Kahn's sort ordering (NB kingkong now precedes spiderman)
+    var topJson = kahnSortOrder
         .map (function(i) { return fullJson[i] })
+    var topInfo = kahnSortOrder
+        .map (function(i) { return info[i] })
 
     var cyclicJson = [["l'etat","moi"],["moi","l'etat"]];
 
@@ -92,6 +97,11 @@ describe('Ontology', function() {
             var autoOnto = new Ontology (json)
             assert (autoOnto.equals (onto))
         })
+        it('should take optional termInfo', function() {
+	    var jsonWithInfo = { termParents: fullJson, termInfo: info }
+            var autoOnto = new Ontology (jsonWithInfo)
+            assert.deepEqual (autoOnto.toJSON(), jsonWithInfo)
+        })
     })
 
     describe('#toJSON', function() {
@@ -133,6 +143,12 @@ describe('Ontology', function() {
             var sortSortOnto = sortOnto.toposort()
             var sortSortOntoJson = sortSortOnto.toJSON()
             assert.deepEqual (sortSortOntoJson, sortOntoJson)
+        })
+        it('should sort termInfo', function() {
+	    var jsonWithInfo = { termParents: fullJson, termInfo: info }
+	    var sortedJsonWithInfo = { termParents: topJson, termInfo: topInfo }
+            var autoOnto = new Ontology (jsonWithInfo).toposort()
+            assert.deepEqual (autoOnto.toJSON(), sortedJsonWithInfo)
         })
     })
 

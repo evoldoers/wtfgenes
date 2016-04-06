@@ -86,8 +86,25 @@
     text-align: left;
 }
 
+.wtftermtable {
+    max-width: 760px;
+}
+
 .wtftermpair {
     clear: both;
     float: left;
     width: 800px;
+}
+
+.wtftermpair th, td {
+    border-bottom: 1px solid #ddd;
+}
+
+.wtfgenetables {
+    clear: left;
+    float: left;
+}
+
+.wtfgenetable {
+    max-width: 300px;
 }

@@ -90,7 +90,7 @@ function readJsonFileSync (filename, alternateParser) {
 }
 
 var ontologyJson = readJsonFileSync (ontologyPath, converters.obo2json)
-var ontology = new Ontology ({termParents:ontologyJson})
+var ontology = new Ontology (ontologyJson)
 if (logging('data'))
     console.warn("Read " + ontology.terms() + "-term ontology from " + ontologyPath)
 
