@@ -61,8 +61,8 @@
 	    wtf.ui.samplesPerTerm.text ((wtf.mcmc.samples / wtf.mcmc.nVariables()).toString())
 	    if (wtf.redraw) {
 		showTermTable (wtf)
-		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0), "false pos")
-		showGeneTable (wtf, wtf.ui.falseNegTableParent, wtf.mcmc.geneFalseNegSummary(0), "false neg")
+		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0), "FalsePos")
+		showGeneTable (wtf, wtf.ui.falseNegTableParent, wtf.mcmc.geneFalseNegSummary(0), "FalseNeg")
 		wtf.redraw = false
 	    }
 	    wtf.samplesPerRun = wtf.mcmc.nVariables()
@@ -133,12 +133,11 @@
         var wtf = this
         Plotly.plot( wtf.ui.logLikePlot[0], [{
 	    y: wtf.mcmc.logLikelihoodTrace }],
-                     { title: "MCMC convergence",
-		       xaxis: { title: "Number of samples" },
+                     { xaxis: { title: "Number of samples" },
                        yaxis: { title: "Log-likelihood" },
-		       margin: 0,
-		       width: 400,
-		       height: 400 } )
+		       margin: { b:0, l:0, r:10, t:0, pad:10 },
+		       width: 390,
+		       height: 200 } )
 
         setTimeout (redrawLogLikelihood.bind(wtf), 100)
     }
@@ -195,7 +194,8 @@
             resumeAnalysis.call(wtf)
             wtf.ui.startButton.prop('disabled',false)
 
-	    wtf.ui.tablesDiv.show()
+	    wtf.ui.results.show()
+	    wtf.ui.mcmc.show()
 
 	    wtf.ui.interButton.show()
 	    wtf.ui.interButton.click (function() {
@@ -210,10 +210,9 @@
 	    wtf.ui.samplesPerTerm = $('<span>0</span>')
 	    wtf.ui.samplesPerSec = $('<span>0</span>')
 	    wtf.ui.mcmcStats = $('<span/>')
-	    wtf.ui.mcmcStats.append (wtf.ui.totalSamples, " samples<br/>", wtf.ui.samplesPerTerm, " samples/term<br/>", wtf.ui.samplesPerSec, " samples/sec")
+	    wtf.ui.mcmcStats.append (wtf.ui.totalSamples, " samples, ", wtf.ui.samplesPerTerm, " samples/term, ", wtf.ui.samplesPerSec, " samples/sec")
 
 	    wtf.ui.statusDiv.append (wtf.ui.mcmcStats)
-	    wtf.ui.statusDiv.show()
             
             runMCMC.call(wtf)
             plotLogLikelihood.call(wtf)
@@ -302,30 +301,30 @@
         assocsReady.done (function() {
 
             wtf.ui.parentDiv
-		.prepend ($('<div class="wtfcontrolplot"/>')
+		.prepend ($('<div class="wtfcontrolmcmc"/>')
 			  .append ($('<div class="wtfcontrol"/>')
 				   .append (wtf.ui.helpText = $('<span>Enter gene names, one per line </span>'),
 					    wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
 					    wtf.ui.startButton = $('<button class="wtfstartbutton">Start analysis</button>'),
 					    wtf.ui.interButton = $('<button>Track co-occurence</button>')),
-				   wtf.ui.termPairPlot = $('<div class="wtftermpair"/>'),
-				   $('<div class="wtfmcmc"/>')
-				   .append (wtf.ui.logLikePlot = $('<div class="wtfloglike"/>'),
-					    wtf.ui.statusDiv = $('<div class="wtfstatus"/>')),
-				   (wtf.ui.tablesDiv = $('<div/>'))
-				   .append ($('<div class="wtftermtable">Enriched terms</div>')
-					    .append (wtf.ui.termTableParent = $('<div/>')),
-					    $('<div class="wtfgenetable">Unexplained genes</div>')
-					    .append (wtf.ui.falsePosTableParent = $('<div/>')),
-					    $('<div class="wtfgenetable">Missing genes</div>')
-					    .append (wtf.ui.falseNegTableParent = $('<div/>')))
-				   .hide()))
+				   (wtf.ui.mcmc = $('<div class="wtfmcmc"/>'))
+				   .append (wtf.ui.statusDiv = $('<div class="wtfstatus"/>'),
+					    wtf.ui.logLikePlot = $('<div class="wtfloglike"/>'))),
+			  (wtf.ui.results = $('<div class="wtfresults"/>'))
+			  .append ($('<div class="wtftable">Enriched terms</div>')
+				   .append (wtf.ui.termTableParent = $('<div/>')),
+				   $('<div class="wtftable">Unexplained genes</div>')
+				   .append (wtf.ui.falsePosTableParent = $('<div/>')),
+				   $('<div class="wtftable">Missing genes</div>')
+				   .append (wtf.ui.falseNegTableParent = $('<div/>')),
+				   wtf.ui.termPairPlot = $('<div class="wtftermpair"/>')))
+	    
             wtf.ui.startButton
                 .on('click', startAnalysis.bind(wtf))
 
 	    wtf.ui.interButton.hide()
-	    wtf.ui.termPairPlot.hide()
-	    wtf.ui.statusDiv.hide()
+	    wtf.ui.mcmc.hide()
+	    wtf.ui.results.hide()
 
             if (wtf.exampleURL) {
                 wtf.ui.exampleLink = $('<a href="#">(example)</a>')
