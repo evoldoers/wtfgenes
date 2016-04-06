@@ -54,16 +54,19 @@ void MCMC::run (size_t nSamples, RandomGenerator& generator) {
     move.propose (models, modelWeight, generator);
     move.model->sampleMoveCollapsed (move, countsWithPrior, generator);
 
-    LogThisAt(2,"Move #" << (samples+1) << ": " << move.toJSON() << endl);
+    LogThisAt(2,"Move #" << (samplesIncludingBurn+1) << ": " << move.toJSON() << endl);
     
-    ++samples;
+    ++samplesIncludingBurn;
+    if (finishedBurn()) {
+      ++samples;
 
-    for (ModelIndex n = 0; n < models.size(); ++n) {
-      Model& model = models[n];
-      for (auto t: model.activeTerms())
-	++termStateOccupancy[n][t];
-      for (auto g: model.falseGenes())
-	++geneFalseOccupancy[n][g];
+      for (ModelIndex n = 0; n < models.size(); ++n) {
+	Model& model = models[n];
+	for (auto t: model.activeTerms())
+	  ++termStateOccupancy[n][t];
+	for (auto g: model.falseGenes())
+	  ++geneFalseOccupancy[n][g];
+      }
     }
   }
 }

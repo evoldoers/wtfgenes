@@ -48,7 +48,7 @@ struct MCMC {
   MoveRate moveRate;
   vguard<double> modelWeight;
 
-  size_t samples;
+  size_t samples, samplesIncludingBurn, burn;
   vguard<vguard<int> > termStateOccupancy;  // indexed by model index & TermIndex
   vguard<vguard<int> > geneFalseOccupancy;  // indexed by model index & GeneIndex
 
@@ -59,10 +59,14 @@ struct MCMC {
       parameterization(assocs),
       nVariables(0),
       moveRate(Model::TotalMoveTypes),
-      samples(0)
+      samples(0),
+      samplesIncludingBurn(0),
+      burn(0)
   {
     moveRate[Model::Flip] = moveRate[Model::Step] = 1;
   }
+
+  inline bool finishedBurn() const { return samplesIncludingBurn > burn; }
 
   void initModels (const vguard<Assocs::GeneNameSet>& geneSets);
 

@@ -16,6 +16,7 @@ var fs = require('fs'),
 
 var defaultSeed = 123456789
 var defaultSamplesPerTerm = 100
+var defaultBurnPerTerm = 10
 
 // The default prior can be summarized as follows:
 // - P(term present) = 1/#terms, sample size (#terms + 1)
@@ -33,6 +34,7 @@ var opt = getopt.create([
     ['a' , 'assoc=PATH'       , 'path to gene-term association file'],
     ['g' , 'genes=PATH+'      , 'path to gene-set file(s)'],
     ['s' , 'samples=N'        , 'number of samples per term (default='+defaultSamplesPerTerm+')'],
+    ['u' , 'burn=N'           , 'number of burn-in samples per term (default='+defaultBurnPerTerm+')'],
     ['T',  'terms=N'          , 'pseudocount: active terms (default='+defaultTermPseudocount+')'],
     ['t',  'absent-terms=N'   , 'pseudocount: inactive terms (default=#terms)'],
     ['N',  'false-negatives=N', 'pseudocount: false negatives (default='+defaultFalseNegPseudocount+')'],
@@ -63,6 +65,7 @@ var ontologyPath = opt.options['ontology'] || inputError("You must specify an on
 var assocPath = opt.options['assoc'] || inputError("You must specify gene-term associations")
 
 var samplesPerTerm = opt.options['samples'] ? parseInt(opt.options['samples']) : defaultSamplesPerTerm
+var burnPerTerm = opt.options['burn'] ? parseInt(opt.options['burn']) : defaultBurnPerTerm
 var seed = opt.options['rnd-seed'] || defaultSeed
 
 var logTags = opt.options['log'] || []
@@ -193,10 +196,11 @@ function runInference (genesJson) {
 	mcmc.logMixing()
 
     var nSamples = samplesPerTerm * mcmc.nVariables()
+    mcmc.burn = burnPerTerm * mcmc.nVariables()
     if (logging('data'))
-	console.warn("Model has " + mcmc.nVariables() + " variables; running MCMC for " + nSamples + " steps")
+	console.warn("Model has " + mcmc.nVariables() + " variables; running MCMC for " + nSamples + " steps + " + mcmc.burn + " burn-in")
 
-    mcmc.run (nSamples)
+    mcmc.run (nSamples + mcmc.burn)
 
     return mcmc.summary()
 }

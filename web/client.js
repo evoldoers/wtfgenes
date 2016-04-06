@@ -46,8 +46,8 @@
 		wtf.ui.samplesPerSec.text ((wtf.samplesPerRun / elapsedSecs).toPrecision(2))
 	    }
 	    wtf.lastRun = now
-	    wtf.ui.totalSamples.text (wtf.mcmc.samples.toString())
-	    wtf.ui.samplesPerTerm.text ((wtf.mcmc.samples / wtf.mcmc.nVariables()).toString())
+	    wtf.ui.totalSamples.text (wtf.mcmc.samplesIncludingBurn.toString())
+	    wtf.ui.samplesPerTerm.text ((wtf.mcmc.samplesIncludingBurn / wtf.mcmc.nVariables()).toString())
 	    if (wtf.redraw) {
 		showTermTable (wtf)
 		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0), "FalsePos")
@@ -57,10 +57,25 @@
 		wtf.redraw = false
 	    }
 	    wtf.samplesPerRun = wtf.mcmc.nVariables()
-            setTimeout (runMCMC.bind(wtf), 10)
+
+	    if (!wtf.trackPairSamplesPassed && wtf.mcmc.samplesIncludingBurn >= wtf.trackPairSamples) {
+		trackTermPairs.call(wtf)
+		wtf.trackPairSamplesPassed = true
+	    }
+	    
+	    if (!wtf.targetSamplesPassed && wtf.mcmc.samplesIncludingBurn >= wtf.targetSamples) {
+		pauseAnalysis.call(wtf)
+		wtf.targetSamplesPassed = true
+	    }
+	    
+	    setTimeout (runMCMC.bind(wtf), 10)
         }
     }
 
+    function linkTerm (wtf, term) {
+	return '<a target="_blank" href="' + wtf.termURL + term + '">' + term + '</a>'
+    }
+    
     function showTermTable (wtf) {
 	var termTable = $('<table></table>')
 	var termProb = wtf.mcmc.termSummary(0)
@@ -71,7 +86,7 @@
 	    var pStyle = probStyle(p)
 	    termTable
 		.append ($('<tr>'
-			   + '<td ' + pStyle + '><a target="_blank" href="' + wtf.termURL + t + '">' + t + '</a></td>'
+			   + '<td ' + pStyle + '>' + linkTerm(wtf,t) + '</td>'
 			   + '<td ' + pStyle + '>' + p.toPrecision(5) + '</td></tr>'))
         })
 	wtf.ui.termTableParent.empty()
@@ -95,26 +110,74 @@
 	parent.append (geneTable)
     }
 
+    function getLogLikeRange (wtf) {
+	var len = wtf.mcmc.logLikelihoodTrace.length
+	if (len > 0) {
+	    var slice = wtf.mcmc.logLikelihoodTrace.slice(wtf.logLikeMinMaxSlice).concat (wtf.logLikeMinMax)
+	    wtf.logLikeMinMax[0] = Math.min (...slice)
+	    wtf.logLikeMinMax[1] = Math.max (...slice)
+	    wtf.logLikeMinMaxSlice = len
+	}
+    }
+    
     function plotLogLikelihood() {
         var wtf = this
-        Plotly.plot( wtf.ui.logLikePlot[0], [{
-	    y: wtf.mcmc.logLikelihoodTrace }],
-                     { xaxis: { title: "Number of samples" },
-                       yaxis: { title: "Log-likelihood" },
+	wtf.logLikeMinMax = []
+	wtf.logLikeMinMaxSlice = 0
+	getLogLikeRange (wtf)
+        Plotly.plot( wtf.ui.logLikePlot[0],
+		     [{ y: wtf.mcmc.logLikelihoodTrace,
+			name: "Log-likelihood",
+			showlegend: false },
+		      { x: [wtf.mcmc.burn, wtf.mcmc.burn],
+			y: wtf.logLikeMinMax,
+			name: "Burn-in",
+			mode: 'lines',
+			hoverinfo: 'name',
+			line: { dash: 4 },
+			showlegend: false },
+		      { x: [wtf.trackPairSamples, wtf.trackPairSamples],
+			y: wtf.logLikeMinMax,
+			name: "Term pairs",
+			mode: 'lines',
+			hoverinfo: 'name',
+			line: { dash: 4 },
+			showlegend: false },
+		      { x: [wtf.targetSamples, wtf.targetSamples],
+			y: wtf.logLikeMinMax,
+			name: "End of run",
+			mode: 'lines',
+			hoverinfo: 'name',
+			line: { dash: 4 },
+			showlegend: false }],
+                     { xaxis: { title: "Progress" },
 		       margin: { b:0, l:0, r:10, t:0, pad:10 },
 		       width: 390,
-		       height: 200 } )
-
+		       height: 200 },
+		     { displayModeBar: false })
+	
         setTimeout (redrawLogLikelihood.bind(wtf), 100)
     }
 
     function redrawLogLikelihood() {
         var wtf = this
-        if (!wtf.paused)
+        if (!wtf.paused) {
+	    getLogLikeRange (wtf)
             Plotly.redraw( wtf.ui.logLikePlot[0] )
+	}
         setTimeout (redrawLogLikelihood.bind(wtf), 100)
     }
 
+    function trackTermPairs() {
+	var wtf = this
+	wtf.ui.pairButton.prop('disabled',true)
+	wtf.mcmc.logTermPairs()
+	wtf.showTermPairs = true
+	wtf.ui.termPairs.show()
+        if (wtf.paused)
+            resumeAnalysis.call(wtf)
+    }
+    
     var termPairProbThreshold = .05, termOddsRatioThreshold = 100
     function showTermPairs (wtf) {
         if (!wtf.paused) {
@@ -148,7 +211,6 @@
     }
 
     function listPairedTerms (wtf, topTerms, partnerList, tableParent, header) {
-	tableParent.empty()
 	var pairedTerms = util.iota(topTerms.length)
 	    .filter (function(i) { return partnerList[i].length > 0 })
 	if (pairedTerms.length) {
@@ -156,10 +218,16 @@
 	    table.append ($('<tr><th>Term</th><th align="left">' + header + '</th></tr>'))
 	    table.append (pairedTerms
 			  .map (function(i) {
-			      return $('<tr><td>' + topTerms[i] + '</td><td>' + partnerList[i].join(", ") + '</td></tr>')
+			      return $('<tr><td>' + linkTerm(wtf,topTerms[i]) + '</td><td>'
+				       + partnerList[i].map (function (t) {
+					   return linkTerm(wtf,t)
+				       }).join(", ") + '</td></tr>')
 			  }))
-	}
-	tableParent.append (table)
+	    tableParent.empty()
+	    tableParent.append (table)
+	    tableParent.show()
+	} else
+	    tableParent.hide()
     }
     
     function cancelStart (wtf, msg) {
@@ -202,8 +270,11 @@
 				   prior: prior,
 				   seed: 123456789
 			         })
+	    wtf.mcmc.burn = 10 * wtf.mcmc.nVariables()
+	    wtf.trackPairSamples = wtf.mcmc.burn + 50 * wtf.mcmc.nVariables()
+	    wtf.targetSamples = wtf.mcmc.burn + 100 * wtf.mcmc.nVariables()
 
-            wtf.mcmc.logLogLikelihood()
+            wtf.mcmc.logLogLikelihood (true)
             
             resumeAnalysis.call(wtf)
             wtf.ui.startButton.prop('disabled',false)
@@ -212,14 +283,7 @@
 	    wtf.ui.mcmc.show()
 
 	    wtf.ui.pairButton.show()
-	    wtf.ui.pairButton.click (function() {
-		wtf.ui.pairButton.prop('disabled',true)
-		wtf.mcmc.logTermPairs()
-		wtf.showTermPairs = true
-		wtf.ui.termPairs.show()
-                if (wtf.paused)
-                    resumeAnalysis.call(wtf)
-	    })
+	    wtf.ui.pairButton.click (trackTermPairs.bind(wtf))
 
 	    wtf.ui.totalSamples = $('<span>0</span>')
 	    wtf.ui.samplesPerTerm = $('<span>0</span>')
@@ -237,7 +301,7 @@
     function pauseAnalysis() {
         var wtf = this
         wtf.paused = true
-        wtf.ui.startButton.html('Resume analysis')
+        wtf.ui.startButton.html('More sampling')
         wtf.ui.startButton.off('click')
         wtf.ui.startButton.on('click',resumeAnalysis.bind(wtf))
     }
@@ -245,7 +309,7 @@
     function resumeAnalysis() {
         var wtf = this
         wtf.paused = false
-        wtf.ui.startButton.html('Pause analysis')
+        wtf.ui.startButton.html('Stop sampling')
         wtf.ui.startButton.off('click')
         wtf.ui.startButton.on('click',pauseAnalysis.bind(wtf))
     }
@@ -331,10 +395,10 @@
 				   $('<div class="wtftable">Unexplained genes</div>')
 				   .append (wtf.ui.falsePosTableParent = $('<div/>')),
 				   $('<div class="wtftable">Missing genes</div>')
-				   .append (wtf.ui.falseNegTableParent = $('<div/>'))),
-                          (wtf.ui.termPairs = $('<div class="wtftermpair"/>')
-			   .append (wtf.ui.bosonTableParent = $('<div class="wtftable"/>'),
-				    wtf.ui.fermionTableParent = $('<div class="wtftable"/>'))))
+				   .append (wtf.ui.falseNegTableParent = $('<div/>')),
+				   (wtf.ui.termPairs = $('<div class="wtftermpair"/>')
+				    .append (wtf.ui.bosonTableParent = $('<div class="wtftable"/>'),
+					     wtf.ui.fermionTableParent = $('<div class="wtftable"/>')))))
 	    
             wtf.ui.startButton
                 .on('click', startAnalysis.bind(wtf))

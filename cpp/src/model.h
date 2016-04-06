@@ -19,9 +19,14 @@ struct Parameterization {
 
 #ifdef LOG_RANDOM_NUMBERS
 struct MTLogger : mt19937 {
-  MTLogger() : mt19937() { }
-  MTLogger(uint_fast32_t seed) : mt19937(seed) { }
-  uint_fast32_t operator()() { uint_fast32_t r = mt19937::operator()(); cerr << r << endl; return r; }
+  size_t nRnd;
+  MTLogger() : mt19937(), nRnd(0) { }
+  MTLogger(uint_fast32_t seed) : mt19937(seed), nRnd(0) { }
+  uint_fast32_t operator()() {
+    uint_fast32_t r = mt19937::operator()();
+    cerr << "Random number #" << (++nRnd) << ": " << r << endl;
+    return r;
+  }
 };
 #endif /* LOG_RANDOM_NUMBERS */
 

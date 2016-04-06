@@ -21,6 +21,7 @@ int main (int argc, char** argv) {
       ("assocs,a", po::value<string>(), "path to gene-term association file")
       ("genes,g", po::value<vector<string> >(), "path to gene-set file(s)")
       ("samples,s", po::value<int>()->default_value(100), "number of samples per term")
+      ("burn,u", po::value<int>()->default_value(10), "burn-in samples per term")
       ("terms,T", po::value<int>()->default_value(1), "pseudocount: active terms")
       ("absent-terms,t", po::value<int>(), "pseudocount: inactive terms (default=#terms)")
       ("false-negatives,N", po::value<int>()->default_value(1), "pseudocount: false negatives")
@@ -105,9 +106,11 @@ int main (int argc, char** argv) {
     mcmc.initModels (geneSets);
 
     const int samplesPerTerm = vm["samples"].as<int>(), nSamples = samplesPerTerm * mcmc.nVariables;
-    LogThisAt(1,"Model has " << mcmc.nVariables << " variables; running MCMC for " << nSamples << " steps" << endl);
-    
-    mcmc.run (nSamples, generator);
+    const int burnPerTerm = vm["burn"].as<int>(), burn = burnPerTerm * mcmc.nVariables;
+    LogThisAt(1,"Model has " << mcmc.nVariables << " variables; running MCMC for " << nSamples << " steps + " << burn << " burn-in" << endl);
+
+    mcmc.burn = burn;
+    mcmc.run (nSamples + burn, generator);
 
     auto summ = mcmc.summary();
     cout << summ.toJSON() << endl;
