@@ -52,6 +52,8 @@
 		showTermTable (wtf)
 		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0), "FalsePos")
 		showGeneTable (wtf, wtf.ui.falseNegTableParent, wtf.mcmc.geneFalseNegSummary(0), "FalseNeg")
+		if (wtf.showTermPairs)
+		    showTermPairs (wtf)
 		wtf.redraw = false
 	    }
 	    wtf.samplesPerRun = wtf.mcmc.nVariables()
@@ -113,12 +115,9 @@
         setTimeout (redrawLogLikelihood.bind(wtf), 100)
     }
 
-    var termPairProbThreshold = .1
-    function plotTermPairProbs() {
-        var wtf = this
+    var termPairProbThreshold = .05, termOddsRatioThreshold = 100
+    function showTermPairs (wtf) {
         if (!wtf.paused) {
-            wtf.ui.termPairPlot.empty()
-
 	    var termProb = wtf.mcmc.termSummary(0)
 	    var terms = util.sortKeys(termProb).reverse()
 	    var topTerms = []
@@ -128,83 +127,42 @@
 	    })
 	    var termPairProb = wtf.mcmc.termPairSummary (0, topTerms)
 
-            var xValues = topTerms, yValues = topTerms.slice(0).reverse()
-            var zRange = 10 * Math.log(2)
-            var termRatio = util.keyValListToObj (topTerms.map (function(t) { return [t,{}] }))
-            var zValues = yValues.map (function(ty,y) {
-                return xValues.map (function(tx,x) {
-                    if (tx == ty) {
-                        termRatio[tx][ty] = 0
-                        return NaN
-                    }
-                    var r = termRatio[tx][ty] = termPairProb[tx][ty] / (termProb[tx] * termProb[ty])
-                    var z = Math.log (r)
-                    return Math.max (-zRange, Math.min (zRange, z))
-                })
-            })
+	    var bosons = topTerms.map (function() { return [] })
+	    var fermions = topTerms.map (function() { return [] })
+	    topTerms.forEach (function(t,i) {
+		topTerms.forEach (function(t2) {
+		    if (t != t2) {
+			var ratio = termPairProb[t][t2] / (termProb[t] * termProb[t2])
+			if (ratio > termOddsRatioThreshold)
+			    bosons[i].push(t2)
+			else if (ratio < 1 / termOddsRatioThreshold)
+			    fermions[i].push(t2)
+		    }
+		})
+	    })
 
-            var colorscaleValue = [
-                [0, '#ff0000'],
-                [.5, '#ffffff'],
-                [1, '#00ff00']
-            ]
-
-            var data = [{
-                x: xValues,
-                y: yValues,
-                z: zValues,
-                zmin: -zRange,
-                zmax: zRange,
-                type: 'heatmap',
-                colorscale: colorscaleValue,
-                showscale: false
-            }]
-
-            var layout = {
-                title: 'Term-pair odds ratios',
-                xaxis: {
-                    ticks: '',
-                    side: 'top'
-                },
-                yaxis: {
-                    ticks: '',
-                    ticksuffix: ' ',
-                    width: 700,
-                    height: 700,
-                    autosize: false
-                },
-                hoverinfo: 'none',
-                annotations: []
-            }
-
-            yValues.forEach (function(ty) {
-                xValues.forEach (function(tx) {
-                    layout.annotations.push ({
-                        xref: 'x1',
-                        yref: 'y1',
-                        x: tx,
-                        y: ty,
-                        text: tx==ty ? "" : ratioText (termRatio[tx][ty]),
-                        font: {
-                            family: 'Arial',
-                            size: 9
-                        },
-                        showarrow: false,
-                        font: {
-                            color: 'black'
-                        }
-                    })
-                })
-            })
-            
-            wtf.ui.termPairPlot.show()
-            Plotly.newPlot(wtf.ui.termPairPlot[0], data, layout)
-        }
-        
-        setTimeout (plotTermPairProbs.bind(wtf), 400)
+	    listPairedTerms (wtf, topTerms, bosons, wtf.ui.bosonTableParent, "Often co-occurs with")
+	    listPairedTerms (wtf, topTerms, fermions, wtf.ui.fermionTableParent, "Rarely co-occurs with")
+	    
+	}
     }
 
-    function cancelStart(wtf,msg) {
+    function listPairedTerms (wtf, topTerms, partnerList, tableParent, header) {
+	tableParent.empty()
+	var pairedTerms = util.iota(topTerms.length)
+	    .filter (function(i) { return partnerList[i].length > 0 })
+	if (pairedTerms.length) {
+	    var table = $('<table/>')
+	    table.append ($('<tr><th>Term</th><th align="left">' + header + '</th></tr>'))
+	    table.append (pairedTerms
+			  .map (function(i) {
+			      return $('<tr><td>' + topTerms[i] + '</td><td>' + partnerList[i].join(", ") + '</td></tr>')
+			  }))
+	}
+	tableParent.append (table)
+    }
+    
+    function cancelStart (wtf, msg) {
 	alert (msg)
         wtf.ui.startButton.prop('disabled',false)
         wtf.ui.geneSetTextArea.prop('disabled',false)
@@ -257,7 +215,8 @@
 	    wtf.ui.pairButton.click (function() {
 		wtf.ui.pairButton.prop('disabled',true)
 		wtf.mcmc.logTermPairs()
-                plotTermPairProbs.call(wtf)
+		wtf.showTermPairs = true
+		wtf.ui.termPairs.show()
                 if (wtf.paused)
                     resumeAnalysis.call(wtf)
 	    })
@@ -373,7 +332,9 @@
 				   .append (wtf.ui.falsePosTableParent = $('<div/>')),
 				   $('<div class="wtftable">Missing genes</div>')
 				   .append (wtf.ui.falseNegTableParent = $('<div/>'))),
-                          wtf.ui.termPairPlot = $('<div class="wtftermpair"/>'))
+                          (wtf.ui.termPairs = $('<div class="wtftermpair"/>')
+			   .append (wtf.ui.bosonTableParent = $('<div class="wtftable"/>'),
+				    wtf.ui.fermionTableParent = $('<div class="wtftable"/>'))))
 	    
             wtf.ui.startButton
                 .on('click', startAnalysis.bind(wtf))
@@ -381,7 +342,7 @@
 	    wtf.ui.pairButton.hide()
 	    wtf.ui.mcmc.hide()
 	    wtf.ui.results.hide()
-	    wtf.ui.termPairPlot.hide()
+	    wtf.ui.termPairs.hide()
 
             if (wtf.exampleURL) {
                 wtf.ui.exampleLink = $('<a href="#">(example)</a>')

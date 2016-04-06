@@ -82,6 +82,10 @@
     margin: 10px 10px 10px 0px;
 }
 
+.wtftable th {
+    text-align: left;
+}
+
 .wtftermpair {
     clear: both;
     float: left;
