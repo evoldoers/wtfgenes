@@ -37,16 +37,13 @@ void Model::init (const GeneNameSet& geneNames) {
     inGeneSet[g] = true;
     _falseGenes.insert (g);
     for (auto t : assocs.termsByGene[g]) {
-      bool sameAsChildren = false;
-      if (!assocs.ontology.children[t].empty()) {
-	sameAsChildren = true;
-	for (auto c : assocs.ontology.children[t])
-	  if (assocs.genesByTerm[c] != assocs.genesByTerm[t]) {
-	    sameAsChildren = false;
+      bool hasIdenticalChild = false;
+      for (auto c : assocs.ontology.children[t])
+	if (assocs.genesByTerm[c] == assocs.genesByTerm[t]) {
+	    hasIdenticalChild = true;
 	    break;
-	  }
-      }
-      if (!sameAsChildren)
+	}
+      if (!hasIdenticalChild)
 	relevant.insert (t);
     }
   }

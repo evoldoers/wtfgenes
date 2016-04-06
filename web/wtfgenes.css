@@ -43,6 +43,32 @@
     border-radius: 3px;
 }
 
+.wtfprior {
+    float: left;
+    clear: left;
+    width: 368px;
+    background-color: #e0e0e0;
+    margin: 0px 10px 10px 0px;
+    padding: 10px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 3px;
+}
+
+.wtfprior {
+    font-style: italic;
+}
+
+.wtfprior > table {
+    float: right;
+}
+
+.wtfprior > table > tbody > tr > th,
+.wtfprior > table > tbody > tr > td,
+.wtfprior > table > tbody > tr > td > input {
+    text-align: right;
+}
+
 .wtfmcmc {
     float: left;
     clear: left;
@@ -77,12 +103,12 @@
 
 .wtftable {
     float: left;
-    text-align: center;
     font-style: italic;
     margin: 10px 10px 10px 0px;
 }
 
-.wtftable th {
+.wtftable > div > table > tbody > tr > th,
+.wtftable > div > table > tbody > tr > td {
     text-align: left;
 }
 
@@ -96,7 +122,8 @@
     width: 800px;
 }
 
-.wtftermpair th, td {
+.wtftermpair > div > div > table > tbody > th,
+.wtftermpair > div > div > table > tbody > td {
     border-bottom: 1px solid #ddd;
 }
 

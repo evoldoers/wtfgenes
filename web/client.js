@@ -244,6 +244,7 @@
 	alert (msg)
         wtf.ui.startButton.prop('disabled',false)
         wtf.ui.geneSetTextArea.prop('disabled',false)
+	$('.wtfprior input').prop('disabled',false)
         enableExampleLink (wtf)
     }
 
@@ -251,6 +252,7 @@
         var wtf = this
         wtf.ui.startButton.prop('disabled',true)
         wtf.ui.geneSetTextArea.prop('disabled',true)
+	$('.wtfprior input').prop('disabled',true)
         if (wtf.ui.exampleLink)
             disableExampleLink(wtf)
         var geneNames = wtf.ui.geneSetTextArea.val().split("\n")
@@ -264,14 +266,14 @@
 
 	    var prior = {
 		succ: {
-		    t: 1,
-		    fp: 1,
-		    fn: 1
+		    t: parseInt (wtf.ui.termPresentCount.val()),
+		    fp: parseInt (wtf.ui.falsePosCount.val()),
+		    fn: parseInt (wtf.ui.truePosCount.val())
 		},
 		fail: {
-		    t: wtf.assocs.relevantTerms().length,
-		    fp: 100,  // wtf.assocs.genes(),
-		    fn: 100   // wtf.assocs.genes()
+		    t: parseInt (wtf.ui.termAbsentCount.val()),
+		    fp: parseInt (wtf.ui.trueNegCount.val()),
+		    fn: parseInt (wtf.ui.truePosCount.val())
 		}
 	    }
 
@@ -285,8 +287,12 @@
 	    wtf.targetSamples = wtf.mcmc.burn + 100 * wtf.mcmc.nVariables()
 
             wtf.mcmc.logLogLikelihood (true)
-            
+
+            wtf.trackPairSamplesPassed = false
+	    wtf.targetSamplesPassed = false
+
             resumeAnalysis.call(wtf)
+
             wtf.ui.startButton.prop('disabled',false)
 
 	    wtf.ui.results.show()
@@ -353,13 +359,10 @@
 			 ui: {} })
 
 	// initialize UI
-        if (!wtf.ui.parentDiv) {
-            wtf.ui.parentDiv = $('<div id="wtf" class="wtfparent"/>')
-            $("body").append (wtf.ui.parentDiv)
-        }
-
-	wtf.ui.logDiv = $('<div class="wtflog"/>')
-        wtf.ui.parentDiv.append (wtf.ui.logDiv)
+	$("body").append
+	($('<div id="wtf" class="wtfparent"/>')
+	 .append (wtf.ui.parentDiv = $('<div/>'),
+		  wtf.ui.logDiv = $('<div class="wtflog"/>')))
 
         // load data files, initialize ontology & associations
         var ontologyReady = $.Deferred(),
@@ -394,11 +397,34 @@
 	     .append ($('<div class="wtfcontrol"/>')
 		      .append (wtf.ui.helpText = $('<span>Enter gene names, one per line </span>'),
 			       wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
-			       wtf.ui.startButton = $('<button class="wtfstartbutton">Start analysis</button>'),
+			       wtf.ui.startButton = $('<button class="wtfstartbutton">Start sampling</button>'),
 			       wtf.ui.pairButton = $('<button>Track co-occurence</button>')),
 		      (wtf.ui.mcmc = $('<div class="wtfmcmc"/>'))
 		      .append (wtf.ui.statusDiv = $('<div class="wtfstatus"/>'),
-			       wtf.ui.logLikePlot = $('<div class="wtfloglike"/>'))),
+			       wtf.ui.logLikePlot = $('<div class="wtfloglike"/>')),
+		      $('<div class="wtfprior"/>')
+		      .append ($('<span>Pseudocounts</span>'),
+			       $('<br/>'),
+			       $('<table/>')
+			       .append ($('<tr><th/><th>#True</th><th>#False</th></tr>'),
+					$('<tr/>')
+					.append ($('<td>Term enriched</td>'),
+						 $('<td/>')
+						 .append (wtf.ui.termPresentCount = $('<input type="text" size="6"/>')),
+						 $('<td/>')
+						 .append (wtf.ui.termAbsentCount = $('<input type="text" size="6"/>'))),
+					$('<tr/>')
+					.append ($('<td>Inactive gene misannotated as active</td>'),
+						 $('<td/>')
+						 .append (wtf.ui.falsePosCount = $('<input type="text" size="6"/>')),
+						 $('<td/>')
+						 .append (wtf.ui.trueNegCount = $('<input type="text" size="6"/>'))),
+					$('<tr/>')
+					.append ($('<td>Active gene misannotated as inactive</td>'),
+						 $('<td/>')
+						 .append (wtf.ui.falseNegCount = $('<input type="text" size="6"/>')),
+						 $('<td/>')
+						 .append (wtf.ui.truePosCount = $('<input type="text" size="6"/>')))))),
 	     (wtf.ui.results = $('<div class="wtfresults"/>'))
 	     .append ($('<div class="wtftable wtftermtable">Enriched terms</div>')
 		      .append (wtf.ui.termTableParent = $('<div/>')),
@@ -412,14 +438,23 @@
 			       .append (wtf.ui.falsePosTableParent = $('<div/>')),
 			       $('<div class="wtftable wtfgenetable">Missing genes</div>')
 			       .append (wtf.ui.falseNegTableParent = $('<div/>')))))
+
+            wtf.ui.termPresentCount.val(1)
+	    wtf.ui.termAbsentCount.val(wtf.ontology.terms())
+	    wtf.ui.falsePosCount.val(1)
+	    wtf.ui.trueNegCount.val(99)
+	    wtf.ui.falseNegCount.val(1)
+	    wtf.ui.truePosCount.val(99)
 	    
-            wtf.ui.startButton
+	    wtf.ui.startButton
                 .on('click', startAnalysis.bind(wtf))
 
 	    wtf.ui.pairButton.hide()
 	    wtf.ui.mcmc.hide()
 	    wtf.ui.results.hide()
 	    wtf.ui.termPairs.hide()
+	    wtf.ui.bosonTableParent.parent().hide()
+	    wtf.ui.fermionTableParent.parent().hide()
 	    wtf.ui.geneTables.hide()
 
             if (wtf.exampleURL) {
