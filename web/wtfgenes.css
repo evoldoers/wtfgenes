@@ -83,5 +83,6 @@
 }
 
 .wtftermpair {
+    clear: both;
     float: left;
 }

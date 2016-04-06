@@ -18,17 +18,6 @@
 	return 'style="background-color:#' + bgStr + '"'
     }
     
-    var ratioScale = 32 / Math.log(2)
-    function ratioStyle (r) {
-	var bg
-	var l = Math.log(r)
-	var level = Math.max (Math.floor (255 - ratioScale*Math.abs(l)), 0)
-	if (l > 0)
-	    return bgColorStyle (level, 255, level)
-	else
-	    return bgColorStyle (255, level, level)
-    }
-
     function probStyle (p) {
 	var level = Math.floor ((1-p) * 255)
 	return bgColorStyle (level, 255, level)
@@ -39,12 +28,12 @@
     }
 
     function ratioText (r) {
-	return r < 1
-	    ? (isFinite(1/r) ? ((1/r).toFixed(2) + "x less") : "Never")
-	    : (isFinite(r) ? (r.toFixed(2) + "x more") : "Always")
+	return (r > .5 && r < 1.5) ? "~1"
+            : (r < 1
+	       ? (isFinite(1/r) ? ("1/" + Math.round(1/r)) : "0")
+	       : Math.round(r))
     }
 
-    var interactionThreshold = .1
     function runMCMC() {
         var wtf = this
         if (wtf.paused)
@@ -74,39 +63,14 @@
 	var termTable = $('<table></table>')
 	var termProb = wtf.mcmc.termSummary(0)
 	var terms = util.sortKeys(termProb).reverse()
-	var topTerms = []
-	terms.forEach (function (t) {
-	    if (termProb[t] > interactionThreshold)
-		topTerms.push (t)
-	})
-	var termPairProb
-	if (wtf.showPairs) {
-	    termPairProb = wtf.mcmc.termPairSummary (0, topTerms)
-	}
-	termTable.append ($('<tr><th>Term</th><th>P(Term)</th>'
-			    + (wtf.showPairs
-			       ? topTerms.map (function(t) {
-				   return '<th>' + t + '</th>'
-			       }).join('')
-			       : '')
-			    + '</tr>'))
+	termTable.append ($('<tr><th>Term</th><th>P(Term)</th></tr>'))
         terms.forEach (function (t,i) {
 	    var p = termProb[t]
 	    var pStyle = probStyle(p)
 	    termTable
 		.append ($('<tr>'
 			   + '<td ' + pStyle + '><a target="_blank" href="' + wtf.termURL + t + '">' + t + '</a></td>'
-			   + '<td ' + pStyle + '>' + p.toPrecision(5) + '</td>'
-			   + (wtf.showPairs
-			      ? (p > interactionThreshold
-				 ? topTerms.map (function(t2,i2) {
-				     var ratio = termPairProb[t][t2] / (termProb[t] * termProb[t2])
-				     var rStyle = i==i2 ? blankStyle() : ratioStyle(ratio)
-				     return '<td ' + rStyle + '>' + (i == i2 ? '' : ratioText(ratio) + '</td>')
-				 }).join('')
-				 : topTerms.map (function() { return '<td></td>' }))
-			      : '')
-			   + '</tr>'))
+			   + '<td ' + pStyle + '>' + p.toPrecision(5) + '</td></tr>'))
         })
 	wtf.ui.termTableParent.empty()
 	wtf.ui.termTableParent.append (termTable)
@@ -144,8 +108,100 @@
 
     function redrawLogLikelihood() {
         var wtf = this
-        Plotly.redraw( wtf.ui.logLikePlot[0] )
+        if (!wtf.paused)
+            Plotly.redraw( wtf.ui.logLikePlot[0] )
         setTimeout (redrawLogLikelihood.bind(wtf), 100)
+    }
+
+    var termPairProbThreshold = .1
+    function plotTermPairProbs() {
+        var wtf = this
+        if (!wtf.paused) {
+            wtf.ui.termPairPlot.empty()
+
+	    var termProb = wtf.mcmc.termSummary(0)
+	    var terms = util.sortKeys(termProb).reverse()
+	    var topTerms = []
+	    terms.forEach (function (t) {
+	        if (termProb[t] > termPairProbThreshold)
+		    topTerms.push (t)
+	    })
+	    var termPairProb = wtf.mcmc.termPairSummary (0, topTerms)
+
+            var xValues = topTerms, yValues = topTerms.slice(0).reverse()
+            var zRange = 10 * Math.log(2)
+            var termRatio = util.keyValListToObj (topTerms.map (function(t) { return [t,{}] }))
+            var zValues = yValues.map (function(ty,y) {
+                return xValues.map (function(tx,x) {
+                    if (tx == ty) {
+                        termRatio[tx][ty] = 0
+                        return NaN
+                    }
+                    var r = termRatio[tx][ty] = termPairProb[tx][ty] / (termProb[tx] * termProb[ty])
+                    var z = Math.log (r)
+                    return Math.max (-zRange, Math.min (zRange, z))
+                })
+            })
+
+            var colorscaleValue = [
+                [0, '#ff0000'],
+                [.5, '#ffffff'],
+                [1, '#00ff00']
+            ]
+
+            var data = [{
+                x: xValues,
+                y: yValues,
+                z: zValues,
+                zmin: -zRange,
+                zmax: zRange,
+                type: 'heatmap',
+                colorscale: colorscaleValue,
+                showscale: false
+            }]
+
+            var layout = {
+                title: 'Term-pair odds ratios',
+                xaxis: {
+                    ticks: '',
+                    side: 'top'
+                },
+                yaxis: {
+                    ticks: '',
+                    ticksuffix: ' ',
+                    width: 700,
+                    height: 700,
+                    autosize: false
+                },
+                hoverinfo: 'none',
+                annotations: []
+            }
+
+            yValues.forEach (function(ty) {
+                xValues.forEach (function(tx) {
+                    layout.annotations.push ({
+                        xref: 'x1',
+                        yref: 'y1',
+                        x: tx,
+                        y: ty,
+                        text: tx==ty ? "" : ratioText (termRatio[tx][ty]),
+                        font: {
+                            family: 'Arial',
+                            size: 9
+                        },
+                        showarrow: false,
+                        font: {
+                            color: 'black'
+                        }
+                    })
+                })
+            })
+            
+            wtf.ui.termPairPlot.show()
+            Plotly.newPlot(wtf.ui.termPairPlot[0], data, layout)
+        }
+        
+        setTimeout (plotTermPairProbs.bind(wtf), 400)
     }
 
     function cancelStart(wtf,msg) {
@@ -197,11 +253,11 @@
 	    wtf.ui.results.show()
 	    wtf.ui.mcmc.show()
 
-	    wtf.ui.interButton.show()
-	    wtf.ui.interButton.click (function() {
-		wtf.ui.interButton.prop('disabled',true)
+	    wtf.ui.pairButton.show()
+	    wtf.ui.pairButton.click (function() {
+		wtf.ui.pairButton.prop('disabled',true)
 		wtf.mcmc.logTermPairs()
-		wtf.showPairs = true
+                plotTermPairProbs.call(wtf)
                 if (wtf.paused)
                     resumeAnalysis.call(wtf)
 	    })
@@ -306,7 +362,7 @@
 				   .append (wtf.ui.helpText = $('<span>Enter gene names, one per line </span>'),
 					    wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
 					    wtf.ui.startButton = $('<button class="wtfstartbutton">Start analysis</button>'),
-					    wtf.ui.interButton = $('<button>Track co-occurence</button>')),
+					    wtf.ui.pairButton = $('<button>Track co-occurence</button>')),
 				   (wtf.ui.mcmc = $('<div class="wtfmcmc"/>'))
 				   .append (wtf.ui.statusDiv = $('<div class="wtfstatus"/>'),
 					    wtf.ui.logLikePlot = $('<div class="wtfloglike"/>'))),
@@ -316,15 +372,16 @@
 				   $('<div class="wtftable">Unexplained genes</div>')
 				   .append (wtf.ui.falsePosTableParent = $('<div/>')),
 				   $('<div class="wtftable">Missing genes</div>')
-				   .append (wtf.ui.falseNegTableParent = $('<div/>')),
-				   wtf.ui.termPairPlot = $('<div class="wtftermpair"/>')))
+				   .append (wtf.ui.falseNegTableParent = $('<div/>'))),
+                          wtf.ui.termPairPlot = $('<div class="wtftermpair"/>'))
 	    
             wtf.ui.startButton
                 .on('click', startAnalysis.bind(wtf))
 
-	    wtf.ui.interButton.hide()
+	    wtf.ui.pairButton.hide()
 	    wtf.ui.mcmc.hide()
 	    wtf.ui.results.hide()
+	    wtf.ui.termPairPlot.hide()
 
             if (wtf.exampleURL) {
                 wtf.ui.exampleLink = $('<a href="#">(example)</a>')
