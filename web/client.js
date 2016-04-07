@@ -41,6 +41,7 @@
         else {
             wtf.mcmc.run (wtf.samplesPerRun)
 	    var now = Date.now()
+
 	    if (wtf.lastRun) {
 		var elapsedSecs = (now - wtf.lastRun) / 1000
 		wtf.ui.samplesPerSec.text ((wtf.samplesPerRun / elapsedSecs).toPrecision(2))
@@ -67,6 +68,9 @@
 		pauseAnalysis.call(wtf)
 		wtf.targetSamplesPassed = true
 	    }
+
+	    if (wtf.mcmc.finishedBurn())
+		wtf.ui.results.show()
 	    
 	    setTimeout (runMCMC.bind(wtf), 10)
         }
@@ -85,7 +89,7 @@
 
 	var bosons = terms.map (function() { return [] })
 	var fermions = terms.map (function() { return [] })
-	if (wtf.showTermPairs) {
+	if (wtf.showTermPairs && wtf.mcmc.termPairSamples > wtf.mcmc.burn) {
 	    var termPairProb = wtf.mcmc.termPairSummary (0, terms)
 
 	    terms.forEach (function(t,i) {
@@ -211,7 +215,8 @@
 			line: { dash: 4 },
 			showlegend: false }],
                      { margin: { b:0, l:0, r:10, t:0, pad:10 },
-		       title: "Log-likelihood vs iteration",
+		       // this is the plot title, but putting it as x-axis title looks better... hack
+		       xaxis: { title: "Log-likelihood vs sample#" },
 		       width: 398,
 		       height: 198 },
 		     { displayModeBar: false })
@@ -227,12 +232,13 @@
 
     function trackTermPairs() {
 	var wtf = this
-	wtf.ui.pairButton.prop('disabled',true)
-	wtf.mcmc.logTermPairs()
-	wtf.showTermPairs = true
-	wtf.ui.geneTables.show()
+	if (!wtf.showTermPairs) {
+	    wtf.ui.pairButton.prop('disabled',true)
+	    wtf.mcmc.logTermPairs()
+	    wtf.showTermPairs = true
+	}
         if (wtf.paused)
-            resumeAnalysis.call(wtf)
+	    resumeAnalysis.call(wtf)
     }
     
     function cancelStart (wtf, msg) {
@@ -263,7 +269,7 @@
 		succ: {
 		    t: parseInt (wtf.ui.termPresentCount.val()),
 		    fp: parseInt (wtf.ui.falsePosCount.val()),
-		    fn: parseInt (wtf.ui.truePosCount.val())
+		    fn: parseInt (wtf.ui.falseNegCount.val())
 		},
 		fail: {
 		    t: parseInt (wtf.ui.termAbsentCount.val()),
@@ -295,7 +301,6 @@
 
             wtf.ui.startButton.prop('disabled',false)
 
-	    wtf.ui.results.show()
 	    wtf.ui.statusDiv.show()
 	    wtf.ui.mcmcPanel.show()
 
@@ -435,11 +440,10 @@
 	     (wtf.ui.results = $('<div class="wtfresults"/>'))
 	     .append ($('<div class="wtftable wtftermtable">Enriched terms</div>')
 		      .append (wtf.ui.termTableParent = $('<div/>')),
-		      (wtf.ui.geneTables = $('<div class="wtfgenetables"/>'))
-		      .append ($('<div class="wtftable wtfgenetable">Unexplained genes</div>')
-			       .append (wtf.ui.falsePosTableParent = $('<div/>')),
-			       $('<div class="wtftable wtfgenetable">Missing genes</div>')
-			       .append (wtf.ui.falseNegTableParent = $('<div/>')))))
+		      $('<div class="wtftable wtfgenetable">Unexplained genes</div>')
+		      .append (wtf.ui.falsePosTableParent = $('<div/>')),
+		      $('<div class="wtftable wtfgenetable">Missing genes</div>')
+		      .append (wtf.ui.falseNegTableParent = $('<div/>'))))
 
             wtf.ui.termPresentCount.val(1)
 	    wtf.ui.termAbsentCount.val(wtf.assocs.relevantTerms().length)
@@ -455,7 +459,6 @@
 	    wtf.ui.statusDiv.hide()
 	    wtf.ui.mcmcPanel.hide()
 	    wtf.ui.results.hide()
-	    wtf.ui.geneTables.hide()
 
             if (wtf.exampleURL) {
                 wtf.ui.exampleLink = $('<a href="#">(example)</a>')
