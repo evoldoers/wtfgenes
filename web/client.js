@@ -210,8 +210,8 @@
 			hoverinfo: 'name',
 			line: { dash: 4 },
 			showlegend: false }],
-                     { xaxis: { title: "Progress" },
-		       margin: { b:0, l:0, r:10, t:0, pad:10 },
+                     { margin: { b:0, l:0, r:10, t:0, pad:10 },
+		       title: "Log-likelihood vs iteration",
 		       width: 398,
 		       height: 198 },
 		     { displayModeBar: false })
