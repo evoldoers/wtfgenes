@@ -47,11 +47,15 @@ void Model::init (const GeneNameSet& geneNames) {
 
   for (auto t : relevantTerms) {
     set<TermIndex> nbr;
-    for (auto p : assocs.ontology.parents[t])
-      if (isRelevant[p])
+    for (auto p : assocs.ontology.parents[t]) {
+      if (isRelevant[p] && p != t)
 	nbr.insert (p);
+      for (auto s : assocs.ontology.children[p])
+	if (isRelevant[s] && s != t)
+	  nbr.insert (s);
+    }
     for (auto c : assocs.ontology.children[t])
-      if (isRelevant[c])
+      if (isRelevant[c] && c != t)
 	nbr.insert (c);
     relevantNeighbors[t] = vguard<TermIndex> (nbr.begin(), nbr.end());
   }

@@ -400,7 +400,7 @@
             wtf.ui.parentDiv.prepend
 	    ($('<div class="wtfcontrolmcmc"/>')
 	     .append ($('<div class="wtfcontrol"/>')
-		      .append (wtf.ui.helpText = $('<span>Enter gene names, one per line </span>'),
+		      .append (wtf.ui.helpText = $('<span>Enter active gene names, one per line </span>'),
 			       wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
 			       wtf.ui.startButton = $('<button class="wtfstartbutton">Start sampling</button>'),
 			       wtf.ui.pairButton = $('<button>Track co-occurence</button>')),
@@ -413,23 +413,23 @@
 			       $('<table/>')
 			       .append ($('<tr><th/><th>#True</th><th>#False</th></tr>'),
 					$('<tr/>')
-					.append ($('<td>Term is activated, along with associated genes</td>'),
+					.append ($('<td>A term\'s associated genes are active</td>'),
 						 $('<td/>')
-						 .append (wtf.ui.termPresentCount = $('<input type="text" size="6"/>')),
+						 .append (wtf.ui.termPresentCount = $('<input type="text" size="5"/>')),
 						 $('<td/>')
-						 .append (wtf.ui.termAbsentCount = $('<input type="text" size="6"/>'))),
+						 .append (wtf.ui.termAbsentCount = $('<input type="text" size="5"/>'))),
 					$('<tr/>')
-					.append ($('<td>Inactive gene misannotated as active</td>'),
+					.append ($('<td>Inactive gene is misannotated as active</td>'),
 						 $('<td/>')
-						 .append (wtf.ui.falsePosCount = $('<input type="text" size="6"/>')),
+						 .append (wtf.ui.falsePosCount = $('<input type="text" size="5"/>')),
 						 $('<td/>')
-						 .append (wtf.ui.trueNegCount = $('<input type="text" size="6"/>'))),
+						 .append (wtf.ui.trueNegCount = $('<input type="text" size="5"/>'))),
 					$('<tr/>')
-					.append ($('<td>Active gene misannotated as inactive</td>'),
+					.append ($('<td>Active gene is misannotated as inactive</td>'),
 						 $('<td/>')
-						 .append (wtf.ui.falseNegCount = $('<input type="text" size="6"/>')),
+						 .append (wtf.ui.falseNegCount = $('<input type="text" size="5"/>')),
 						 $('<td/>')
-						 .append (wtf.ui.truePosCount = $('<input type="text" size="6"/>')))))),
+						 .append (wtf.ui.truePosCount = $('<input type="text" size="5"/>')))))),
 	     (wtf.ui.results = $('<div class="wtfresults"/>'))
 	     .append ($('<div class="wtftable wtftermtable">Enriched terms</div>')
 		      .append (wtf.ui.termTableParent = $('<div/>')),

@@ -54,7 +54,7 @@ describe('Model', function() {
             assert (!normalModel.isRelevant[5])
         })
         it('should identify neighbors of relevant terms', function() {
-            assert.deepEqual (mutantModel.relevantNeighbors, [[5,7],[3,7],[0],[4,6],[3,5],[0,4,8],[3],[0],[5]])
+            assert.deepEqual (mutantModel.relevantNeighbors, [[5,7],[0,3,7],[0,5],[4,6],[3,5,6],[0,4,8],[3,4],[0],[5]])
         })
         it('should create default params', function() {
             assert.deepEqual (mutantModel.paramSet.paramNames(), ['fn','fp','t'])
