@@ -171,8 +171,9 @@ describe('Model', function() {
             var mutSingleDelta = mutantModel.getCountDelta({8:1})
             assert.deepEqual (mutSingleDelta.toJSON(), {succ:{t:1,fp:-3},fail:{t:-1,fn:3}})
         })
-        var mutMultiDelta = mutantModel.getCountDelta(multAssign)
+        var mutMultiDelta
         it('should return count deltas for a multi-term state change', function() {
+            mutMultiDelta = mutantModel.getCountDelta(multAssign)
             assert.deepEqual (mutMultiDelta.toJSON(), {succ:{t:4,fp:-3,fn:2},fail:{t:-4,fn:3,fp:-2}})
         })
         it('should be consistent with observed getCounts delta', function() {

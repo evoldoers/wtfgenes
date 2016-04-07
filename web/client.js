@@ -150,7 +150,7 @@
 			showlegend: false },
 		      { x: [wtf.trackPairSamples, wtf.trackPairSamples],
 			y: wtf.logLikeMinMax,
-			name: "Term pairs",
+			name: "Halfway done",
 			mode: 'lines',
 			hoverinfo: 'name',
 			line: { dash: 4 },
@@ -440,11 +440,11 @@
 			       .append (wtf.ui.falseNegTableParent = $('<div/>')))))
 
             wtf.ui.termPresentCount.val(1)
-	    wtf.ui.termAbsentCount.val(wtf.ontology.terms())
+	    wtf.ui.termAbsentCount.val(wtf.assocs.relevantTerms().length)
 	    wtf.ui.falsePosCount.val(1)
-	    wtf.ui.trueNegCount.val(99)
+	    wtf.ui.trueNegCount.val(wtf.assocs.genes())
 	    wtf.ui.falseNegCount.val(1)
-	    wtf.ui.truePosCount.val(99)
+	    wtf.ui.truePosCount.val(wtf.assocs.genes())
 	    
 	    wtf.ui.startButton
                 .on('click', startAnalysis.bind(wtf))

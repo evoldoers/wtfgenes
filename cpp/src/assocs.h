@@ -23,26 +23,32 @@ struct Assocs {
   typedef map<TermName,double> TermProb;
   typedef map<GeneName,double> GeneProb;
 
+  typedef int TermEquivClassIndex;
+
   const Ontology& ontology;
   vguard<GeneName> geneName;
   map<GeneName,GeneIndex> geneIndex;
   vguard<vguard<GeneIndex> > genesByTerm;
   vguard<set<TermIndex> > termsByGene;
+  vguard<vguard<TermIndex> > termsInEquivClass;
+  vguard<TermEquivClassIndex> equivClassByTerm;
   int nAssocs;
 
   Assocs (const Ontology& ontology)
     : ontology(ontology),
       genesByTerm(ontology.terms()),
+      equivClassByTerm(ontology.terms()),
       nAssocs(0)
   { }
 
   GeneIndex genes() const { return geneName.size(); }
   TermIndex terms() const { return ontology.termName.size(); }
   bool geneHasTerm (GeneIndex g, TermIndex t) const { return termsByGene[g].count(t) > 0; }
+  bool termIsExemplar (TermIndex t) const { return termsInEquivClass[equivClassByTerm[t]][0] == t; }
   vguard<TermIndex> relevantTerms() const {
     vguard<TermIndex> relevant;
     for (TermIndex t = 0; t < terms(); ++t)
-      if (genesByTerm[t].size())
+      if (genesByTerm[t].size() && termIsExemplar(t))
 	relevant.push_back (t);
     return relevant;
   }

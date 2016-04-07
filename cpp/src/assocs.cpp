@@ -63,4 +63,17 @@ void Assocs::init (GeneTermList& geneTermList) {
     genesByTerm_set[t].insert (genesByTerm[t].begin(), genesByTerm[t].end());
     genesByTerm[t] = vguard<GeneIndex> (genesByTerm_set[t].begin(), genesByTerm_set[t].end());
   }
+
+  map<vguard<GeneIndex>,TermEquivClassIndex> termClass;
+  const auto toposort = ontology.toposortTermIndex();
+  const vguard<TermIndex> reverseToposort (toposort.rbegin(), toposort.rend());
+  for (TermIndex term : reverseToposort) {
+    if (!termClass.count(genesByTerm[term])) {
+      termClass[genesByTerm[term]] = termsInEquivClass.size();
+      termsInEquivClass.push_back (vguard<TermIndex>());
+    }
+    const TermEquivClassIndex c = termClass[genesByTerm[term]];
+    equivClassByTerm[term] = c;
+    termsInEquivClass[c].push_back (term);
+  }
 }

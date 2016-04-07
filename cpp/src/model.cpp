@@ -36,16 +36,9 @@ void Model::init (const GeneNameSet& geneNames) {
   for (auto g : geneSet) {
     inGeneSet[g] = true;
     _falseGenes.insert (g);
-    for (auto t : assocs.termsByGene[g]) {
-      bool hasIdenticalChild = false;
-      for (auto c : assocs.ontology.children[t])
-	if (assocs.genesByTerm[c] == assocs.genesByTerm[t]) {
-	    hasIdenticalChild = true;
-	    break;
-	}
-      if (!hasIdenticalChild)
+    for (auto t : assocs.termsByGene[g])
+      if (assocs.termIsExemplar(t))
 	relevant.insert (t);
-    }
   }
 
   relevantTerms = vguard<TermIndex> (relevant.begin(), relevant.end());
