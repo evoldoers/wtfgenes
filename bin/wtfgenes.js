@@ -26,7 +26,7 @@ var defaultTermPseudocount = 1
 var defaultFalseNegPseudocount = 1
 var defaultFalsePosPseudocount = 1
 
-var defaultMoveRate = { flip: 1, step: 1, jump: 0, randomize: 0 }
+var defaultMoveRate = { flip: 1, step: 1, jump: 1, randomize: 0 }
 var defaultBenchReps = 1
 
 var opt = getopt.create([

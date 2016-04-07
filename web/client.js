@@ -280,6 +280,11 @@
             wtf.mcmc = new MCMC ({ assocs: wtf.assocs,
 			           geneSets: [geneNames],
 				   prior: prior,
+                                   moveRate: {
+                                       flip: 1,
+                                       step: 1,
+                                       jump: 1
+                                   },
 				   seed: 123456789
 			         })
 	    wtf.mcmc.burn = 10 * wtf.mcmc.nVariables()
@@ -408,7 +413,7 @@
 			       $('<table/>')
 			       .append ($('<tr><th/><th>#True</th><th>#False</th></tr>'),
 					$('<tr/>')
-					.append ($('<td>Term enriched</td>'),
+					.append ($('<td>Term is activated, along with associated genes</td>'),
 						 $('<td/>')
 						 .append (wtf.ui.termPresentCount = $('<input type="text" size="6"/>')),
 						 $('<td/>')

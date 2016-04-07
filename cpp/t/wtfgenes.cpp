@@ -30,7 +30,7 @@ int main (int argc, char** argv) {
       ("true-negatives,n", po::value<int>(), "pseudocount: true negatives (default=#genes)")
       ("flip-rate,F", po::value<int>()->default_value(1), "relative rate of term-toggling moves")
       ("step-rate,S", po::value<int>()->default_value(1), "relative rate of term-stepping moves")
-      ("jump-rate,J", po::value<int>()->default_value(0), "relative rate of term-jumping moves")
+      ("jump-rate,J", po::value<int>()->default_value(1), "relative rate of term-jumping moves")
       ("randomize-rate,R", po::value<int>()->default_value(0), "relative rate of term-randomizing moves")
       ("rnd-seed,r", po::value<int>()->default_value(123456789), "seed random number generator")
       ("verbose,v", po::value<int>()->default_value(1), "verbosity level")
