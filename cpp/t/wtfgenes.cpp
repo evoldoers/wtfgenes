@@ -23,11 +23,11 @@ int main (int argc, char** argv) {
       ("samples,s", po::value<int>()->default_value(100), "number of samples per term")
       ("burn,u", po::value<int>()->default_value(10), "burn-in samples per term")
       ("terms,T", po::value<int>()->default_value(1), "pseudocount: active terms")
-      ("absent-terms,t", po::value<int>(), "pseudocount: inactive terms (default=#terms)")
+      ("absent-terms,t", po::value<int>()->default_value(99), "pseudocount: inactive terms")
       ("false-negatives,N", po::value<int>()->default_value(1), "pseudocount: false negatives")
-      ("true-positives,p", po::value<int>(), "pseudocount: true positives (default=#genes)")
+      ("true-positives,p", po::value<int>()->default_value(99), "pseudocount: true positives")
       ("false-positives,P", po::value<int>()->default_value(1), "pseudocount: false positives")
-      ("true-negatives,n", po::value<int>(), "pseudocount: true negatives (default=#genes)")
+      ("true-negatives,n", po::value<int>()->default_value(99), "pseudocount: true negatives")
       ("flip-rate,F", po::value<int>()->default_value(1), "relative rate of term-toggling moves")
       ("step-rate,S", po::value<int>()->default_value(1), "relative rate of term-stepping moves")
       ("jump-rate,J", po::value<int>()->default_value(1), "relative rate of term-jumping moves")
@@ -89,11 +89,11 @@ int main (int argc, char** argv) {
     
     BernoulliCounts prior (params.nParams());
     prior.succ[params.paramIndex["t"]] = vm["terms"].as<int>();
-    prior.fail[params.paramIndex["t"]] = vm.count("absent-terms") ? vm["absent-terms"].as<int>() : assocs.relevantTerms().size();
+    prior.fail[params.paramIndex["t"]] = vm["absent-terms"].as<int>();
     prior.succ[params.paramIndex["fn"]] = vm["false-negatives"].as<int>();
-    prior.fail[params.paramIndex["fn"]] = vm.count("true-positives") ? vm["true-positives"].as<int>() : assocs.genes();
+    prior.fail[params.paramIndex["fn"]] = vm["true-positives"].as<int>();
     prior.succ[params.paramIndex["fp"]] = vm["false-positives"].as<int>();
-    prior.fail[params.paramIndex["fp"]] = vm.count("true-negatives") ? vm["true-negatives"].as<int>() : assocs.genes();
+    prior.fail[params.paramIndex["fp"]] = vm["true-negatives"].as<int>();
     
     Model::RandomGenerator generator (vm["rnd-seed"].as<int>());
 

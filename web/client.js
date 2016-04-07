@@ -121,9 +121,9 @@
 			       ['Term name', 'The name of the term'],
 			       ['Explains', 'The genes that are associated to the term and are in the active set'],
 			       ['Also predicts', 'The genes that are associated to the term and are not in the active set'],
-			       gotEquivalents ? ['Resembles', 'Terms that have exactly the same gene associations as this term, and so were excluded from the analysis as being statistically indistinguishable'] : [],
-			       gotBosons ? ['Complements', 'Terms that are positively correlated with this term: they collaborate to explain (complementary aspects of) the data'] : [],
-			       gotFermions ? ['Excludes', 'Terms that are negatively correlated with this term: they compete to explain (similar aspects of) the data'] : []]
+			       gotEquivalents ? ['Indistinguishable from', 'Terms that have exactly the same gene associations as this term, and so were excluded from the analysis'] : [],
+			       gotBosons ? ['Positively correlated with', 'Other terms from this table that often co-occur with this term. An interpretation is that these terms collaborate to explain complementary/disjoint subsets of the active genes'] : [],
+			       gotFermions ? ['Negatively correlated with', 'Other terms from this table that rarely co-occur with this term. An interpretation is that these terms compete to explain similar/overlapping subsets of the active genes'] : []]
 			    .map (function (text_mouseover) {
 				return text_mouseover.length == 2
 				    ? ('<th><span title="' + text_mouseover[1] + '">' + text_mouseover[0] + '</span></th>')
@@ -409,7 +409,7 @@
 			       .append (wtf.ui.helpText = $('<span>Enter active gene names, one per line </span>'),
 					wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
 					wtf.ui.startButton = $('<button class="wtfstartbutton">Start sampling</button>'),
-					wtf.ui.pairButton = $('<button>Track co-occurence</button>'))),
+					wtf.ui.pairButton = $('<button>Track term correlations</button>'))),
 		      $('<div class="wtfmidpanel"/>')
 		      .append ($('<div class="wtfprior"/>')
 			       .append ($('<span>Pseudocounts</span>'),
@@ -446,11 +446,11 @@
 		      .append (wtf.ui.falseNegTableParent = $('<div/>'))))
 
             wtf.ui.termPresentCount.val(1)
-	    wtf.ui.termAbsentCount.val(wtf.assocs.relevantTerms().length)
+	    wtf.ui.termAbsentCount.val(99)
 	    wtf.ui.falsePosCount.val(1)
-	    wtf.ui.trueNegCount.val(wtf.assocs.genes())
+	    wtf.ui.trueNegCount.val(99)
 	    wtf.ui.falseNegCount.val(1)
-	    wtf.ui.truePosCount.val(wtf.assocs.genes())
+	    wtf.ui.truePosCount.val(99)
 	    
 	    wtf.ui.startButton
                 .on('click', startAnalysis.bind(wtf))

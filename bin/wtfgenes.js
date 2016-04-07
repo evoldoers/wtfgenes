@@ -18,13 +18,12 @@ var defaultSeed = 123456789
 var defaultSamplesPerTerm = 100
 var defaultBurnPerTerm = 10
 
-// The default prior can be summarized as follows:
-// - P(term present) = 1/#terms, sample size (#terms + 1)
-// - P(false positive) = 1/#genes, sample size (#genes + 1)
-// - P(false negative) = 1/#genes, sample size (#genes + 1)
 var defaultTermPseudocount = 1
+var defaultAbsentTermPseudocount = 99
 var defaultFalseNegPseudocount = 1
+var defaultTruePosPseudocount = 99
 var defaultFalsePosPseudocount = 1
+var defaultTrueNegPseudocount = 99
 
 var defaultMoveRate = { flip: 1, step: 1, jump: 1, randomize: 0 }
 var defaultBenchReps = 1
@@ -36,11 +35,11 @@ var opt = getopt.create([
     ['s' , 'samples=N'        , 'number of samples per term (default='+defaultSamplesPerTerm+')'],
     ['u' , 'burn=N'           , 'number of burn-in samples per term (default='+defaultBurnPerTerm+')'],
     ['T',  'terms=N'          , 'pseudocount: active terms (default='+defaultTermPseudocount+')'],
-    ['t',  'absent-terms=N'   , 'pseudocount: inactive terms (default=#terms)'],
+    ['t',  'absent-terms=N'   , 'pseudocount: inactive terms (default='+defaultAbsentTermPseudocount+')'],
     ['N',  'false-negatives=N', 'pseudocount: false negatives (default='+defaultFalseNegPseudocount+')'],
-    ['p',  'true-positives=N' , 'pseudocount: true positives (default=#genes)'],
+    ['p',  'true-positives=N' , 'pseudocount: true positives (default='+defaultTruePosPseudocount+')'],
     ['P',  'false-positives=N', 'pseudocount: false positives (default='+defaultFalsePosPseudocount+')'],
-    ['n',  'true-negatives=N' , 'pseudocount: true negatives (default=#genes)'],
+    ['n',  'true-negatives=N' , 'pseudocount: true negatives (default='+defaultTrueNegPseudocount+')'],
     ['F',  'flip-rate=N'      , 'relative rate of term-toggling moves (default='+defaultMoveRate.flip+')'],
     ['S',  'step-rate=N'      , 'relative rate of term-stepping moves (default='+defaultMoveRate.step+')'],
     ['J',  'jump-rate=N'      , 'relative rate of term-jumping moves (default='+defaultMoveRate.jump+')'],
@@ -108,9 +107,9 @@ var prior = {
 	fn: parseInt(opt.options['false-negatives']) || defaultFalseNegPseudocount
     },
     fail: {
-	t: parseInt(opt.options['absent-terms']) || assocs.relevantTerms().length,
-	fp: parseInt(opt.options['true-negatives']) || assocs.genes(),
-	fn: parseInt(opt.options['true-positives']) || assocs.genes()
+	t: parseInt(opt.options['absent-terms']) || defaultAbsentTermPseudocount,
+	fp: parseInt(opt.options['true-negatives']) || defaultTrueNegPseudocount,
+	fn: parseInt(opt.options['true-positives']) || defaultTruePosPseudocount
     }
 }
 
