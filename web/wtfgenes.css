@@ -9,8 +9,49 @@
     background-color: #e0e0e0;
     border-width: 1px;
     border-style: solid;
-    border-radius: 3px;
+    border-radius: 2px;
     padding: 10px;
+}
+
+.wtfcontrolpanels {
+    width: 1200px;
+    height: 200px;
+    margin: 0px 0px 10px 0px;
+    float: left;
+    clear: both;
+}
+
+.wtfleftpanel {
+    width: 400px;
+    height: 200px;
+    position: relative;
+    float: left;
+    clear: left;
+}
+
+.wtfmidpanel {
+    width: 400px;
+    height: 200px;
+    position: relative;
+    float: left;
+}
+
+.wtfrightpanel {
+    width: 400px;
+    height: 200px;
+    position: relative;
+    float: right;
+    clear: right;
+}
+
+.wtfgeneset {
+    width: 368px;
+    height: 178px;
+    background-color: #e0e0e0;
+    padding: 10px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 2px;
 }
 
 .wtfstartbutton {
@@ -20,39 +61,20 @@
 
 .wtfgenesettextarea {
     width: 100%;
+    box-sizing: border-box;
     clear: both;
     float: left;
-    rows: 10;
-}
-
-.wtfcontrolmcmc {
-    width: 400px;
-    margin: 10px 0px 10px 0px;
-    float: left;
-    clear: left;
-}
-
-.wtfcontrol {
-    float: left;
-    clear: left;
-    background-color: #e0e0e0;
-    margin: 0px 10px 10px 0px;
-    padding: 10px;
-    border-width: 1px;
-    border-style: solid;
-    border-radius: 3px;
 }
 
 .wtfprior {
-    float: left;
-    clear: left;
     width: 368px;
+    float: left;
     background-color: #e0e0e0;
     margin: 0px 10px 10px 0px;
     padding: 10px;
     border-width: 1px;
     border-style: solid;
-    border-radius: 3px;
+    border-radius: 2px;
 }
 
 .wtfprior {
@@ -69,31 +91,27 @@
     text-align: right;
 }
 
-.wtfmcmc {
-    float: left;
-    clear: left;
-    margin: 0px 10px 10px 0px;
-}
-
 .wtfstatus {
+    width: 368px;
     float: left;
     clear: left;
-    width: 368px;
+    position: absolute;
+    bottom: 0;
     background-color: #e0e0e0;
-    margin: 0px 10px 10px 0px;
+    margin: 10px 0px 0px 0px;
     padding: 10px;
     border-width: 1px;
     border-style: solid;
-    border-radius: 3px;
+    border-radius: 2px;
 }
 
 .wtfloglike {
     float: left;
     clear: left;
-    margin: 0px 10px 10px 0px;
+    margin: 0px 0px 10px 0px;
     border-width: 1px;
     border-style: solid;
-    border-radius: 3px;
+    border-radius: 2px;
 }
 
 .wtfresults {
@@ -104,7 +122,7 @@
 .wtftable {
     float: left;
     font-style: italic;
-    margin: 10px 10px 10px 0px;
+    margin: 10px 0px 10px 0px;
 }
 
 .wtftable > div > table > tbody > tr > th,
@@ -113,18 +131,7 @@
 }
 
 .wtftermtable {
-    max-width: 760px;
-}
-
-.wtftermpair {
-    clear: both;
-    float: left;
-    width: 800px;
-}
-
-.wtftermpair > div > div > table > tbody > th,
-.wtftermpair > div > div > table > tbody > td {
-    border-bottom: 1px solid #ddd;
+    max-width: 1200px;
 }
 
 .wtfgenetables {
@@ -133,5 +140,6 @@
 }
 
 .wtfgenetable {
-    max-width: 300px;
+    clear: left;
+    float: left;
 }

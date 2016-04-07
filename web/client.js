@@ -52,10 +52,8 @@
             redrawLogLikelihood.call(wtf)
 	    if (wtf.redraw) {
 		showTermTable (wtf)
-		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0), "FalsePos")
-		showGeneTable (wtf, wtf.ui.falseNegTableParent, wtf.mcmc.geneFalseNegSummary(0), "FalseNeg")
-		if (wtf.showTermPairs)
-		    showTermPairs (wtf)
+		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0), "misannotated active")
+		showGeneTable (wtf, wtf.ui.falseNegTableParent, wtf.mcmc.geneFalseNegSummary(0), "misannotated inactive")
 		wtf.redraw = false
 	    }
 	    wtf.samplesPerRun = wtf.mcmc.nVariables()
@@ -74,15 +72,60 @@
         }
     }
 
-    function linkTerm (wtf, term) {
+    function linkTerm (term) {
+	var wtf = this
 	return '<a target="_blank" href="' + wtf.termURL + term + '">' + term + '</a>'
     }
     
+    var termPairProbThreshold = .05, termOddsRatioThreshold = 100
     function showTermTable (wtf) {
 	var termTable = $('<table class="wtftermtable"></table>')
 	var termProb = wtf.mcmc.termSummary(0)
 	var terms = util.sortKeys(termProb).reverse()
-	termTable.append ($('<tr><th>Term ID</th><th>P(Term)</th><th>Term name</th><th>Explains</th><th>Also predicts</th></tr>'))
+
+	var bosons = terms.map (function() { return [] })
+	var fermions = terms.map (function() { return [] })
+	if (wtf.showTermPairs) {
+	    var termPairProb = wtf.mcmc.termPairSummary (0, terms)
+
+	    terms.forEach (function(t,i) {
+		terms.forEach (function(t2) {
+		    if (t != t2) {
+			var ratio = termPairProb[t][t2] / (termProb[t] * termProb[t2])
+			if (ratio > termOddsRatioThreshold)
+			    bosons[i].push(t2)
+			else if (ratio < 1 / termOddsRatioThreshold)
+			    fermions[i].push(t2)
+		    }
+		})
+	    })
+	}
+	var gotBosons = bosons.some (function(l) { return l.length > 0 })
+	var gotFermions = fermions.some (function(l) { return l.length > 0 })
+
+	var equivalents = terms.map (function(t) {
+	    var ti = wtf.ontology.termIndex[t]
+	    return wtf.assocs.termsInEquivClass[wtf.assocs.equivClassByTerm[ti]]
+		.filter (function(tj) { return tj != ti })
+		.map (function(tj) { return wtf.ontology.termName[tj] })
+	})
+	var gotEquivalents = equivalents.some (function(l) { return l.length > 0 })
+
+	termTable.append ($('<tr>'
+			    + [['Term ID', 'The database ID of the ontology term'],
+			       ['P(Term)', 'The posterior probability that the term is activated'],
+			       ['Term name', 'The name of the term'],
+			       ['Explains', 'The genes that are associated to the term and are in the active set'],
+			       ['Also predicts', 'The genes that are associated to the term and are not in the active set'],
+			       gotEquivalents ? ['Resembles', 'Terms that have exactly the same gene associations as this term, and so were excluded from the analysis as being statistically indistinguishable'] : [],
+			       gotBosons ? ['Complements', 'Terms that are positively correlated with this term: they collaborate to explain (complementary aspects of) the data'] : [],
+			       gotFermions ? ['Excludes', 'Terms that are negatively correlated with this term: they compete to explain (similar aspects of) the data'] : []]
+			    .map (function (text_mouseover) {
+				return text_mouseover.length == 2
+				    ? ('<th><span title="' + text_mouseover[1] + '">' + text_mouseover[0] + '</span></th>')
+				    : ""
+			    }).join('')
+			    + '</tr>'))
         terms.forEach (function (t,i) {
 	    var p = termProb[t]
 	    var pStyle = probStyle(p)
@@ -94,11 +137,16 @@
 		.map (function(g) { return wtf.assocs.geneName[g] })
 	    termTable
 		.append ($('<tr ' + pStyle + '>'
-			   + '<td>' + linkTerm(wtf,t) + '</td>'
+			   + '<td>' + linkTerm.call(wtf,t) + '</td>'
 			   + '<td>' + p.toPrecision(5) + '</td>'
 			   + '<td>' + wtf.ontology.getTermInfo(t) + '</td>'
 			   + '<td>' + explained.join(", ") + '</td>'
 			   + '<td>' + predicted.join(", ") + '</td>'
+			   + (gotEquivalents ? '<td>' + equivalents[i].map(function(t) {
+			       return wtf.ontology.getTermInfo(t) + ' (' + linkTerm.call(wtf,t) + ')'
+			   }).join("<br/>") + '</td>' : '')
+			   + (gotBosons ? '<td>' + bosons[i].map(linkTerm.bind(wtf)).join(", ") + '</td>' : '')
+			   + (gotFermions ? '<td>' + fermions[i].map(linkTerm.bind(wtf)).join(", ") + '</td>' : '')
 			   + '</tr>'))
         })
 	wtf.ui.termTableParent.empty()
@@ -164,8 +212,8 @@
 			showlegend: false }],
                      { xaxis: { title: "Progress" },
 		       margin: { b:0, l:0, r:10, t:0, pad:10 },
-		       width: 390,
-		       height: 200 },
+		       width: 398,
+		       height: 198 },
 		     { displayModeBar: false })
     }
 
@@ -182,62 +230,9 @@
 	wtf.ui.pairButton.prop('disabled',true)
 	wtf.mcmc.logTermPairs()
 	wtf.showTermPairs = true
-	wtf.ui.termPairs.show()
 	wtf.ui.geneTables.show()
         if (wtf.paused)
             resumeAnalysis.call(wtf)
-    }
-    
-    var termPairProbThreshold = .05, termOddsRatioThreshold = 100
-    function showTermPairs (wtf) {
-        if (!wtf.paused) {
-	    var termProb = wtf.mcmc.termSummary(0)
-	    var terms = util.sortKeys(termProb).reverse()
-	    var topTerms = []
-	    terms.forEach (function (t) {
-	        if (termProb[t] > termPairProbThreshold)
-		    topTerms.push (t)
-	    })
-	    var termPairProb = wtf.mcmc.termPairSummary (0, topTerms)
-
-	    var bosons = topTerms.map (function() { return [] })
-	    var fermions = topTerms.map (function() { return [] })
-	    topTerms.forEach (function(t,i) {
-		topTerms.forEach (function(t2) {
-		    if (t != t2) {
-			var ratio = termPairProb[t][t2] / (termProb[t] * termProb[t2])
-			if (ratio > termOddsRatioThreshold)
-			    bosons[i].push(t2)
-			else if (ratio < 1 / termOddsRatioThreshold)
-			    fermions[i].push(t2)
-		    }
-		})
-	    })
-
-	    listPairedTerms (wtf, topTerms, bosons, wtf.ui.bosonTableParent, "Often co-occurs with")
-	    listPairedTerms (wtf, topTerms, fermions, wtf.ui.fermionTableParent, "Rarely co-occurs with")
-	    
-	}
-    }
-
-    function listPairedTerms (wtf, topTerms, partnerList, tableParent, header) {
-	var pairedTerms = util.iota(topTerms.length)
-	    .filter (function(i) { return partnerList[i].length > 0 })
-	if (pairedTerms.length) {
-	    var table = $('<table/>')
-	    table.append ($('<tr><th>Term</th><th align="left">' + header + '</th></tr>'))
-	    table.append (pairedTerms
-			  .map (function(i) {
-			      return $('<tr><td>' + linkTerm(wtf,topTerms[i]) + '</td><td>'
-				       + partnerList[i].map (function (t) {
-					   return linkTerm(wtf,t)
-				       }).join(", ") + '</td></tr>')
-			  }))
-	    tableParent.empty()
-	    tableParent.append (table)
-	    tableParent.parent().show()
-	} else
-	    tableParent.parent().hide()
     }
     
     function cancelStart (wtf, msg) {
@@ -301,7 +296,8 @@
             wtf.ui.startButton.prop('disabled',false)
 
 	    wtf.ui.results.show()
-	    wtf.ui.mcmc.show()
+	    wtf.ui.statusDiv.show()
+	    wtf.ui.mcmcPanel.show()
 
 	    wtf.ui.pairButton.show()
 	    wtf.ui.pairButton.click (trackTermPairs.bind(wtf))
@@ -352,6 +348,10 @@
         this.ui.logDiv.append ('<br/><i>' + Array.prototype.slice.call(arguments).join('') + '</i>')
     }
 
+    function textInput() {
+	return $('<input type="text" size="5"/>')
+    }
+
     function WTFgenes (conf) {
         var wtf = this
 
@@ -398,46 +398,43 @@
         assocsReady.done (function() {
 
             wtf.ui.parentDiv.prepend
-	    ($('<div class="wtfcontrolmcmc"/>')
-	     .append ($('<div class="wtfcontrol"/>')
-		      .append (wtf.ui.helpText = $('<span>Enter active gene names, one per line </span>'),
-			       wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
-			       wtf.ui.startButton = $('<button class="wtfstartbutton">Start sampling</button>'),
-			       wtf.ui.pairButton = $('<button>Track co-occurence</button>')),
-		      (wtf.ui.mcmc = $('<div class="wtfmcmc"/>'))
-		      .append (wtf.ui.statusDiv = $('<div class="wtfstatus"/>'),
-			       wtf.ui.logLikePlot = $('<div class="wtfloglike"/>')),
-		      $('<div class="wtfprior"/>')
-		      .append ($('<span>Pseudocounts</span>'),
-			       $('<br/>'),
-			       $('<table/>')
-			       .append ($('<tr><th/><th>#True</th><th>#False</th></tr>'),
-					$('<tr/>')
-					.append ($('<td>A term\'s associated genes are active</td>'),
-						 $('<td/>')
-						 .append (wtf.ui.termPresentCount = $('<input type="text" size="5"/>')),
-						 $('<td/>')
-						 .append (wtf.ui.termAbsentCount = $('<input type="text" size="5"/>'))),
-					$('<tr/>')
-					.append ($('<td>Inactive gene is misannotated as active</td>'),
-						 $('<td/>')
-						 .append (wtf.ui.falsePosCount = $('<input type="text" size="5"/>')),
-						 $('<td/>')
-						 .append (wtf.ui.trueNegCount = $('<input type="text" size="5"/>'))),
-					$('<tr/>')
-					.append ($('<td>Active gene is misannotated as inactive</td>'),
-						 $('<td/>')
-						 .append (wtf.ui.falseNegCount = $('<input type="text" size="5"/>')),
-						 $('<td/>')
-						 .append (wtf.ui.truePosCount = $('<input type="text" size="5"/>')))))),
+	    ($('<div class="wtfcontrolpanels"/>')
+	     .append ($('<div class="wtfleftpanel"/>')
+		      .append ($('<div class="wtfgeneset"/>')
+			       .append (wtf.ui.helpText = $('<span>Enter active gene names, one per line </span>'),
+					wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
+					wtf.ui.startButton = $('<button class="wtfstartbutton">Start sampling</button>'),
+					wtf.ui.pairButton = $('<button>Track co-occurence</button>'))),
+		      $('<div class="wtfmidpanel"/>')
+		      .append ($('<div class="wtfprior"/>')
+			       .append ($('<span>Pseudocounts</span>'),
+					$('<br/>'),
+					$('<table/>')
+					.append ($('<tr><th/><th>#True</th><th>#False</th></tr>'),
+						 $('<tr/>')
+						 .append ($('<td>A term\'s associated genes are active</td>'),
+							  $('<td/>')
+							  .append (wtf.ui.termPresentCount = textInput()),
+							  $('<td/>')
+							  .append (wtf.ui.termAbsentCount = textInput())),
+						 $('<tr/>')
+						 .append ($('<td>Inactive gene is misannotated as active</td>'),
+							  $('<td/>')
+							  .append (wtf.ui.falsePosCount = textInput()),
+							  $('<td/>')
+							  .append (wtf.ui.trueNegCount = textInput())),
+						 $('<tr/>')
+						 .append ($('<td>Active gene is misannotated as inactive</td>'),
+							  $('<td/>')
+							  .append (wtf.ui.falseNegCount = textInput()),
+							  $('<td/>')
+							  .append (wtf.ui.truePosCount = textInput())))),
+			       wtf.ui.statusDiv = $('<div class="wtfstatus"/>')),
+		      (wtf.ui.mcmcPanel = $('<div class="wtfrightpanel"/>'))
+		      .append (wtf.ui.logLikePlot = $('<div class="wtfloglike"/>'))),
 	     (wtf.ui.results = $('<div class="wtfresults"/>'))
 	     .append ($('<div class="wtftable wtftermtable">Enriched terms</div>')
 		      .append (wtf.ui.termTableParent = $('<div/>')),
-		      (wtf.ui.termPairs = $('<div class="wtftermpair"/>')
-		       .append ($('<div class="wtftable">Term interactions</div>')
-				.append (wtf.ui.bosonTableParent = $('<div/>')),
-				$('<div class="wtftable">Term interactions</div>')
-				.append (wtf.ui.fermionTableParent = $('<div/>')))),
 		      (wtf.ui.geneTables = $('<div class="wtfgenetables"/>'))
 		      .append ($('<div class="wtftable wtfgenetable">Unexplained genes</div>')
 			       .append (wtf.ui.falsePosTableParent = $('<div/>')),
@@ -455,11 +452,9 @@
                 .on('click', startAnalysis.bind(wtf))
 
 	    wtf.ui.pairButton.hide()
-	    wtf.ui.mcmc.hide()
+	    wtf.ui.statusDiv.hide()
+	    wtf.ui.mcmcPanel.hide()
 	    wtf.ui.results.hide()
-	    wtf.ui.termPairs.hide()
-	    wtf.ui.bosonTableParent.parent().hide()
-	    wtf.ui.fermionTableParent.parent().hide()
 	    wtf.ui.geneTables.hide()
 
             if (wtf.exampleURL) {
