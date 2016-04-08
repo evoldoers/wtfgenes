@@ -53,11 +53,11 @@
 
             redrawLogLikelihood.call(wtf)
 	    if (wtf.redraw) {
-		showTermTable (wtf)
+		var terms = showTermTable (wtf)
 		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0),
-			       "inactive, mislabeled as active")
+			       "mislabeled")
 		showGeneTable (wtf, wtf.ui.falseNegTableParent, wtf.mcmc.geneFalseNegSummary(0),
-			       "active, mislabeled as inactive")
+			       "mislabeled", terms)
 		wtf.redraw = false
 	    }
 	    wtf.samplesPerRun = wtf.mcmc.nVariables()
@@ -145,7 +145,7 @@
 		.append ($('<tr ' + pStyle + '>'
                            + '<td>' + equivalents[t].map(function(e) {
 			       return linkTerm.call(wtf,e) + ' ' + wtf.ontology.getTermInfo(e)
-			   }).join("<br/>") + '</td>'
+			   }).join('<br/>') + '</td>'
 			   + '<td>' + p.toPrecision(5) + '</td>'
 			   + '<td>' + explained.join(", ") + '</td>'
 			   + '<td>' + predicted.join(", ") + '</td>'
@@ -155,12 +155,17 @@
         })
 	wtf.ui.termTableParent.empty()
 	wtf.ui.termTableParent.append (termTable)
+
+        return terms
     }
 
-    function showGeneTable (wtf, parent, geneProb, label) {
+    function showGeneTable (wtf, parent, geneProb, label, terms) {
 	var geneTable = $('<table class="wtfgenetable"></table>')
 	var genes = util.sortKeys(geneProb).reverse()
-	geneTable.append ($('<tr><th>Gene name</th><th>P(' + label + ')</th></tr>'))
+        var showTerm = terms ? util.listToCounts(terms) : {}
+	geneTable.append ($('<tr><th>Gene name</th><th>P(' + label + ')</th>'
+                            + (terms ? '<th>Predicted by terms</th>' : '')
+                            + '</tr>'))
         genes.forEach (function (g,i) {
 	    var p = geneProb[g]
 	    var pStyle = probStyle(p)
@@ -168,6 +173,14 @@
 		.append ($('<tr>'
 			   + '<td ' + pStyle + '>' + g + '</td>'
 			   + '<td ' + pStyle + '>' + p.toPrecision(5) + '</td>'
+                           + (terms
+                              ? ('<td ' + pStyle + '>' + wtf.assocs.termsByGene[wtf.assocs.geneIndex[g]]
+                                 .map (function (ti) { return wtf.ontology.termName[ti] })
+                                 .filter (function (t) { return showTerm[t] })
+                                 .map (function (t) {
+			             return linkTerm.call(wtf,t) + ' ' + wtf.ontology.getTermInfo(t)
+			         }).join('<br/>') + '</td>')
+                              : '')
 			   + '</tr>'))
         })
 	parent.empty()
@@ -488,7 +501,7 @@
 		      .append (wtf.ui.termTableParent = $('<div/>')),
 		      $('<div class="wtftable wtfgenetable">False positives: genes labeled as active that are unexplained by activated terms</div>')
 		      .append (wtf.ui.falsePosTableParent = $('<div/>')),
-		      $('<div class="wtftable wtfgenetable">False negatives: genes labeled as inactive that are predicted by activated terms</div>')
+		      $('<div class="wtftable wtfgenetable">False negatives: genes labeled as inactive that are predicted to be active</div>')
 		      .append (wtf.ui.falseNegTableParent = $('<div/>'))))
 
             wtf.ui.termPresentCount.val(1)
