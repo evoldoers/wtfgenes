@@ -447,7 +447,7 @@
 		      .append ($('<div class="wtfgeneset"/>')
 			       .append (wtf.ui.helpText = $('<span>Enter active gene names, one per line </span>'),
 					wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
-					(wtf.ui.loadGeneSetButton = $('<button/>')).text('Load active gene-set from file'),
+					(wtf.ui.loadGeneSetButton = $('<button/>')).text('Load gene-set from file'),
 					wtf.ui.geneSetFileSelector = $('<input type="file" style="display:none;"/>'))),
 		      $('<div class="wtfmidpanel"/>')
 		      .append ($('<div class="wtfprior"/>')
