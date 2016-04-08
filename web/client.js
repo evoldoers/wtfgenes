@@ -120,7 +120,7 @@
 	var gotEquivalents = terms.some (function(t) { return equivalents[t].length > 0 })
 
 	termTable.append ($('<tr>'
-			    + [[gotEquivalents ? 'Term(s)' : 'Term', 'An ontology term' + (gotEquivalents ? ', or class of terms. (Terms that have exactly the same gene associations are collapsed into a single equivalence class, since they are statistically indistinguishable under this model.)' : '')],
+			    + [[gotEquivalents ? 'Term(s)' : 'Term', 'An ontology term' + (gotEquivalents ? ', or class of terms. (Terms that have exactly the same gene associations are collapsed into a single equivalence class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : '')],
 			       ['P(Term)', 'The posterior probability that the term is activated.'],
 			       ['Explains', 'Genes that are associated with the term and are in the active set.'],
 			       ['Also predicts', 'Genes that are associated with the term but are not in the active set.'],
