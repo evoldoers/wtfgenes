@@ -61,7 +61,8 @@
 	    wtf.samplesPerRun = wtf.mcmc.nVariables()
 
 	    if (!wtf.trackPairSamplesPassed && wtf.mcmc.samplesIncludingBurn >= wtf.trackPairSamples) {
-		trackTermPairs.call(wtf)
+		wtf.ui.pairCheckbox.prop('checked',true)
+		pairCheckboxClicked.call(wtf)
 		wtf.trackPairSamplesPassed = true
 	    }
 	    
@@ -89,13 +90,14 @@
 
 	var bosons = terms.map (function() { return [] })
 	var fermions = terms.map (function() { return [] })
-	if (wtf.showTermPairs && wtf.mcmc.termPairSamples > wtf.mcmc.burn) {
-	    var termPairProb = wtf.mcmc.termPairSummary (0, terms)
+	if (wtf.trackingTermPairs && wtf.mcmc.termPairSamples > wtf.mcmc.burn) {
+	    var termPairSummary = wtf.mcmc.termPairSummary (0, terms)
+	    var termPairProb = termPairSummary.pair, termPairMarginal = termPairSummary.single
 
 	    terms.forEach (function(t,i) {
 		terms.forEach (function(t2) {
 		    if (t != t2) {
-			var ratio = termPairProb[t][t2] / (termProb[t] * termProb[t2])
+			var ratio = termPairProb[t][t2] / (termPairMarginal[t] * termPairMarginal[t2])
 			if (ratio > termOddsRatioThreshold)
 			    bosons[i].push(t2)
 			else if (ratio < 1 / termOddsRatioThreshold)
@@ -230,13 +232,19 @@
 	}
     }
 
-    function trackTermPairs() {
+    function pairCheckboxClicked() {
 	var wtf = this
-	if (!wtf.showTermPairs) {
-	    wtf.showTermPairs = true
-	    wtf.ui.pairCheckbox.prop('checked',true)
-	    wtf.ui.pairCheckbox.prop('disabled',true)
-	    wtf.mcmc.logTermPairs()
+	if (wtf.ui.pairCheckbox.prop('checked')) {
+	    if (!wtf.trackingTermPairs) {
+		wtf.trackingTermPairs = true
+		wtf.mcmc.logTermPairs()
+	    }
+	} else {
+	    if (wtf.trackingTermPairs) {
+		wtf.trackingTermPairs = false
+		wtf.mcmc.stopLoggingTermPairs()
+		
+	    }
 	}
     }
     
@@ -299,7 +307,7 @@
 
 	    wtf.targetSamplesPassed = false
             wtf.trackPairSamplesPassed = false
-            wtf.showTermPairs = false
+            wtf.trackingTermPairs = false
 
 	    wtf.ui.statusDiv.show()
 	    wtf.ui.logLikePlot.show()
@@ -330,10 +338,8 @@
         wtf.ui.startButton.on('click',pauseAnalysis.bind(wtf))
         wtf.ui.resetButton.prop('disabled',true)
 
-	if (wtf.ui.pairCheckbox.prop('checked'))
-	    trackTermPairs.call(wtf)
-	else
-	    wtf.ui.pairCheckbox.on('click',trackTermPairs.bind(wtf))
+	pairCheckboxClicked.call(wtf)
+	wtf.ui.pairCheckbox.on('click',pairCheckboxClicked.bind(wtf))
     }
 
     function reset() {
@@ -352,7 +358,6 @@
 
 	cancelStart(wtf)
         wtf.ui.startButton.text('Start sampling')
-	wtf.ui.pairCheckbox.prop('disabled',false)
 
 //	wtf.ui.logLikePlot.empty()
 	wtf.ui.logLikePlot.hide()
