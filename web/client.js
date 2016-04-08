@@ -55,9 +55,9 @@
 	    if (wtf.redraw) {
 		showTermTable (wtf)
 		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0),
-			       "inactive, but misannotated active")
+			       "inactive, mislabeled as active")
 		showGeneTable (wtf, wtf.ui.falseNegTableParent, wtf.mcmc.geneFalseNegSummary(0),
-			       "active, but misannotated inactive")
+			       "active, mislabeled as inactive")
 		wtf.redraw = false
 	    }
 	    wtf.samplesPerRun = wtf.mcmc.nVariables()
@@ -81,7 +81,7 @@
 
     function linkTerm (term) {
 	var wtf = this
-	return '<a target="_blank" href="' + wtf.termURL + term + '">' + term + '</a>'
+	return '<a target="_blank" href="' + wtf.termURL + term + '" title="' + wtf.ontology.getTermInfo(term) + '">' + term + '</a>'
     }
     
     var termPairProbThreshold = .05, termOddsRatioThreshold = 100
@@ -111,23 +111,21 @@
 	var gotBosons = bosons.some (function(l) { return l.length > 0 })
 	var gotFermions = fermions.some (function(l) { return l.length > 0 })
 
-	var equivalents = terms.map (function(t) {
+	var equivalents = util.keyValListToObj (terms.map (function(t) {
 	    var ti = wtf.ontology.termIndex[t]
-	    return wtf.assocs.termsInEquivClass[wtf.assocs.equivClassByTerm[ti]]
-		.filter (function(tj) { return tj != ti })
-		.map (function(tj) { return wtf.ontology.termName[tj] })
-	})
-	var gotEquivalents = equivalents.some (function(l) { return l.length > 0 })
+	    return [ t,
+                     wtf.assocs.termsInEquivClass[wtf.assocs.equivClassByTerm[ti]]
+		     .map (function(tj) { return wtf.ontology.termName[tj] }) ]
+	}))
+	var gotEquivalents = terms.some (function(t) { return equivalents[t].length > 0 })
 
 	termTable.append ($('<tr>'
-			    + [['Term ID', 'The database ID of the ontology term'],
-			       ['P(Term)', 'The posterior probability that the term is activated'],
-			       ['Term name', 'The name of the term'],
-			       ['Explains', 'The genes that are associated to the term and are in the active set'],
-			       ['Also predicts', 'The genes that are associated to the term and are not in the active set'],
-			       gotEquivalents ? ['Could also be', 'Terms that have exactly the same gene associations as this term, and so were excluded from the analysis on grounds of statistical identifiability'] : [],
-			       gotBosons ? ['Positively correlated with', 'Other terms from this table that often co-occur with this term. An interpretation is that these terms collaborate to explain complementary/disjoint subsets of the active genes'] : [],
-			       gotFermions ? ['Negatively correlated with', 'Other terms from this table that rarely co-occur with this term. An interpretation is that these terms compete to explain similar/overlapping subsets of the active genes'] : []]
+			    + [[gotEquivalents ? 'Term(s)' : 'Term', 'An ontology term' + (gotEquivalents ? ', or class of terms. (Terms that have exactly the same gene associations are collapsed into a single equivalence class, since they are statistically indistinguishable under this model.)' : '')],
+			       ['P(Term)', 'The posterior probability that the term is activated.'],
+			       ['Explains', 'Genes that are associated with the term and are in the active set.'],
+			       ['Also predicts', 'Genes that are associated with the term but are not in the active set.'],
+			       gotBosons ? ['Positively correlated with', 'Other terms from this table that often co-occur with this term. An interpretation is that these terms collaborate to explain complementary/disjoint subsets of the active genes.'] : [],
+			       gotFermions ? ['Negatively correlated with', 'Other terms from this table that rarely co-occur with this term. An interpretation is that these terms compete to explain similar/overlapping subsets of the active genes.'] : []]
 			    .map (function (text_mouseover) {
 				return text_mouseover.length == 2
 				    ? ('<th><span title="' + text_mouseover[1] + '">' + text_mouseover[0] + '</span></th>')
@@ -145,16 +143,14 @@
 		.map (function(g) { return wtf.assocs.geneName[g] })
 	    termTable
 		.append ($('<tr ' + pStyle + '>'
-			   + '<td>' + linkTerm.call(wtf,t) + '</td>'
+                           + '<td>' + equivalents[t].map(function(e) {
+			       return linkTerm.call(wtf,e) + ' ' + wtf.ontology.getTermInfo(e)
+			   }).join("<br/>") + '</td>'
 			   + '<td>' + p.toPrecision(5) + '</td>'
-			   + '<td>' + wtf.ontology.getTermInfo(t) + '</td>'
 			   + '<td>' + explained.join(", ") + '</td>'
 			   + '<td>' + predicted.join(", ") + '</td>'
-			   + (gotEquivalents ? '<td>' + equivalents[i].map(function(t) {
-			       return wtf.ontology.getTermInfo(t) + ' (' + linkTerm.call(wtf,t) + ')'
-			   }).join("<br/>") + '</td>' : '')
-			   + (gotBosons ? '<td>' + bosons[i].map(linkTerm.bind(wtf)).join(", ") + '</td>' : '')
-			   + (gotFermions ? '<td>' + fermions[i].map(linkTerm.bind(wtf)).join(", ") + '</td>' : '')
+			   + (gotBosons ? '<td>' + bosons[i].map(function(b){return equivalents[b].map(linkTerm.bind(wtf)).join(", ")}).join("<br/>") + '</td>' : '')
+			   + (gotFermions ? '<td>' + fermions[i].map(function(f){return equivalents[f].map(linkTerm.bind(wtf)).join(", ")}).join("<br/>") + '</td>' : '')
 			   + '</tr>'))
         })
 	wtf.ui.termTableParent.empty()
@@ -451,7 +447,7 @@
 					wtf.ui.geneSetFileSelector = $('<input type="file" style="display:none;"/>'))),
 		      $('<div class="wtfmidpanel"/>')
 		      .append ($('<div class="wtfprior"/>')
-			       .append ('Pseudocounts',
+			       .append ('Pseudocounts for probability parameters',
 					$('<table/>')
 					.append ($('<tr><th>Event</th><th>#True</th><th>#False</th></tr>'),
 						 $('<tr/>')
@@ -461,13 +457,13 @@
 							  $('<td/>')
 							  .append (wtf.ui.termAbsentCount = textInput())),
 						 $('<tr/>')
-						 .append ($('<td>Inactive gene is misannotated as active</td>'),
+						 .append ($('<td>An inactive gene is mislabeled as active</td>'),
 							  $('<td/>')
 							  .append (wtf.ui.falsePosCount = textInput()),
 							  $('<td/>')
 							  .append (wtf.ui.trueNegCount = textInput())),
 						 $('<tr/>')
-						 .append ($('<td>Active gene is misannotated as inactive</td>'),
+						 .append ($('<td>An active gene is mislabeled as inactive</td>'),
 							  $('<td/>')
 							  .append (wtf.ui.falseNegCount = textInput()),
 							  $('<td/>')
@@ -488,11 +484,11 @@
 		      $('<div class="wtfrightpanel"/>')
 		      .append (wtf.ui.logLikePlot = $('<div class="wtfloglike"/>'))),
 	     (wtf.ui.results = $('<div class="wtfresults"/>'))
-	     .append ($('<div class="wtftable wtftermtable">Enriched terms</div>')
+	     .append ($('<div class="wtftable wtftermtable">Terms that explain the genes in the active set</div>')
 		      .append (wtf.ui.termTableParent = $('<div/>')),
-		      $('<div class="wtftable wtfgenetable">Unexplained genes</div>')
+		      $('<div class="wtftable wtfgenetable">False positives: genes labeled as active that are unexplained by activated terms</div>')
 		      .append (wtf.ui.falsePosTableParent = $('<div/>')),
-		      $('<div class="wtftable wtfgenetable">Missing genes</div>')
+		      $('<div class="wtftable wtfgenetable">False negatives: genes labeled as inactive that are predicted by activated terms</div>')
 		      .append (wtf.ui.falseNegTableParent = $('<div/>'))))
 
             wtf.ui.termPresentCount.val(1)
