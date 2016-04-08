@@ -125,7 +125,7 @@
 			       ['Term name', 'The name of the term'],
 			       ['Explains', 'The genes that are associated to the term and are in the active set'],
 			       ['Also predicts', 'The genes that are associated to the term and are not in the active set'],
-			       gotEquivalents ? ['Indistinguishable from', 'Terms that have exactly the same gene associations as this term, and so were excluded from the analysis'] : [],
+			       gotEquivalents ? ['Could also be', 'Terms that have exactly the same gene associations as this term, and so were excluded from the analysis on grounds of statistical identifiability'] : [],
 			       gotBosons ? ['Positively correlated with', 'Other terms from this table that often co-occur with this term. An interpretation is that these terms collaborate to explain complementary/disjoint subsets of the active genes'] : [],
 			       gotFermions ? ['Negatively correlated with', 'Other terms from this table that rarely co-occur with this term. An interpretation is that these terms compete to explain similar/overlapping subsets of the active genes'] : []]
 			    .map (function (text_mouseover) {
