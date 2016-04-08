@@ -54,8 +54,10 @@
             redrawLogLikelihood.call(wtf)
 	    if (wtf.redraw) {
 		showTermTable (wtf)
-		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0), "misannotated active")
-		showGeneTable (wtf, wtf.ui.falseNegTableParent, wtf.mcmc.geneFalseNegSummary(0), "misannotated inactive")
+		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0),
+			       "inactive, but misannotated active")
+		showGeneTable (wtf, wtf.ui.falseNegTableParent, wtf.mcmc.geneFalseNegSummary(0),
+			       "active, but misannotated inactive")
 		wtf.redraw = false
 	    }
 	    wtf.samplesPerRun = wtf.mcmc.nVariables()
@@ -162,7 +164,7 @@
     function showGeneTable (wtf, parent, geneProb, label) {
 	var geneTable = $('<table class="wtfgenetable"></table>')
 	var genes = util.sortKeys(geneProb).reverse()
-	geneTable.append ($('<tr><th>Gene</th><th>P(' + label + ')</th></tr>'))
+	geneTable.append ($('<tr><th>Gene name</th><th>P(' + label + ')</th></tr>'))
         genes.forEach (function (g,i) {
 	    var p = geneProb[g]
 	    var pStyle = probStyle(p)
