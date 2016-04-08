@@ -234,6 +234,7 @@
 	var wtf = this
 	if (!wtf.showTermPairs) {
 	    wtf.showTermPairs = true
+	    wtf.ui.pairCheckbox.prop('checked',true)
 	    wtf.ui.pairCheckbox.prop('disabled',true)
 	    wtf.mcmc.logTermPairs()
 	}
