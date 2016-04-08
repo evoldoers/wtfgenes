@@ -36,9 +36,10 @@
 
     function runMCMC() {
         var wtf = this
-        if (wtf.paused)
-            setTimeout (runMCMC.bind(wtf), 100)
-        else {
+	var delayToNextRun = 100
+        if (!wtf.paused) {
+	    delayToNextRun = 10
+
             wtf.mcmc.run (wtf.samplesPerRun)
 	    var now = Date.now()
 
@@ -71,9 +72,8 @@
 
 	    if (wtf.mcmc.finishedBurn())
 		wtf.ui.results.show()
-	    
-	    setTimeout (runMCMC.bind(wtf), 10)
         }
+        wtf.mcmcTimer = setTimeout (runMCMC.bind(wtf), delayToNextRun)
     }
 
     function linkTerm (term) {
@@ -189,37 +189,37 @@
 	wtf.logLikeMinMax = []
 	wtf.logLikeMinMaxSlice = 0
 	getLogLikeRange (wtf)
-        Plotly.plot( wtf.ui.logLikePlot[0],
-		     [{ y: wtf.mcmc.logLikelihoodTrace,
-			name: "Log-likelihood",
-			showlegend: false },
-		      { x: [wtf.mcmc.burn, wtf.mcmc.burn],
-			y: wtf.logLikeMinMax,
-			name: "Burn-in",
-			mode: 'lines',
-			hoverinfo: 'name',
-			line: { dash: 4 },
-			showlegend: false },
-		      { x: [wtf.trackPairSamples, wtf.trackPairSamples],
-			y: wtf.logLikeMinMax,
-			name: "Halfway done",
-			mode: 'lines',
-			hoverinfo: 'name',
-			line: { dash: 4 },
-			showlegend: false },
-		      { x: [wtf.targetSamples, wtf.targetSamples],
-			y: wtf.logLikeMinMax,
-			name: "End of run",
-			mode: 'lines',
-			hoverinfo: 'name',
-			line: { dash: 4 },
-			showlegend: false }],
-                     { margin: { b:0, l:0, r:10, t:0, pad:10 },
-		       // this is the plot title, but putting it as x-axis title looks better... hack
-		       xaxis: { title: "Log-likelihood vs sample#" },
-		       width: 398,
-		       height: 198 },
-		     { displayModeBar: false })
+        Plotly.newPlot( wtf.ui.logLikePlot[0],
+			[{ y: wtf.mcmc.logLikelihoodTrace,
+			   name: "Log-likelihood",
+			   showlegend: false },
+			 { x: [wtf.mcmc.burn, wtf.mcmc.burn],
+			   y: wtf.logLikeMinMax,
+			   name: "Burn-in",
+			   mode: 'lines',
+			   hoverinfo: 'name',
+			   line: { dash: 4 },
+			   showlegend: false },
+			 { x: [wtf.trackPairSamples, wtf.trackPairSamples],
+			   y: wtf.logLikeMinMax,
+			   name: "Halfway done",
+			   mode: 'lines',
+			   hoverinfo: 'name',
+			   line: { dash: 4 },
+			   showlegend: false },
+			 { x: [wtf.targetSamples, wtf.targetSamples],
+			   y: wtf.logLikeMinMax,
+			   name: "End of run",
+			   mode: 'lines',
+			   hoverinfo: 'name',
+			   line: { dash: 4 },
+			   showlegend: false }],
+			{ margin: { b:0, l:0, r:10, t:0, pad:10 },
+			  // this is the plot title, but putting it as x-axis title looks better... hack
+			  xaxis: { title: "Log-likelihood trace" },
+			  width: 398,
+			  height: 198 },
+			{ displayModeBar: false })
     }
 
     function redrawLogLikelihood() {
@@ -233,26 +233,28 @@
     function trackTermPairs() {
 	var wtf = this
 	if (!wtf.showTermPairs) {
-	    wtf.ui.pairButton.prop('disabled',true)
-	    wtf.mcmc.logTermPairs()
 	    wtf.showTermPairs = true
+	    wtf.ui.pairCheckbox.prop('disabled',true)
+	    wtf.mcmc.logTermPairs()
 	}
-        if (wtf.paused)
-	    resumeAnalysis.call(wtf)
     }
     
     function cancelStart (wtf, msg) {
-	alert (msg)
+	if (msg) alert (msg)
+        wtf.ui.resetButton.prop('disabled',false)
         wtf.ui.startButton.prop('disabled',false)
         wtf.ui.geneSetTextArea.prop('disabled',false)
+        wtf.ui.loadGeneSetButton.prop('disabled',false)
 	$('.wtfprior input').prop('disabled',false)
         enableExampleLink (wtf)
     }
 
     function startAnalysis() {
         var wtf = this
+        wtf.ui.resetButton.prop('disabled',true)
         wtf.ui.startButton.prop('disabled',true)
         wtf.ui.geneSetTextArea.prop('disabled',true)
+        wtf.ui.loadGeneSetButton.prop('disabled',true)
 	$('.wtfprior input').prop('disabled',true)
         if (wtf.ui.exampleLink)
             disableExampleLink(wtf)
@@ -294,27 +296,15 @@
 
             wtf.mcmc.logLogLikelihood (true)
 
-            wtf.trackPairSamplesPassed = false
 	    wtf.targetSamplesPassed = false
-
-            resumeAnalysis.call(wtf)
-
-            wtf.ui.startButton.prop('disabled',false)
+            wtf.trackPairSamplesPassed = false
+            wtf.showTermPairs = false
 
 	    wtf.ui.statusDiv.show()
-	    wtf.ui.mcmcPanel.show()
+	    wtf.ui.logLikePlot.show()
 
-	    wtf.ui.pairButton.show()
-	    wtf.ui.pairButton.click (trackTermPairs.bind(wtf))
-
-	    wtf.ui.totalSamples = $('<span>0</span>')
-	    wtf.ui.samplesPerTerm = $('<span>0</span>')
-	    wtf.ui.samplesPerSec = $('<span>0</span>')
-	    wtf.ui.mcmcStats = $('<span/>')
-	    wtf.ui.mcmcStats.append (wtf.ui.totalSamples, " samples, ", wtf.ui.samplesPerTerm, " samples/term, ", wtf.ui.samplesPerSec, " samples/sec")
-
-	    wtf.ui.statusDiv.append (wtf.ui.mcmcStats)
-            
+            wtf.ui.startButton.prop('disabled',false)
+            resumeAnalysis.call(wtf)
             plotLogLikelihood.call(wtf)
             runMCMC.call(wtf)
         }
@@ -326,6 +316,9 @@
         wtf.ui.startButton.html('More sampling')
         wtf.ui.startButton.off('click')
         wtf.ui.startButton.on('click',resumeAnalysis.bind(wtf))
+        wtf.ui.resetButton.prop('disabled',false)
+
+	wtf.ui.pairCheckbox.off('click')
     }
 
     function resumeAnalysis() {
@@ -334,6 +327,36 @@
         wtf.ui.startButton.html('Stop sampling')
         wtf.ui.startButton.off('click')
         wtf.ui.startButton.on('click',pauseAnalysis.bind(wtf))
+        wtf.ui.resetButton.prop('disabled',true)
+
+	if (wtf.ui.pairCheckbox.prop('checked'))
+	    trackTermPairs.call(wtf)
+	else
+	    wtf.ui.pairCheckbox.on('click',trackTermPairs.bind(wtf))
+    }
+
+    function reset() {
+	var wtf = this
+	if (wtf.mcmcTimer) {
+	    clearTimeout (wtf.mcmcTimer)
+	    delete wtf.mcmcTimer
+	}
+
+	delete wtf.mcmc
+	wtf.paused = true
+
+	wtf.ui.startButton.off('click')
+	wtf.ui.startButton
+            .on('click', startAnalysis.bind(wtf))
+
+	cancelStart(wtf)
+        wtf.ui.startButton.text('Start sampling')
+	wtf.ui.pairCheckbox.prop('disabled',false)
+
+//	wtf.ui.logLikePlot.empty()
+	wtf.ui.logLikePlot.hide()
+	wtf.ui.statusDiv.hide()
+	wtf.ui.results.hide()
     }
 
     function disableExampleLink(wtf) {
@@ -346,7 +369,12 @@
     
     function loadExample() {
         var wtf = this
-        wtf.ui.geneSetTextArea.load (wtf.exampleURL)
+	if (wtf.exampleText)
+	    wtf.ui.geneSetTextArea.val (wtf.exampleText)
+	else
+            $.get (wtf.exampleURL, function (data) {
+		wtf.ui.geneSetTextArea.val (wtf.exampleText = data)
+	    })
     }
     
     function log() {
@@ -373,6 +401,9 @@
 	($('<div id="wtf" class="wtfparent"/>')
 	 .append (wtf.ui.parentDiv = $('<div/>'),
 		  wtf.ui.logDiv = $('<div class="wtflog"/>')))
+
+	// create the timer that sets the 'redraw' flag. Leave this running forever
+	wtf.ui.redrawTimer = setInterval (setRedraw.bind(wtf), 1000)
 
         // load data files, initialize ontology & associations
         var ontologyReady = $.Deferred(),
@@ -408,14 +439,13 @@
 		      .append ($('<div class="wtfgeneset"/>')
 			       .append (wtf.ui.helpText = $('<span>Enter active gene names, one per line </span>'),
 					wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
-					wtf.ui.startButton = $('<button class="wtfstartbutton">Start sampling</button>'),
-					wtf.ui.pairButton = $('<button>Track term correlations</button>'))),
+					(wtf.ui.loadGeneSetButton = $('<button/>')).text('Load active gene-set from file'),
+					wtf.ui.geneSetFileSelector = $('<input type="file" style="display:none;"/>'))),
 		      $('<div class="wtfmidpanel"/>')
 		      .append ($('<div class="wtfprior"/>')
-			       .append ($('<span>Pseudocounts</span>'),
-					$('<br/>'),
+			       .append ('Pseudocounts',
 					$('<table/>')
-					.append ($('<tr><th/><th>#True</th><th>#False</th></tr>'),
+					.append ($('<tr><th>Event</th><th>#True</th><th>#False</th></tr>'),
 						 $('<tr/>')
 						 .append ($('<td>A term\'s associated genes are active</td>'),
 							  $('<td/>')
@@ -434,8 +464,20 @@
 							  .append (wtf.ui.falseNegCount = textInput()),
 							  $('<td/>')
 							  .append (wtf.ui.truePosCount = textInput())))),
-			       wtf.ui.statusDiv = $('<div class="wtfstatus"/>')),
-		      (wtf.ui.mcmcPanel = $('<div class="wtfrightpanel"/>'))
+			       $('<div class="wtfbuttons"/>')
+			       .append ((wtf.ui.startButton = $('<button/>')),
+					(wtf.ui.resetButton = $('<button/>')).text('Reset sampler'),
+					$('<label class="wtfpaircheckbox"/>')
+					.append ('Track term correlations',
+						 wtf.ui.pairCheckbox = $('<input type="checkbox" value="trackpairs"/>'))),
+			       (wtf.ui.statusDiv = $('<div class="wtfstatus"/>'))
+			       .append (wtf.ui.totalSamples = $('<span>0</span>'),
+					" samples, ",
+					wtf.ui.samplesPerTerm = $('<span>0</span>'),
+					" samples/term, ",
+					wtf.ui.samplesPerSec = $('<span>0</span>'),
+					" samples/sec")),
+		      $('<div class="wtfrightpanel"/>')
 		      .append (wtf.ui.logLikePlot = $('<div class="wtfloglike"/>'))),
 	     (wtf.ui.results = $('<div class="wtfresults"/>'))
 	     .append ($('<div class="wtftable wtftermtable">Enriched terms</div>')
@@ -451,22 +493,30 @@
 	    wtf.ui.trueNegCount.val(99)
 	    wtf.ui.falseNegCount.val(1)
 	    wtf.ui.truePosCount.val(99)
-	    
-	    wtf.ui.startButton
-                .on('click', startAnalysis.bind(wtf))
 
-	    wtf.ui.pairButton.hide()
-	    wtf.ui.statusDiv.hide()
-	    wtf.ui.mcmcPanel.hide()
-	    wtf.ui.results.hide()
+	    wtf.ui.geneSetFileSelector.on ('change', function (fileSelectEvt) {
+		var reader = new FileReader()
+		reader.onload = function (fileLoadEvt) {
+		    wtf.ui.geneSetTextArea.val (fileLoadEvt.target.result)
+		}
+		reader.readAsText(fileSelectEvt.target.files[0])
+	    })
+	    wtf.ui.loadGeneSetButton
+		.on ('click', function() {
+		    wtf.ui.geneSetFileSelector.click()
+		    return false
+		})
+
+	    wtf.ui.resetButton
+                .on('click', reset.bind(wtf))
 
             if (wtf.exampleURL) {
                 wtf.ui.exampleLink = $('<a href="#">(example)</a>')
                 wtf.ui.helpText.append(wtf.ui.exampleLink)
                 enableExampleLink (wtf)
             }
-            
-	    setInterval (setRedraw.bind(wtf), 1000)
+
+            reset.call (wtf)
 	})
     }
 

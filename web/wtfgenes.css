@@ -10,13 +10,13 @@
     border-width: 1px;
     border-style: solid;
     border-radius: 2px;
-    padding: 10px;
+    padding: 5px;
 }
 
 .wtfcontrolpanels {
     width: 1200px;
     height: 200px;
-    margin: 0px 0px 10px 0px;
+    margin-bottom: 10px;
     float: left;
     clear: both;
 }
@@ -45,18 +45,22 @@
 }
 
 .wtfgeneset {
-    width: 368px;
-    height: 178px;
+    width: 378px;
+    height: 188px;
     background-color: #e0e0e0;
-    padding: 10px;
+    padding: 5px;
     border-width: 1px;
     border-style: solid;
     border-radius: 2px;
 }
 
-.wtfstartbutton {
-    clear: left;
-    float: left;
+.wtfbuttons > button {
+    margin-right: 10px;
+}
+
+.wtfpaircheckbox {
+    clear: right;
+    float: right;
 }
 
 .wtfgenesettextarea {
@@ -64,14 +68,15 @@
     box-sizing: border-box;
     clear: both;
     float: left;
+    resize: none;
 }
 
 .wtfprior {
-    width: 368px;
+    width: 378px;
     float: left;
     background-color: #e0e0e0;
-    margin: 0px 10px 10px 0px;
-    padding: 10px;
+    margin-right: 10px;
+    padding: 5px;
     border-width: 1px;
     border-style: solid;
     border-radius: 2px;
@@ -91,24 +96,39 @@
     text-align: right;
 }
 
+.wtfbuttons {
+    width: 378px;
+    clear: left;
+    float: left;
+    background-color: #e0e0e0;
+    margin-top: 10px;
+    padding: 5px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 2px;
+}
+
 .wtfstatus {
-    width: 368px;
+    width: 378px;
     float: left;
     clear: left;
     position: absolute;
     bottom: 0;
     background-color: #e0e0e0;
-    margin: 10px 0px 0px 0px;
-    padding: 10px;
+    margin-top: 10px;
+    padding: 5px;
+    text-align: center;
     border-width: 1px;
     border-style: solid;
     border-radius: 2px;
 }
 
 .wtfloglike {
+    width: 398px;
+    height: 198px;
     float: left;
     clear: left;
-    margin: 0px 0px 10px 0px;
+    margin-bottom: 10px;
     border-width: 1px;
     border-style: solid;
     border-radius: 2px;
@@ -122,7 +142,8 @@
 .wtftable {
     float: left;
     font-style: italic;
-    margin: 10px 0px 10px 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .wtftable > div > table > tbody > tr > th,
