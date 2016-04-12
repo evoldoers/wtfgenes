@@ -413,14 +413,6 @@
 			 log: log,
 			 ui: {} })
 
-        // set up sidebar menu
-        $(".wtfpage").hide()
-        $(".wtflink-data").show()
-        $(".wtflink").click (function(e) {
-            $(".wtfpage").hide()
-            $("."+e.target.id).show()
-        })
-        
 	// initialize UI
 	$("body").append
 	($('<div id="wtf" class="wtfparent"/>')

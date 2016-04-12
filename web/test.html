@@ -33,15 +33,15 @@
           <ul class="nav" id="main-menu">
             <li class="active"> <a href="#">Configuration <span class="fa arrow"></span></a>
               <ul class="nav nav-second-level">
-                <li> <a href="#">Data</a> </li>
-                <li> <a href="#">Parameters</a> </li>
-		<li> <a href="#">Sampler</a> </li>
+                <li> <a class="wtflink" id="wtflink-data" href="#">Data</a> </li>
+                <li> <a class="wtflink" id="wtflink-parameters" href="#">Parameters</a> </li>
+		<li> <a class="wtflink" id="wtflink-sampler" href="#">Sampler</a> </li>
               </ul>
             </li>
             <li class="active"> <a href="#">Results <span class="fa arrow"></span></a>
               <ul class="nav nav-second-level">
-                <li> <a href="#">Term report</a> </li>
-                <li> <a href="#">Gene report</a> </li>
+                <li> <a class="wtflink" id="wtflink-term-report" href="#">Term report</a> </li>
+                <li> <a class="wtflink" id="wtflink-gene-report" href="#">Gene report</a> </li>
               </ul>
             </li>
           </ul>
@@ -49,304 +49,306 @@
       </nav>
       <!-- /. NAV SIDE  -->
       <div id="page-wrapper">
-        <div id="page-inner">
-          <div class="row">
-            <div class="col-md-12">
-              <h1 class="page-head-line">TERM REPORT <br>
-              </h1>
-              <h1 class="page-subhead-line">This is dummy text , you can
-                replace it with your original text. </h1>
-            </div>
-          </div>
-          <!-- /. ROW -->
-          <div class="row">
-            <div class="col-md-12">
-              <div class="panel panel-primary">
-                <div class="panel-heading"> Term Report </div>
-                <div class="panel-body">
-                  <!-- Basic Table -->
-                  <div class="table-responsive">
-                    <table class="table">
-                    </table>
-                  </div>
-                </div>
+	<div id="page-inner">
+          <div class="wtfpage wtflink-term-report">
+            <div class="row">
+              <div class="col-md-12">
+		<h1 class="page-head-line">TERM REPORT <br>
+		</h1>
+		<h1 class="page-subhead-line">This is dummy text , you can
+                  replace it with your original text. </h1>
               </div>
             </div>
-          </div>
-        </div>
-        <div id="page-inner">
-          <div class="row">
-            <div class="col-md-12">
-              <h1 class="page-head-line">GENE REPORT <br>
-              </h1>
-              <h1 class="page-subhead-line">This is dummy text , you can
-                replace it with your original text. </h1>
-            </div>
-          </div>
-          <!-- /. ROW -->
-          <div class="row">
-            <div class="col-md-12">
-              <div class="panel panel-primary">
-                <div class="panel-heading"> Unexplained Genes </div>
-                <div class="panel-body">
-                  <!-- Basic Table -->
-                  <div class="table-responsive">
-                    <table class="table">
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-12">
-              <div class="panel panel-primary">
-                <div class="panel-heading"> Predicted Genes </div>
-                <div class="panel-body">
-                  <!-- Basic Table -->
-                  <div class="table-responsive">
-                    <table class="table">
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="page-inner">
-          <div class="row">
-            <div class="col-md-12">
-              <h1 class="page-head-line">SAMPLER <br>
-              </h1>
-              <h1 class="page-subhead-line">This is dummy text , you can
-                replace it with your original text. </h1>
-            </div>
-          </div>
-          <!-- /. ROW -->
-          <div class="row">
-            <div class="col-md-4">
-              <div class="alert alert-success"> Samples/sec </div>
-            </div>
-            <div class="col-md-4">
-              <div class="alert alert-info"> Samples/sec </div>
-            </div>
-            <div class="col-md-4">
-              <div class="alert alert-warning"> Samples/sec </div>
-            </div>
-          </div>
-          <!--/.ROW-->
-          <div class="row">
-            <div class="col-md-12">
-              <div class="panel panel-primary">
-                <div class="panel-heading"> Log-likelihood </div>
-                <div class="panel-body">
-                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing
-                    elit. Vestibulum tincidunt est vitae ultrices
-                    accumsan. Aliquam ornare lacus adipiscing, posuere
-                    lectus et, fringilla augue.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-4">
-              <div class="panel panel-primary">
-                <div class="panel-heading"> Controls </div>
-                <div class="panel-body">
-                  <div class="checkbox"> <label> <input value=""
-							type="checkbox">Checkbox Example One </label> </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="panel panel-primary">
-                <div class="panel-heading"> Controls </div>
-                <div class="panel-body">
-                  <p> <button type="button" class="btn btn-lg
-						   btn-primary">Primary</button> </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="panel panel-danger">
-                <div class="panel-heading"> Controls </div>
-                <div class="panel-body">
-                  <p> <button type="button" class="btn btn-lg
-						   btn-danger">Primary</button> </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!--/.ROW-->
-          <!-- /. PAGE INNER --> </div>
-        <div id="page-inner">
-          <div class="row">
-            <div class="col-md-12">
-              <h1 class="page-head-line">DATA <br>
-              </h1>
-              <h1 class="page-subhead-line">Select organism and
-                ontology, and enter gene set.<br>
-              </h1>
-            </div>
-          </div>
-          <!-- /. ROW -->
-          <div class="row">
-            <div class="col-md-4">
-              <div class="panel panel-default">
-                <div class="panel-heading"> Button Examples </div>
-                <div class="panel-body">
-                  <h4>Button Dropdowns</h4>
-                  <div style="margin-top: 20px;">
-                    <div class="btn-group"> <button
-					       data-toggle="dropdown" class="btn btn-primary
-									     dropdown-toggle">Action <span class="caret"></span></button>
-                      <ul class="dropdown-menu">
-                        <li><a href="#">Action</a></li>
-                        <li><a href="#">Another action</a></li>
-                        <li><a href="#">Something else here</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#">Separated link</a></li>
-                      </ul>
+            <!-- /. ROW -->
+            <div class="row">
+              <div class="col-md-12">
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> Term Report </div>
+                  <div class="panel-body">
+                    <!-- Basic Table -->
+                    <div class="table-responsive">
+                      <table class="table">
+                      </table>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4 col-sm-4">
-              <div class="panel panel-success">
-                <div class="panel-heading"> Success Panel </div>
-                <div class="panel-body">
-                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing
-                    elit. Vestibulum tincidunt est vitae ultrices
-                    accumsan. Aliquam ornare lacus adipiscing, posuere
-                    lectus et, fringilla augue.</p>
-                </div>
+		</div>
               </div>
             </div>
           </div>
-          <!-- /. ROW -->
-          <div class="row">
-            <div class="col-md-4">
-              <div class="panel panel-default">
-                <div class="panel-heading"> Button Examples </div>
-                <div class="panel-body">
-                  <h4>Button Dropdowns</h4>
-                  <div style="margin-top: 20px;">
-                    <div class="btn-group"> <button
-					       data-toggle="dropdown" class="btn btn-primary
-									     dropdown-toggle">Action <span class="caret"></span></button>
-                      <ul class="dropdown-menu">
-                        <li><a href="#">Action</a></li>
-                        <li><a href="#">Another action</a></li>
-                        <li><a href="#">Something else here</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#">Separated link</a></li>
-                      </ul>
+          <div class="wtfpage wtflink-gene-report">
+            <div class="row">
+              <div class="col-md-12">
+		<h1 class="page-head-line">GENE REPORT <br>
+		</h1>
+		<h1 class="page-subhead-line">This is dummy text , you can
+                  replace it with your original text. </h1>
+              </div>
+            </div>
+            <!-- /. ROW -->
+            <div class="row">
+              <div class="col-md-12">
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> Unexplained Genes </div>
+                  <div class="panel-body">
+                    <!-- Basic Table -->
+                    <div class="table-responsive">
+                      <table class="table">
+                      </table>
                     </div>
                   </div>
-                </div>
+		</div>
               </div>
             </div>
-            <div class="col-md-4 col-sm-4">
-              <div class="panel panel-success">
-                <div class="panel-heading"> Success Panel </div>
-                <div class="panel-body">
-                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing
-                    elit. Vestibulum tincidunt est vitae ultrices
-                    accumsan. Aliquam ornare lacus adipiscing, posuere
-                    lectus et, fringilla augue.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- /. ROW -->
-          <div class="row">
-            <div class="col-md-4">
-              <div class="panel panel-info">
-                <div class="panel-heading"> GENE SYMBOLS </div>
-                <div class="panel-body">
-                  <form role="form">
-                    <div class="form-group">&nbsp; Enter gene symbols
-                      below:<textarea class="form-control" rows="10"></textarea>
+            <div class="row">
+              <div class="col-md-12">
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> Predicted Genes </div>
+                  <div class="panel-body">
+                    <!-- Basic Table -->
+                    <div class="table-responsive">
+                      <table class="table">
+                      </table>
                     </div>
-                    <button type="submit" class="btn btn-info">Load from
-                      file </button> <button type="submit" class="btn
-								  btn-info">Example </button> </form>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4 col-sm-4">
-              <div class="panel panel-success">
-                <div class="panel-heading"> Success Panel </div>
-                <div class="panel-body">
-                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing
-                    elit. Vestibulum tincidunt est vitae ultrices
-                    accumsan. Aliquam ornare lacus adipiscing, posuere
-                    lectus et, fringilla augue.</p>
-                </div>
+                  </div>
+		</div>
               </div>
             </div>
           </div>
-        </div>
-        <div id="page-inner">
-          <div class="row">
-            <div class="col-md-12">
-              <h1 class="page-head-line">PARAMETERS <br>
-              </h1>
-              <h1 class="page-subhead-line">This is dummy text , you can
-                replace it with your original text. </h1>
+          <div class="wtfpage wtflink-sampler">
+            <div class="row">
+              <div class="col-md-12">
+		<h1 class="page-head-line">SAMPLER <br>
+		</h1>
+		<h1 class="page-subhead-line">This is dummy text , you can
+                  replace it with your original text. </h1>
+              </div>
+            </div>
+            <!-- /. ROW -->
+            <div class="row">
+              <div class="col-md-4">
+		<div class="alert alert-success"> Samples/sec </div>
+              </div>
+              <div class="col-md-4">
+		<div class="alert alert-info"> Samples/sec </div>
+              </div>
+              <div class="col-md-4">
+		<div class="alert alert-warning"> Samples/sec </div>
+              </div>
+            </div>
+            <!--/.ROW-->
+            <div class="row">
+              <div class="col-md-12">
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> Log-likelihood </div>
+                  <div class="panel-body">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing
+                      elit. Vestibulum tincidunt est vitae ultrices
+                      accumsan. Aliquam ornare lacus adipiscing, posuere
+                      lectus et, fringilla augue.</p>
+                  </div>
+		</div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> Controls </div>
+                  <div class="panel-body">
+                    <div class="checkbox"> <label> <input value=""
+							  type="checkbox">Checkbox Example One </label> </div>
+                  </div>
+		</div>
+              </div>
+              <div class="col-md-4">
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> Controls </div>
+                  <div class="panel-body">
+                    <p> <button type="button" class="btn btn-lg
+						     btn-primary">Primary</button> </p>
+                  </div>
+		</div>
+              </div>
+              <div class="col-md-4">
+		<div class="panel panel-danger">
+                  <div class="panel-heading"> Controls </div>
+                  <div class="panel-body">
+                    <p> <button type="button" class="btn btn-lg
+						     btn-danger">Primary</button> </p>
+                  </div>
+		</div>
+              </div>
+            </div>
+            <!--/.ROW-->
+            <!-- /. PAGE INNER --> </div>
+          <div class="wtfpage wtflink-data">
+            <div class="row">
+              <div class="col-md-12">
+		<h1 class="page-head-line">DATA <br>
+		</h1>
+		<h1 class="page-subhead-line">Select organism and
+                  ontology, and enter gene set.<br>
+		</h1>
+              </div>
+            </div>
+            <!-- /. ROW -->
+            <div class="row">
+              <div class="col-md-4">
+		<div class="panel panel-default">
+                  <div class="panel-heading"> Button Examples </div>
+                  <div class="panel-body">
+                    <h4>Button Dropdowns</h4>
+                    <div style="margin-top: 20px;">
+                      <div class="btn-group"> <button
+						 data-toggle="dropdown" class="btn btn-primary
+									       dropdown-toggle">Action <span class="caret"></span></button>
+			<ul class="dropdown-menu">
+                          <li><a href="#">Action</a></li>
+                          <li><a href="#">Another action</a></li>
+                          <li><a href="#">Something else here</a></li>
+                          <li class="divider"></li>
+                          <li><a href="#">Separated link</a></li>
+			</ul>
+                      </div>
+                    </div>
+                  </div>
+		</div>
+              </div>
+              <div class="col-md-4 col-sm-4">
+		<div class="panel panel-success">
+                  <div class="panel-heading"> Success Panel </div>
+                  <div class="panel-body">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing
+                      elit. Vestibulum tincidunt est vitae ultrices
+                      accumsan. Aliquam ornare lacus adipiscing, posuere
+                      lectus et, fringilla augue.</p>
+                  </div>
+		</div>
+              </div>
+            </div>
+            <!-- /. ROW -->
+            <div class="row">
+              <div class="col-md-4">
+		<div class="panel panel-default">
+                  <div class="panel-heading"> Button Examples </div>
+                  <div class="panel-body">
+                    <h4>Button Dropdowns</h4>
+                    <div style="margin-top: 20px;">
+                      <div class="btn-group"> <button
+						 data-toggle="dropdown" class="btn btn-primary
+									       dropdown-toggle">Action <span class="caret"></span></button>
+			<ul class="dropdown-menu">
+                          <li><a href="#">Action</a></li>
+                          <li><a href="#">Another action</a></li>
+                          <li><a href="#">Something else here</a></li>
+                          <li class="divider"></li>
+                          <li><a href="#">Separated link</a></li>
+			</ul>
+                      </div>
+                    </div>
+                  </div>
+		</div>
+              </div>
+              <div class="col-md-4 col-sm-4">
+		<div class="panel panel-success">
+                  <div class="panel-heading"> Success Panel </div>
+                  <div class="panel-body">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing
+                      elit. Vestibulum tincidunt est vitae ultrices
+                      accumsan. Aliquam ornare lacus adipiscing, posuere
+                      lectus et, fringilla augue.</p>
+                  </div>
+		</div>
+              </div>
+            </div>
+            <!-- /. ROW -->
+            <div class="row">
+              <div class="col-md-4">
+		<div class="panel panel-info">
+                  <div class="panel-heading"> GENE SYMBOLS </div>
+                  <div class="panel-body">
+                    <form role="form">
+                      <div class="form-group">&nbsp; Enter gene symbols
+			below:<textarea class="form-control" rows="10"></textarea>
+                      </div>
+                      <button type="submit" class="btn btn-info">Load from
+			file </button> <button type="submit" class="btn
+								    btn-info">Example </button> </form>
+                  </div>
+		</div>
+              </div>
+              <div class="col-md-4 col-sm-4">
+		<div class="panel panel-success">
+                  <div class="panel-heading"> Success Panel </div>
+                  <div class="panel-body">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing
+                      elit. Vestibulum tincidunt est vitae ultrices
+                      accumsan. Aliquam ornare lacus adipiscing, posuere
+                      lectus et, fringilla augue.</p>
+                  </div>
+		</div>
+              </div>
             </div>
           </div>
-          <!-- /. ROW -->
-          <div class="row">
-            <div class="col-md-2">
-              <div class="panel panel-info">
-                <div class="panel-heading"> BASIC FORM </div>
-                <div class="panel-body">
-                  <form role="form">
-                    <div class="form-group"> <label> True </label> <input
-								      class="form-control" type="text">
-                      <p class="help-block">Help text here.</p>
-                    </div>
-                    <div class="form-group"> <label> False </label> <input
-								       class="form-control" type="text">
-                      <p class="help-block">Help text here.</p>
-                    </div>
-                  </form>
-                </div>
+          <div class="wtfpage wtflink-parameters">
+            <div class="row">
+              <div class="col-md-12">
+		<h1 class="page-head-line">PARAMETERS <br>
+		</h1>
+		<h1 class="page-subhead-line">This is dummy text , you can
+                  replace it with your original text. </h1>
               </div>
             </div>
-            <div class="col-md-2">
-              <div class="panel panel-info">
-                <div class="panel-heading"> BASIC FORM </div>
-                <div class="panel-body">
-                  <form role="form">
-                    <div class="form-group"> <label> True </label> <input
-								      class="form-control" type="text">
-                      <p class="help-block">Help text here.</p>
-                    </div>
-                    <div class="form-group"> <label> False </label> <input
-								       class="form-control" type="text">
-                      <p class="help-block">Help text here.</p>
-                    </div>
-                  </form>
-                </div>
+            <!-- /. ROW -->
+            <div class="row">
+              <div class="col-md-2">
+		<div class="panel panel-info">
+                  <div class="panel-heading"> BASIC FORM </div>
+                  <div class="panel-body">
+                    <form role="form">
+                      <div class="form-group"> <label> True </label> <input
+									class="form-control" type="text">
+			<p class="help-block">Help text here.</p>
+                      </div>
+                      <div class="form-group"> <label> False </label> <input
+									 class="form-control" type="text">
+			<p class="help-block">Help text here.</p>
+                      </div>
+                    </form>
+                  </div>
+		</div>
               </div>
-            </div>
-            <div class="col-md-2">
-              <div class="panel panel-info">
-                <div class="panel-heading"> BASIC FORM </div>
-                <div class="panel-body">
-                  <form role="form">
-                    <div class="form-group"> <label> True </label> <input
-								      class="form-control" type="text">
-                      <p class="help-block">Help text here.</p>
-                    </div>
-                    <div class="form-group"> <label> False </label> <input
-								       class="form-control" type="text">
-                      <p class="help-block">Help text here.</p>
-                    </div>
-                  </form>
+              <div class="col-md-2">
+		<div class="panel panel-info">
+                  <div class="panel-heading"> BASIC FORM </div>
+                  <div class="panel-body">
+                    <form role="form">
+                      <div class="form-group"> <label> True </label> <input
+									class="form-control" type="text">
+			<p class="help-block">Help text here.</p>
+                      </div>
+                      <div class="form-group"> <label> False </label> <input
+									 class="form-control" type="text">
+			<p class="help-block">Help text here.</p>
+                      </div>
+                    </form>
+                  </div>
+		</div>
+              </div>
+              <div class="col-md-2">
+		<div class="panel panel-info">
+                  <div class="panel-heading"> BASIC FORM </div>
+                  <div class="panel-body">
+                    <form role="form">
+                      <div class="form-group"> <label> True </label> <input
+									class="form-control" type="text">
+			<p class="help-block">Help text here.</p>
+                      </div>
+                      <div class="form-group"> <label> False </label> <input
+									 class="form-control" type="text">
+			<p class="help-block">Help text here.</p>
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
@@ -367,9 +369,21 @@
       <script src="assets/js/jquery.metisMenu.js"></script>
       <!-- CUSTOM SCRIPTS -->
       <script src="assets/js/custom.js"></script>
-    
-    <!-- Plotly -->
-    <script type="text/javascript" src="plotly-latest.min.js"></script>
+      
+      <!-- Plotly -->
+      <script type="text/javascript" src="plotly-latest.min.js"></script>
+
+      <!-- WTFgenes -->
+      <script type="text/javascript" src="assets/js/wtfgenes.js"></script>
+      <script type="text/javascript">
+	$(function(){
+	var conf = { ontology: "../test/data/yeast/go-basic.json",
+        assocs: "../test/data/yeast/gene_association.sgd.json",
+        example: "../test/data/yeast/cerevisiae-mating.txt" }
+	var wtf = new WTFgenes (conf)
+	})
+      </script>
+
     </div>
   </body>
 </html>
