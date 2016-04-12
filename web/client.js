@@ -45,25 +45,25 @@
 
 	    if (wtf.lastRun) {
 		var elapsedSecs = (now - wtf.lastRun) / 1000
-		wtf.ui.samplesPerSec.text ((wtf.samplesPerRun / elapsedSecs).toPrecision(2))
+		$('#wtf-samples-per-sec').text ((wtf.samplesPerRun / elapsedSecs).toPrecision(2))
 	    }
 	    wtf.lastRun = now
-	    wtf.ui.totalSamples.text (wtf.mcmc.samplesIncludingBurn.toString())
-	    wtf.ui.samplesPerTerm.text ((wtf.mcmc.samplesIncludingBurn / wtf.mcmc.nVariables()).toString())
+	    $('#wtf-total-samples').text (wtf.mcmc.samplesIncludingBurn.toString())
+	    $('#wtf-samples-per-term').text ((wtf.mcmc.samplesIncludingBurn / wtf.mcmc.nVariables()).toString())
 
             redrawLogLikelihood.call(wtf)
 	    if (wtf.redraw) {
 		var terms = showTermTable (wtf)
-		showGeneTable (wtf, wtf.ui.falsePosTableParent, wtf.mcmc.geneFalsePosSummary(0),
+		showGeneTable (wtf, $('#wtf-false-pos-table-parent'), wtf.mcmc.geneFalsePosSummary(0),
 			       "mislabeled")
-		showGeneTable (wtf, wtf.ui.falseNegTableParent, wtf.mcmc.geneFalseNegSummary(0),
+		showGeneTable (wtf, $('#wtf-false-neg-table-parent'), wtf.mcmc.geneFalseNegSummary(0),
 			       "mislabeled", terms)
 		wtf.redraw = false
 	    }
 	    wtf.samplesPerRun = wtf.mcmc.nVariables()
 
 	    if (!wtf.trackPairSamplesPassed && wtf.mcmc.samplesIncludingBurn >= wtf.trackPairSamples) {
-		wtf.ui.pairCheckbox.prop('checked',true)
+		$('#wtf-track-term-pairs').prop('checked',true)
 		pairCheckboxClicked.call(wtf)
 		wtf.trackPairSamplesPassed = true
 	    }
@@ -74,7 +74,7 @@
 	    }
 
 	    if (wtf.mcmc.finishedBurn())
-		wtf.ui.results.show()
+		$('.wtf-results').show()
         }
         wtf.mcmcTimer = setTimeout (runMCMC.bind(wtf), delayToNextRun)
     }
@@ -153,8 +153,8 @@
 			   + (gotFermions ? '<td>' + fermions[i].map(function(f){return equivalents[f].map(linkTerm.bind(wtf)).join(", ")}).join("<br/>") + '</td>' : '')
 			   + '</tr>'))
         })
-	wtf.ui.termTableParent.empty()
-	wtf.ui.termTableParent.append (termTable)
+	$('#wtf-term-table-parent').empty()
+	    .append (termTable)
 
         return terms
     }
@@ -202,7 +202,7 @@
 	wtf.logLikeMinMax = []
 	wtf.logLikeMinMaxSlice = 0
 	getLogLikeRange (wtf)
-        Plotly.newPlot( wtf.ui.logLikePlot[0],
+        Plotly.newPlot( $('#wtf-loglike-plot')[0],
 			[{ y: wtf.mcmc.logLikelihoodTrace,
 			   name: "Log-likelihood",
 			   showlegend: false },
@@ -227,25 +227,30 @@
 			   hoverinfo: 'name',
 			   line: { dash: 4 },
 			   showlegend: false }],
-			{ margin: { b:0, l:0, r:10, t:0, pad:10 },
-			  // this is the plot title, but putting it as x-axis title looks better... hack
-			  xaxis: { title: "Log-likelihood trace" },
-			  width: 398,
-			  height: 198 },
-			{ displayModeBar: false })
+			{ margin: { t:10, b:100 },
+			  yaxis: { title: "Log-likelihood" },
+			  xaxis: { title: "Sample number" } },
+			{ autosizable: true,
+			  frameMargins: .05,
+			  displayModeBar: false })
+
+	$(window).on('resize',function() {
+	    redrawLogLikelihood.call(wtf)
+	})
     }
 
     function redrawLogLikelihood() {
         var wtf = this
         if (!wtf.paused) {
 	    getLogLikeRange (wtf)
-            Plotly.redraw( wtf.ui.logLikePlot[0] )
+            Plotly.redraw( $('#wtf-loglike-plot')[0] )
 	}
     }
 
-    function pairCheckboxClicked() {
+    function pairCheckboxClicked (evt) {
 	var wtf = this
-	if (wtf.ui.pairCheckbox.prop('checked')) {
+
+	if ($('#wtf-track-term-pairs').prop('checked')) {
 	    if (!wtf.trackingTermPairs) {
 		wtf.trackingTermPairs = true
 		wtf.mcmc.logTermPairs()
@@ -261,24 +266,26 @@
     
     function cancelStart (wtf, msg) {
 	if (msg) alert (msg)
-        wtf.ui.resetButton.prop('disabled',false)
-        wtf.ui.startButton.prop('disabled',false)
-        wtf.ui.geneSetTextArea.prop('disabled',false)
-        wtf.ui.loadGeneSetButton.prop('disabled',false)
+	$('.wtf-reset').prop('disabled',false)
+        $('.wtf-start').prop('disabled',false)
+        $('#wtf-gene-set-textarea').prop('disabled',false)
+        $('#wtf-load-gene-set-button').prop('disabled',false)
 	$('.wtfprior input').prop('disabled',false)
         enableExampleButton (wtf)
     }
 
-    function startAnalysis() {
+    function startAnalysis (evt) {
         var wtf = this
-        wtf.ui.resetButton.prop('disabled',true)
-        wtf.ui.startButton.prop('disabled',true)
-        wtf.ui.geneSetTextArea.prop('disabled',true)
-        wtf.ui.loadGeneSetButton.prop('disabled',true)
+	if (evt)
+	    evt.preventDefault()
+
+	$('.wtf-reset').prop('disabled',true)
+        $('.wtf-start').prop('disabled',true)
+        $('#wtf-gene-set-textarea').prop('disabled',true)
+        $('#wtf-load-gene-set-button').prop('disabled',true)
 	$('.wtfprior input').prop('disabled',true)
-        if (wtf.ui.exampleButton)
-            disableExampleButton(wtf)
-        var geneNames = wtf.ui.geneSetTextArea.val().split("\n")
+        disableExampleButton(wtf)
+        var geneNames = $('#wtf-gene-set-textarea').val().split("\n")
             .filter (function (sym) { return sym.length > 0 })
         var validation = wtf.assocs.validateGeneNames (geneNames)
 	if (geneNames.length == 0) {
@@ -289,14 +296,14 @@
 
 	    var prior = {
 		succ: {
-		    t: parseInt (wtf.ui.termPresentCount.val()),
-		    fp: parseInt (wtf.ui.falsePosCount.val()),
-		    fn: parseInt (wtf.ui.falseNegCount.val())
+		    t: parseInt ($('#wtf-term-present-pseudocount').val()),
+		    fp: parseInt ($('#wtf-false-pos-pseudocount').val()),
+		    fn: parseInt ($('#wtf-false-neg-pseudocount').val())
 		},
 		fail: {
-		    t: parseInt (wtf.ui.termAbsentCount.val()),
-		    fp: parseInt (wtf.ui.trueNegCount.val()),
-		    fn: parseInt (wtf.ui.truePosCount.val())
+		    t: parseInt ($('#wtf-term-absent-pseudocount').val()),
+		    fp: parseInt ($('#wtf-true-neg-pseudocount').val()),
+		    fn: parseInt ($('#wtf-true-pos-pseudocount').val())
 		}
 	    }
 
@@ -320,41 +327,48 @@
             wtf.trackPairSamplesPassed = false
             wtf.trackingTermPairs = false
 
-	    wtf.ui.statusDiv.show()
-	    wtf.ui.logLikePlot.show()
+	    $('.wtf-mcmc-status').show()
 
-            wtf.ui.startButton.prop('disabled',false)
+            $('.wtf-start').prop('disabled',false)
             resumeAnalysis.call(wtf)
             plotLogLikelihood.call(wtf)
             runMCMC.call(wtf)
         }
     }
 
-    function pauseAnalysis() {
+    function pauseAnalysis (evt) {
         var wtf = this
-        wtf.paused = true
-        wtf.ui.startButton.html('More sampling')
-        wtf.ui.startButton.off('click')
-        wtf.ui.startButton.on('click',resumeAnalysis.bind(wtf))
-        wtf.ui.resetButton.prop('disabled',false)
+	if (evt)
+	    evt.preventDefault()
 
-	wtf.ui.pairCheckbox.off('click')
+        wtf.paused = true
+        $('.wtf-start').html('More sampling')
+        $('.wtf-start').off('click')
+        $('.wtf-start').on('click',resumeAnalysis.bind(wtf))
+	$('.wtf-reset').prop('disabled',false)
+
+	$('#wtf-track-term-pairs').off('click')
     }
 
-    function resumeAnalysis() {
+    function resumeAnalysis (evt) {
         var wtf = this
+	if (evt)
+	    evt.preventDefault()
+
         wtf.paused = false
-        wtf.ui.startButton.html('Stop sampling')
-        wtf.ui.startButton.off('click')
-        wtf.ui.startButton.on('click',pauseAnalysis.bind(wtf))
-        wtf.ui.resetButton.prop('disabled',true)
+        $('.wtf-start').html('Stop sampling')
+        $('.wtf-start').off('click')
+        $('.wtf-start').on('click',pauseAnalysis.bind(wtf))
+        $('.wtf-reset').prop('disabled',true)
 
 	pairCheckboxClicked.call(wtf)
-	wtf.ui.pairCheckbox.on('click',pairCheckboxClicked.bind(wtf))
+	$('#wtf-track-term-pairs').on('click',pairCheckboxClicked.bind(wtf))
     }
 
-    function reset() {
+    function reset (evt) {
 	var wtf = this
+	if (evt)
+	    evt.preventDefault()
 	if (wtf.mcmcTimer) {
 	    clearTimeout (wtf.mcmcTimer)
 	    delete wtf.mcmcTimer
@@ -363,17 +377,15 @@
 	delete wtf.mcmc
 	wtf.paused = true
 
-	wtf.ui.startButton.off('click')
-	wtf.ui.startButton
+	$('.wtf-start').off('click')
+	$('.wtf-start')
             .on('click', startAnalysis.bind(wtf))
 
 	cancelStart(wtf)
-        wtf.ui.startButton.text('Start sampling')
+        $('.wtf-start').text('Start sampling')
 
-//	wtf.ui.logLikePlot.empty()
-	wtf.ui.logLikePlot.hide()
-	wtf.ui.statusDiv.hide()
-	wtf.ui.results.hide()
+	$('.wtf-mcmc-status').hide()
+	$('.wtf-results').hide()
     }
 
     function disableExampleButton(wtf) {
@@ -384,13 +396,16 @@
 	$('#wtf-example-gene-set-button').on('click',loadExample.bind(wtf))
     }
     
-    function loadExample() {
+    function loadExample (evt) {
         var wtf = this
+	if (evt)
+	    evt.preventDefault()
+
 	if (wtf.exampleText)
-	    wtf.ui.geneSetTextArea.val (wtf.exampleText)
+	    $('#wtf-gene-set-textarea').val (wtf.exampleText)
 	else
             $.get (wtf.exampleURL, function (data) {
-		wtf.ui.geneSetTextArea.val (wtf.exampleText = data)
+		$('#wtf-gene-set-textarea').val (wtf.exampleText = data)
 	    })
     }
     
@@ -420,7 +435,7 @@
 		wtf.ontology = new Ontology (ontologyJson)
 		wtf.log ("Loaded ontology with ", wtf.ontology.terms(), " terms")
 
-		$('.wtf-gene-count').text (wtf.ontology.terms())
+		$('.wtf-term-count').text (wtf.ontology.terms())
 		
 		ontologyReady.resolve()
 	    }).fail (function() {
@@ -436,9 +451,13 @@
 					       assocs: assocsJson })
 		    wtf.log ("Loaded ", wtf.assocs.nAssocs, " associations (", wtf.assocs.genes(), " genes, ", wtf.assocs.relevantTerms().length, " terms)")
 
+		    $('.wtf-term-count').text (wtf.assocs.relevantTerms().length)
+		    $('.wtf-gene-count').text (wtf.assocs.genes())
+
 		    $('#wtf-ontology-load-failure').hide()
 		    $('#wtf-associations-load-failure').hide()
 		    $('#wtf-ontology-load-success').show()
+		    $('#wtf-gene-symbols').show()
 
 		    assocsReady.resolve()
 		}).fail (function() {
@@ -463,8 +482,9 @@
 		}
 		reader.readAsText(fileSelectEvt.target.files[0])
 	    })
-	    $('#wtf-load-gene-set-from-file')
-		.on ('click', function() {
+	    $('#wtf-load-gene-set-button')
+		.on ('click', function (evt) {
+		    evt.preventDefault()
 		    $('#wtf-gene-set-file-selector').click()
 		    return false
 		})
@@ -483,7 +503,8 @@
     }
 
     function organismSelector(wtf,orgJson) {
-	return function(e) {
+	return function (evt) {
+	    evt.preventDefault()
 	    if (wtf.organismName != orgJson.name) {
 		wtf.organismName = orgJson.name
 		delete wtf.ontologyName
@@ -492,7 +513,7 @@
 		$('.wtf-organism-name').text (orgJson.name)
 
 		$('.wtf-data-alert').hide()
-		$('#wtf-gene-symbols-panel').hide()
+		$('#wtf-gene-symbols').hide()
 		$('#wtf-ontology-load-failure').hide()
 		$('#wtf-associations-load-failure').hide()
 		$('#wtf-select-ontology-panel').show()
@@ -507,7 +528,8 @@
     }
 
     function ontologySelector(wtf,ontoJson) {
-	return function(e) {
+	return function (evt) {
+	    evt.preventDefault()
 	    if (wtf.ontologyName != ontoJson.name) {
 		wtf.ontologyName = ontoJson.name
 		wtf.ontologyURL = ontoJson.ontology
@@ -530,24 +552,24 @@
 
 	// populate wtf object
         $.extend (wtf, { datasetsURL: conf.datasets || "./datasets.json",
-			 log: log,
-			 ui: {} })
+			 log: log })
 
         // set up sidebar menu
         $(".wtfpage").hide()
         $(".wtflink-data").show()
-        $(".wtflink").click (function(e) {
-            menuClick (e.target.id)
+        $(".wtflink").click (function (evt) {
+	    evt.preventDefault()
+            menuClick (evt.target.id)
         })
 
 	// set up data page
 	$('.wtf-data-alert').hide()
 	$('#wtf-select-ontology-panel').hide()
-	$('#wtf-gene-symbols-panel').hide()
-	$('#wtf-select-organism-button-text').text('Select')
+	$('#wtf-gene-symbols').hide()
+	$('#wtf-select-organism-button-text').text('Select organism')
         
 	// create the timer that sets the 'redraw' flag. Leave this running forever
-	wtf.ui.redrawTimer = setInterval (setRedraw.bind(wtf), 1000)
+	wtf.redrawTimer = setInterval (setRedraw.bind(wtf), 1000)
 
         // load dataset file
         wtf.log ("Loading datasets...")

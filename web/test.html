@@ -51,15 +51,13 @@
               </div>
             </div>
             <!-- /. ROW -->
-            <div class="row">
+            <div class="row wtf-results">
               <div class="col-md-12">
 		<div class="panel panel-info">
                   <div class="panel-heading"> Explanatory terms </div>
                   <div class="panel-body">
                     <!-- Basic Table -->
-                    <div class="table-responsive">
-                      <table class="table">
-                      </table>
+                    <div id="wtf-term-table-parent" class="table-responsive">
                     </div>
                   </div>
 		</div>
@@ -77,31 +75,27 @@
               </div>
             </div>
             <!-- /. ROW -->
-            <div class="row">
+            <div class="row wtf-results">
               <div class="col-md-12">
 		<div class="panel panel-info">
                   <div class="panel-heading"> Unexplained Genes </div>
                   <div class="panel-body">
 		    The genes in this table are potential false positives: they are part of the active set, but no terms were found to explain them.
                     <!-- Basic Table -->
-                    <div class="table-responsive">
-                      <table class="table">
-                      </table>
+                    <div id="wtf-false-pos-table-parent" class="table-responsive">
                     </div>
                   </div>
 		</div>
               </div>
             </div>
-            <div class="row">
+            <div class="row wtf-results">
               <div class="col-md-12">
 		<div class="panel panel-info">
                   <div class="panel-heading"> Predicted Genes </div>
                   <div class="panel-body">
 		    The genes in this table are potential false negatives: although they are not part of the active set, they are predicted to be so, by terms that explain other genes.
                     <!-- Basic Table -->
-                    <div class="table-responsive">
-                      <table class="table">
-                      </table>
+                    <div id="wtf-false-neg-table-parent" class="table-responsive">
                     </div>
                   </div>
 		</div>
@@ -117,7 +111,7 @@
               </div>
             </div>
             <!-- /. ROW -->
-            <div class="row">
+            <div class="row wtf-mcmc-status">
               <div class="col-md-4">
 		<div class="alert alert-success">
 		  <span id="wtf-total-samples">0</span>
@@ -135,15 +129,11 @@
               </div>
             </div>
             <!--/.ROW-->
-            <div class="row">
+            <div class="row wtf-mcmc-status">
               <div class="col-md-12">
 		<div class="panel panel-info">
                   <div class="panel-heading"> LOG-LIKELIHOOD TRACE </div>
-                  <div class="panel-body">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit. Vestibulum tincidunt est vitae ultrices
-                      accumsan. Aliquam ornare lacus adipiscing, posuere
-                      lectus et, fringilla augue.</p>
+                  <div id="wtf-loglike-plot" class="panel-body">
                   </div>
 		</div>
               </div>
@@ -153,8 +143,9 @@
 		<div class="panel panel-primary">
                   <div class="panel-heading"> CONFIGURATION </div>
                   <div class="panel-body">
-                    <div class="checkbox"> <label> <input id="wtf-track-term-pairs" value=""
-							  type="checkbox">Track term correlations</label> </div>
+                    <div class="checkbox"> <label>
+			<input id="wtf-track-term-pairs" value="" type="checkbox">
+			Track term correlations</label> </div>
                   </div>
 		</div>
               </div>
@@ -162,7 +153,7 @@
 		<div class="panel panel-primary">
                   <div class="panel-heading"> RUN </div>
                   <div class="panel-body">
-                    <p> <button id="wtf-start" type="button" class="btn btn-lg btn-primary">
+                    <p> <button type="button" class="btn btn-lg btn-primary wtf-start">
 			Start sampling</button> </p>
                   </div>
 		</div>
@@ -171,7 +162,7 @@
 		<div class="panel panel-danger">
                   <div class="panel-heading"> RESET </div>
                   <div class="panel-body">
-                    <p> <button id="wtf-reset" type="button" class="btn btn-lg btn-danger">
+                    <p> <button type="button" class="btn btn-lg btn-danger wtf-reset">
 			Reset</button> </p>
                   </div>
 		</div>
@@ -198,11 +189,10 @@
 		<div class="panel panel-primary">
                   <div class="panel-heading"> ORGANISM </div>
                   <div class="panel-body">
-                    <h4>Select the organism</h4>
                     <div style="margin-top: 20px;">
                       <div class="btn-group">
 			<button data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
-			  <span id="wtf-select-organism-button-text">Select</span>
+			  <span id="wtf-select-organism-button-text">Select organism</span>
 			  <span class="caret"></span></button>
 			<ul id="wtf-organism-list" class="dropdown-menu">
 			</ul>
@@ -218,11 +208,10 @@
 		<div class="panel panel-primary">
                   <div class="panel-heading"> ONTOLOGY </div>
                   <div class="panel-body">
-                    <h4>Select the ontology</h4>
                     <div style="margin-top: 20px;">
                       <div class="btn-group">
 			<button id="wtf-select-ontology-button" data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
-			  <span id="wtf-select-ontology-button-text">Select</span>
+			  <span id="wtf-select-ontology-button-text">Select ontology</span>
 			  <span class="caret"></span>
 			</button>
 			<ul id="wtf-ontology-list" class="dropdown-menu">
@@ -232,21 +221,21 @@
                   </div>
 		</div>
               </div>
-              <div id="wtf-ontology-load-success" class="col-md-4 col-sm-4">
-		<div class="panel panel-success wtf-data-alert">
+              <div id="wtf-ontology-load-success" class="col-md-4 col-sm-4 wtf-data-alert">
+		<div class="panel panel-success">
                   <div class="panel-heading"> Success! </div>
                   <div class="panel-body">
                     <p>Loaded
-		      <span class="wtf-ontology-name">ontology</span> for
-		      <span class="wtf-organism-name">organism</span>
+		      <span class="wtf-ontology-name">ontology</span> associations for
+		      <i><span class="wtf-organism-name">organism</span></i>
 		      (<span class="wtf-gene-count">0</span> genes,
 		      <span class="wtf-term-count">0</span> terms)
 		    </p>
                   </div>
 		</div>
               </div>
-              <div id="wtf-ontology-load-failure" class="col-md-4 col-sm-4">
-		<div class="panel panel-warning wtf-data-alert">
+              <div id="wtf-ontology-load-failure" class="col-md-4 col-sm-4 wtf-data-alert">
+		<div class="panel panel-warning">
                   <div class="panel-heading"> Uh oh </div>
                   <div class="panel-body">
                     <p>There was a problem loading
@@ -256,8 +245,8 @@
                   </div>
 		</div>
               </div>
-              <div id="wtf-associations-load-failure" class="col-md-4 col-sm-4">
-		<div class="panel panel-warning wtf-data-alert">
+              <div id="wtf-associations-load-failure" class="col-md-4 col-sm-4 wtf-data-alert">
+		<div class="panel panel-warning">
                   <div class="panel-heading"> Uh oh </div>
                   <div class="panel-body">
                     <p>There was a problem loading the gene-term associations between
@@ -269,8 +258,8 @@
               </div>
             </div>
             <!-- /. ROW -->
-            <div class="row">
-              <div id="wtf-gene-symbols-panel" class="col-md-4">
+            <div id="wtf-gene-symbols" class="row">
+              <div class="col-md-4">
 		<div class="panel panel-primary">
                   <div class="panel-heading"> GENE SYMBOLS </div>
                   <div class="panel-body">
@@ -280,14 +269,14 @@
 			<textarea id="wtf-gene-set-textarea" class="form-control" rows="10"></textarea>
                       </div>
 		      <input id="wtf-gene-set-file-selector" type="file" style="display:none;"/>
-                      <button id="wtf-load-gene-set-from-file" type="submit" class="btn btn-primary">Load from
+                      <button id="wtf-load-gene-set-button" type="submit" class="btn btn-primary">Load from
 			file </button> <button id="wtf-example-gene-set-button" type="submit" class="btn
 								    btn-primary">Example </button> </form>
                   </div>
 		</div>
               </div>
-              <div class="col-md-4 col-sm-4">
-		<div class="panel panel-success wtf-data-alert">
+              <div class="col-md-4 col-sm-4 wtf-data-alert">
+		<div class="panel panel-success">
                   <div class="panel-heading"> Success! </div>
                   <div class="panel-body">
                     <p>Successfully parsed
@@ -296,8 +285,8 @@
                   </div>
 		</div>
               </div>
-              <div class="col-md-4 col-sm-4">
-		<div class="panel panel-warning wtf-data-alert">
+              <div class="col-md-4 col-sm-4 wtf-data-alert">
+		<div class="panel panel-warning">
                   <div class="panel-heading"> Uh oh </div>
                   <div class="panel-body">
                     <p>The following gene names were not recognized:
