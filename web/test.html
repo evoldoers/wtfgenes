@@ -200,15 +200,11 @@
                   <div class="panel-body">
                     <h4>Select the organism</h4>
                     <div style="margin-top: 20px;">
-                      <div class="btn-group"> <button
-						 data-toggle="dropdown" class="btn btn-primary
-									       dropdown-toggle">Select <span class="caret"></span></button>
-			<ul class="dropdown-menu">
-                          <li><a href="#">Action</a></li>
-                          <li><a href="#">Another action</a></li>
-                          <li><a href="#">Something else here</a></li>
-                          <li class="divider"></li>
-                          <li><a href="#">Separated link</a></li>
+                      <div class="btn-group">
+			<button data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
+			  <span id="wtf-select-organism-button-text">Select</span>
+			  <span class="caret"></span></button>
+			<ul id="wtf-organism-list" class="dropdown-menu">
 			</ul>
                       </div>
                     </div>
@@ -218,29 +214,26 @@
             </div>
             <!-- /. ROW -->
             <div class="row">
-              <div class="col-md-4">
+              <div id="wtf-select-ontology-panel" class="col-md-4">
 		<div class="panel panel-primary">
                   <div class="panel-heading"> ONTOLOGY </div>
                   <div class="panel-body">
                     <h4>Select the ontology</h4>
                     <div style="margin-top: 20px;">
-                      <div class="btn-group"> <button
-						 data-toggle="dropdown" class="btn btn-primary
-									       dropdown-toggle">Select <span class="caret"></span></button>
-			<ul class="dropdown-menu">
-                          <li><a href="#">Action</a></li>
-                          <li><a href="#">Another action</a></li>
-                          <li><a href="#">Something else here</a></li>
-                          <li class="divider"></li>
-                          <li><a href="#">Separated link</a></li>
+                      <div class="btn-group">
+			<button id="wtf-select-ontology-button" data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
+			  <span id="wtf-select-ontology-button-text">Select</span>
+			  <span class="caret"></span>
+			</button>
+			<ul id="wtf-ontology-list" class="dropdown-menu">
 			</ul>
                       </div>
                     </div>
                   </div>
 		</div>
               </div>
-              <div class="col-md-4 col-sm-4">
-		<div class="panel panel-success">
+              <div id="wtf-ontology-load-success" class="col-md-4 col-sm-4">
+		<div class="panel panel-success wtf-data-alert">
                   <div class="panel-heading"> Success! </div>
                   <div class="panel-body">
                     <p>Loaded
@@ -252,8 +245,8 @@
                   </div>
 		</div>
               </div>
-              <div class="col-md-4 col-sm-4">
-		<div class="panel panel-warning">
+              <div id="wtf-ontology-load-failure" class="col-md-4 col-sm-4">
+		<div class="panel panel-warning wtf-data-alert">
                   <div class="panel-heading"> Uh oh </div>
                   <div class="panel-body">
                     <p>There was a problem loading
@@ -263,10 +256,21 @@
                   </div>
 		</div>
               </div>
+              <div id="wtf-associations-load-failure" class="col-md-4 col-sm-4">
+		<div class="panel panel-warning wtf-data-alert">
+                  <div class="panel-heading"> Uh oh </div>
+                  <div class="panel-body">
+                    <p>There was a problem loading the gene-term associations between
+		      <span class="wtf-ontology-name">ontology</span> and
+		      <span class="wtf-organism-name">organism</span>.
+		    </p>
+                  </div>
+		</div>
+              </div>
             </div>
             <!-- /. ROW -->
             <div class="row">
-              <div class="col-md-4">
+              <div id="wtf-gene-symbols-panel" class="col-md-4">
 		<div class="panel panel-primary">
                   <div class="panel-heading"> GENE SYMBOLS </div>
                   <div class="panel-body">
@@ -277,13 +281,13 @@
                       </div>
 		      <input id="wtf-gene-set-file-selector" type="file" style="display:none;"/>
                       <button id="wtf-load-gene-set-from-file" type="submit" class="btn btn-primary">Load from
-			file </button> <button id="wtf-example-gene-set" type="submit" class="btn
+			file </button> <button id="wtf-example-gene-set-button" type="submit" class="btn
 								    btn-primary">Example </button> </form>
                   </div>
 		</div>
               </div>
               <div class="col-md-4 col-sm-4">
-		<div class="panel panel-success">
+		<div class="panel panel-success wtf-data-alert">
                   <div class="panel-heading"> Success! </div>
                   <div class="panel-body">
                     <p>Successfully parsed
@@ -293,7 +297,7 @@
 		</div>
               </div>
               <div class="col-md-4 col-sm-4">
-		<div class="panel panel-warning">
+		<div class="panel panel-warning wtf-data-alert">
                   <div class="panel-heading"> Uh oh </div>
                   <div class="panel-body">
                     <p>The following gene names were not recognized:
@@ -398,10 +402,7 @@
       <script type="text/javascript" src="assets/js/wtfgenes.js"></script>
       <script type="text/javascript">
 	$(function(){
-	var conf = { ontology: "../test/data/yeast/go-basic.json",
-        assocs: "../test/data/yeast/gene_association.sgd.json",
-        example: "../test/data/yeast/cerevisiae-mating.txt" }
-	var wtf = new WTFgenes (conf)
+	var wtf = new WTFgenes()
 	})
       </script>
 

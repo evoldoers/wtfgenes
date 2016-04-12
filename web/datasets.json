@@ -1,0 +1,17 @@
+{
+    "organisms":
+    [
+	{
+	    "name": "Saccharomyces cerevisiae",
+	    "ontologies":
+	    [
+		{
+		    "name": "Gene Ontology",
+		    "ontology": "../test/data/yeast/go-basic.json",
+		    "assocs":   "../test/data/yeast/gene_association.sgd.json",
+		    "example":  "../test/data/yeast/cerevisiae-mating.txt"
+		}
+	    ]
+	}
+    ]
+}

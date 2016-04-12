@@ -266,7 +266,7 @@
         wtf.ui.geneSetTextArea.prop('disabled',false)
         wtf.ui.loadGeneSetButton.prop('disabled',false)
 	$('.wtfprior input').prop('disabled',false)
-        enableExampleLink (wtf)
+        enableExampleButton (wtf)
     }
 
     function startAnalysis() {
@@ -276,8 +276,8 @@
         wtf.ui.geneSetTextArea.prop('disabled',true)
         wtf.ui.loadGeneSetButton.prop('disabled',true)
 	$('.wtfprior input').prop('disabled',true)
-        if (wtf.ui.exampleLink)
-            disableExampleLink(wtf)
+        if (wtf.ui.exampleButton)
+            disableExampleButton(wtf)
         var geneNames = wtf.ui.geneSetTextArea.val().split("\n")
             .filter (function (sym) { return sym.length > 0 })
         var validation = wtf.assocs.validateGeneNames (geneNames)
@@ -376,12 +376,12 @@
 	wtf.ui.results.hide()
     }
 
-    function disableExampleLink(wtf) {
-        wtf.ui.exampleLink.off('click')
+    function disableExampleButton(wtf) {
+        $('#wtf-example-gene-set-button').off('click')
     }
     
-    function enableExampleLink(wtf) {
-        wtf.ui.exampleLink.on('click',loadExample.bind(wtf))
+    function enableExampleButton(wtf) {
+	$('#wtf-example-gene-set-button').on('click',loadExample.bind(wtf))
     }
     
     function loadExample() {
@@ -407,14 +407,129 @@
         $("."+id).show()
     }
 
+    function initialize() {
+	var wtf = this
+
+	var ontologyReady = $.Deferred(),
+	assocsReady = $.Deferred()
+
+	// load ontology
+	wtf.log ("Loading ontology...")
+	$.get(wtf.ontologyURL)
+	    .done (function (ontologyJson) {
+		wtf.ontology = new Ontology (ontologyJson)
+		wtf.log ("Loaded ontology with ", wtf.ontology.terms(), " terms")
+
+		$('.wtf-gene-count').text (wtf.ontology.terms())
+		
+		ontologyReady.resolve()
+	    }).fail (function() {
+		$('#wtf-ontology-load-failure').show()
+	    })
+
+	// load associations
+	ontologyReady.done (function() {
+	    wtf.log ("Loading gene-term associations...")
+	    $.get(wtf.assocsURL)
+		.done (function (assocsJson) {
+		    wtf.assocs = new Assocs ({ ontology: wtf.ontology,
+					       assocs: assocsJson })
+		    wtf.log ("Loaded ", wtf.assocs.nAssocs, " associations (", wtf.assocs.genes(), " genes, ", wtf.assocs.relevantTerms().length, " terms)")
+
+		    $('#wtf-ontology-load-failure').hide()
+		    $('#wtf-associations-load-failure').hide()
+		    $('#wtf-ontology-load-success').show()
+
+		    assocsReady.resolve()
+		}).fail (function() {
+		    $('#wtf-associations-load-failure').show()
+		})
+	})
+
+	// initialize form
+	assocsReady.done (function() {
+
+	    $('#wtf-term-present-pseudocount').val(1)
+	    $('#wtf-term-absent-pseudocount').val(99)
+	    $('#wtf-false-pos-pseudocount').val(1)
+	    $('#wtf-true-neg-pseudocount').val(99)
+	    $('#wtf-false-neg-pseudocount').val(1)
+	    $('#wtf-true-pos-pseudocount').val(99)
+
+	    $('#wtf-gene-set-file-selector').on ('change', function (fileSelectEvt) {
+		var reader = new FileReader()
+		reader.onload = function (fileLoadEvt) {
+		    $('#wtf-gene-set-textarea').val (fileLoadEvt.target.result)
+		}
+		reader.readAsText(fileSelectEvt.target.files[0])
+	    })
+	    $('#wtf-load-gene-set-from-file')
+		.on ('click', function() {
+		    $('#wtf-gene-set-file-selector').click()
+		    return false
+		})
+
+	    $('#wtf-reset')
+		.on('click', reset.bind(wtf))
+
+	    if (wtf.exampleURL) {
+		$('#wtf-example-gene-set').show()
+		enableExampleButton (wtf)
+	    } else
+		$('#wtf-example-gene-set').hide()
+
+	    reset.call (wtf)
+	})
+    }
+
+    function organismSelector(wtf,orgJson) {
+	return function(e) {
+	    if (wtf.organismName != orgJson.name) {
+		wtf.organismName = orgJson.name
+		delete wtf.ontologyName
+
+		$('#wtf-select-organism-button-text').text (orgJson.name)
+		$('.wtf-organism-name').text (orgJson.name)
+
+		$('.wtf-data-alert').hide()
+		$('#wtf-gene-symbols-panel').hide()
+		$('#wtf-ontology-load-failure').hide()
+		$('#wtf-associations-load-failure').hide()
+		$('#wtf-select-ontology-panel').show()
+
+		$('#wtf-ontology-list').empty()
+		$('#wtf-ontology-list').append (orgJson.ontologies.map (function (ontoJson) {
+		    return $('<li><a href="#">' + ontoJson.name + '</a></li>')
+			.click (ontologySelector(wtf,ontoJson))
+		}))
+	    }
+	}
+    }
+
+    function ontologySelector(wtf,ontoJson) {
+	return function(e) {
+	    if (wtf.ontologyName != ontoJson.name) {
+		wtf.ontologyName = ontoJson.name
+		wtf.ontologyURL = ontoJson.ontology
+		wtf.assocsURL = ontoJson.assocs
+		wtf.exampleURL = ontoJson.example
+		
+		$('#wtf-ontology-load-failure').hide()
+		$('#wtf-associations-load-failure').hide()
+		$('#wtf-select-ontology-button-text').text (ontoJson.name)
+		$('.wtf-ontology-name').text (ontoJson.name)
+
+		initialize.call(wtf)
+	    }
+	}
+    }
+
     function WTFgenes (conf) {
         var wtf = this
+	conf = conf || {}
 
 	// populate wtf object
-        $.extend (wtf, { ontologyURL: conf.ontology,
-                         assocsURL: conf.assocs,
-                         exampleURL: conf.example,
-                         termURL: conf.termURL || 'http://amigo.geneontology.org/amigo/term/',
+        $.extend (wtf, { datasetsURL: conf.datasets || "./datasets.json",
 			 log: log,
 			 ui: {} })
 
@@ -424,69 +539,31 @@
         $(".wtflink").click (function(e) {
             menuClick (e.target.id)
         })
+
+	// set up data page
+	$('.wtf-data-alert').hide()
+	$('#wtf-select-ontology-panel').hide()
+	$('#wtf-gene-symbols-panel').hide()
+	$('#wtf-select-organism-button-text').text('Select')
         
 	// create the timer that sets the 'redraw' flag. Leave this running forever
 	wtf.ui.redrawTimer = setInterval (setRedraw.bind(wtf), 1000)
 
-        // load data files, initialize ontology & associations
-        var ontologyReady = $.Deferred(),
-            assocsReady = $.Deferred()
-
-	// load ontology
-        wtf.log ("Loading ontology...")
-        $.get(wtf.ontologyURL)
-            .done (function (ontologyJson) {
-                wtf.ontology = new Ontology (ontologyJson)
-                wtf.log ("Loaded ontology with ", wtf.ontology.terms(), " terms")
-                ontologyReady.resolve()
-            })
-
-	// load associations
-        ontologyReady.done (function() {
-            wtf.log ("Loading gene-term associations...")
-            $.get(wtf.assocsURL)
-                .done (function (assocsJson) {
-                    wtf.assocs = new Assocs ({ ontology: wtf.ontology,
-                                               assocs: assocsJson })
-                    wtf.log ("Loaded ", wtf.assocs.nAssocs, " associations (", wtf.assocs.genes(), " genes, ", wtf.assocs.relevantTerms().length, " terms)")
-                    assocsReady.resolve()
-                })
-        })
-
-	// initialize form
-        assocsReady.done (function() {
-
-            $('#wtf-term-present-pseudocount').val(1)
-            $('#wtf-term-absent-pseudocount').val(99)
-            $('#wtf-false-pos-pseudocount').val(1)
-            $('#wtf-true-neg-pseudocount').val(99)
-            $('#wtf-false-neg-pseudocount').val(1)
-            $('#wtf-true-pos-pseudocount').val(99)
-
-            $('#wtf-gene-set-file-selector').on ('change', function (fileSelectEvt) {
-		var reader = new FileReader()
-		reader.onload = function (fileLoadEvt) {
-                    $('#wtf-gene-set-textarea').val (fileLoadEvt.target.result)
-		}
-		reader.readAsText(fileSelectEvt.target.files[0])
-	    })
-            $('#wtf-load-gene-set-from-file')
-		.on ('click', function() {
-                    $('#wtf-gene-set-file-selector').click()
-		    return false
+        // load dataset file
+        wtf.log ("Loading datasets...")
+        $.get(wtf.datasetsURL)
+            .done (function (datasetsJson) {
+		wtf.datasets = datasetsJson
+		wtf.log ("Loaded " + wtf.datasets.organisms.length + " organisms")
+		wtf.datasets.organisms.forEach (function (orgJson) {
+		    $('#wtf-organism-list').append
+		    ($('<li><a href="#">' + orgJson.name + '</a></li>')
+		     .click (organismSelector(wtf,orgJson)))
 		})
 
-            $('#wtf-reset')
-                .on('click', reset.bind(wtf))
-
-            if (wtf.exampleURL) {
-                $('#wtf-example-gene-set').show()
-                enableExampleLink (wtf)
-            } else
-                $('#wtf-example-gene-set').hide()
-
-            reset.call (wtf)
-	})
+            }).fail (function() {
+		wtf.log("Problem loading " + wtf.datasetsURL)
+	    })
     }
 
     global.WTFgenes = WTFgenes
