@@ -74,7 +74,6 @@ body {
     letter-spacing: 1px;
     font-weight: 900;
     padding-top: 25px;
-    text-transform:uppercase;
 }
 
 .header-right {
@@ -82,6 +81,18 @@ body {
     padding: 15px 50px 5px 50px;
     float: right;
     font-size: 16px;
+}
+
+.header-left {
+    color: #fff;
+    padding: 25px 0px 15px 50px;
+    float: left;
+
+    color: #fff;
+    height: 75px;
+    font-size: 20px;
+    letter-spacing: 1px;
+    font-weight: 900;
 }
 
 .navbar-cls-top .navbar-brand:hover {

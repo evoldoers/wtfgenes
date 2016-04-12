@@ -22,28 +22,20 @@
     <div id="wrapper">
       <nav class="navbar navbar-default navbar-cls-top "
            role="navigation" style="margin-bottom: 0">
-        <div class="navbar-header"> <a class="navbar-brand"
-				       href="index.html">WTF genes?</a> </div>
-        <div class="header-right"><button type="button" class="btn
-							       btn-primary">Run</button></div>
+        <div class="navbar-header"> <span class="navbar-brand">WTFgenes</span> </div>
+	<div class="header-left">
+	  What is The Function of these Genes?
+	  </div>
       </nav>
       <!-- /. NAV TOP  -->
       <nav class="navbar-default navbar-side" role="navigation">
         <div class="sidebar-collapse">
           <ul class="nav" id="main-menu">
-            <li class="active"> <a href="#">Configuration <span class="fa arrow"></span></a>
-              <ul class="nav nav-second-level">
                 <li> <a class="wtflink" id="wtflink-data" href="#">Data</a> </li>
                 <li> <a class="wtflink" id="wtflink-parameters" href="#">Parameters</a> </li>
-		<li> <a class="wtflink" id="wtflink-sampler" href="#">Sampler</a> </li>
-              </ul>
-            </li>
-            <li class="active"> <a href="#">Results <span class="fa arrow"></span></a>
-              <ul class="nav nav-second-level">
+		<li> <a class="wtflink" id="wtflink-progress" href="#">Progress</a> </li>
                 <li> <a class="wtflink" id="wtflink-term-report" href="#">Term report</a> </li>
                 <li> <a class="wtflink" id="wtflink-gene-report" href="#">Gene report</a> </li>
-              </ul>
-            </li>
           </ul>
         </div>
       </nav>
@@ -55,15 +47,14 @@
               <div class="col-md-12">
 		<h1 class="page-head-line">TERM REPORT <br>
 		</h1>
-		<h1 class="page-subhead-line">This is dummy text , you can
-                  replace it with your original text. </h1>
+		<h1 class="page-subhead-line">This page lists the terms proposed as explanations for the combination of genes in the active set. </h1>
               </div>
             </div>
             <!-- /. ROW -->
             <div class="row">
               <div class="col-md-12">
-		<div class="panel panel-primary">
-                  <div class="panel-heading"> Term Report </div>
+		<div class="panel panel-info">
+                  <div class="panel-heading"> Explanatory terms </div>
                   <div class="panel-body">
                     <!-- Basic Table -->
                     <div class="table-responsive">
@@ -80,16 +71,18 @@
               <div class="col-md-12">
 		<h1 class="page-head-line">GENE REPORT <br>
 		</h1>
-		<h1 class="page-subhead-line">This is dummy text , you can
-                  replace it with your original text. </h1>
+		<h1 class="page-subhead-line">
+		  This page summarizes the results of the analysis on the gene set.
+		</h1>
               </div>
             </div>
             <!-- /. ROW -->
             <div class="row">
               <div class="col-md-12">
-		<div class="panel panel-primary">
+		<div class="panel panel-info">
                   <div class="panel-heading"> Unexplained Genes </div>
                   <div class="panel-body">
+		    The genes in this table are potential false positives: they are part of the active set, but no terms were found to explain them.
                     <!-- Basic Table -->
                     <div class="table-responsive">
                       <table class="table">
@@ -101,9 +94,10 @@
             </div>
             <div class="row">
               <div class="col-md-12">
-		<div class="panel panel-primary">
+		<div class="panel panel-info">
                   <div class="panel-heading"> Predicted Genes </div>
                   <div class="panel-body">
+		    The genes in this table are potential false negatives: although they are not part of the active set, they are predicted to be so, by terms that explain other genes.
                     <!-- Basic Table -->
                     <div class="table-responsive">
                       <table class="table">
@@ -114,32 +108,37 @@
               </div>
             </div>
           </div>
-          <div class="wtfpage wtflink-sampler">
+          <div class="wtfpage wtflink-progress">
             <div class="row">
               <div class="col-md-12">
-		<h1 class="page-head-line">SAMPLER <br>
+		<h1 class="page-head-line">PROGRESS <br>
 		</h1>
-		<h1 class="page-subhead-line">This is dummy text , you can
-                  replace it with your original text. </h1>
+		<h1 class="page-subhead-line">This page shows information about the <a href="https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo" target="_blank">MCMC</a> sampling run. </h1>
               </div>
             </div>
             <!-- /. ROW -->
             <div class="row">
               <div class="col-md-4">
-		<div class="alert alert-success"> Samples/sec </div>
+		<div class="alert alert-success">
+		  <span id="wtf-total-samples">0</span>
+		  samples </div>
               </div>
               <div class="col-md-4">
-		<div class="alert alert-info"> Samples/sec </div>
+		<div class="alert alert-info">
+		  <span id="wtf-samples-per-term">0</span>
+		  samples/term </div>
               </div>
               <div class="col-md-4">
-		<div class="alert alert-warning"> Samples/sec </div>
+		<div class="alert alert-warning">
+		  <span id="wtf-samples-per-sec">0</span>
+		  samples/sec </div>
               </div>
             </div>
             <!--/.ROW-->
             <div class="row">
               <div class="col-md-12">
-		<div class="panel panel-primary">
-                  <div class="panel-heading"> Log-likelihood </div>
+		<div class="panel panel-info">
+                  <div class="panel-heading"> LOG-LIKELIHOOD TRACE </div>
                   <div class="panel-body">
                     <p>Lorem ipsum dolor sit amet, consectetur adipiscing
                       elit. Vestibulum tincidunt est vitae ultrices
@@ -152,28 +151,28 @@
             <div class="row">
               <div class="col-md-4">
 		<div class="panel panel-primary">
-                  <div class="panel-heading"> Controls </div>
+                  <div class="panel-heading"> CONFIGURATION </div>
                   <div class="panel-body">
-                    <div class="checkbox"> <label> <input value=""
-							  type="checkbox">Checkbox Example One </label> </div>
+                    <div class="checkbox"> <label> <input id="wtf-track-term-pairs" value=""
+							  type="checkbox">Track term correlations</label> </div>
                   </div>
 		</div>
               </div>
               <div class="col-md-4">
 		<div class="panel panel-primary">
-                  <div class="panel-heading"> Controls </div>
+                  <div class="panel-heading"> RUN </div>
                   <div class="panel-body">
-                    <p> <button type="button" class="btn btn-lg
-						     btn-primary">Primary</button> </p>
+                    <p> <button id="wtf-start" type="button" class="btn btn-lg btn-primary">
+			Start sampling</button> </p>
                   </div>
 		</div>
               </div>
               <div class="col-md-4">
 		<div class="panel panel-danger">
-                  <div class="panel-heading"> Controls </div>
+                  <div class="panel-heading"> RESET </div>
                   <div class="panel-body">
-                    <p> <button type="button" class="btn btn-lg
-						     btn-danger">Primary</button> </p>
+                    <p> <button id="wtf-reset" type="button" class="btn btn-lg btn-danger">
+			Reset</button> </p>
                   </div>
 		</div>
               </div>
@@ -186,21 +185,48 @@
 		<h1 class="page-head-line">DATA <br>
 		</h1>
 		<h1 class="page-subhead-line">Select organism and
-                  ontology, and enter gene set.<br>
+                  ontology, and enter the set of genes to be analyzed for enrichment.
+		  (For example, this might be the set of genes that were differentially regulated in an RNA-Seq experiment,
+		  or are found to be associated with a disease.)
+		  <br>
 		</h1>
               </div>
             </div>
             <!-- /. ROW -->
             <div class="row">
               <div class="col-md-4">
-		<div class="panel panel-default">
-                  <div class="panel-heading"> Button Examples </div>
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> ORGANISM </div>
                   <div class="panel-body">
-                    <h4>Button Dropdowns</h4>
+                    <h4>Select the organism</h4>
                     <div style="margin-top: 20px;">
                       <div class="btn-group"> <button
 						 data-toggle="dropdown" class="btn btn-primary
-									       dropdown-toggle">Action <span class="caret"></span></button>
+									       dropdown-toggle">Select <span class="caret"></span></button>
+			<ul class="dropdown-menu">
+                          <li><a href="#">Action</a></li>
+                          <li><a href="#">Another action</a></li>
+                          <li><a href="#">Something else here</a></li>
+                          <li class="divider"></li>
+                          <li><a href="#">Separated link</a></li>
+			</ul>
+                      </div>
+                    </div>
+                  </div>
+		</div>
+              </div>
+            </div>
+            <!-- /. ROW -->
+            <div class="row">
+              <div class="col-md-4">
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> ONTOLOGY </div>
+                  <div class="panel-body">
+                    <h4>Select the ontology</h4>
+                    <div style="margin-top: 20px;">
+                      <div class="btn-group"> <button
+						 data-toggle="dropdown" class="btn btn-primary
+									       dropdown-toggle">Select <span class="caret"></span></button>
 			<ul class="dropdown-menu">
                           <li><a href="#">Action</a></li>
                           <li><a href="#">Another action</a></li>
@@ -215,47 +241,25 @@
               </div>
               <div class="col-md-4 col-sm-4">
 		<div class="panel panel-success">
-                  <div class="panel-heading"> Success Panel </div>
+                  <div class="panel-heading"> Success! </div>
                   <div class="panel-body">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit. Vestibulum tincidunt est vitae ultrices
-                      accumsan. Aliquam ornare lacus adipiscing, posuere
-                      lectus et, fringilla augue.</p>
-                  </div>
-		</div>
-              </div>
-            </div>
-            <!-- /. ROW -->
-            <div class="row">
-              <div class="col-md-4">
-		<div class="panel panel-default">
-                  <div class="panel-heading"> Button Examples </div>
-                  <div class="panel-body">
-                    <h4>Button Dropdowns</h4>
-                    <div style="margin-top: 20px;">
-                      <div class="btn-group"> <button
-						 data-toggle="dropdown" class="btn btn-primary
-									       dropdown-toggle">Action <span class="caret"></span></button>
-			<ul class="dropdown-menu">
-                          <li><a href="#">Action</a></li>
-                          <li><a href="#">Another action</a></li>
-                          <li><a href="#">Something else here</a></li>
-                          <li class="divider"></li>
-                          <li><a href="#">Separated link</a></li>
-			</ul>
-                      </div>
-                    </div>
+                    <p>Loaded
+		      <span class="wtf-ontology-name">ontology</span> for
+		      <span class="wtf-organism-name">organism</span>
+		      (<span class="wtf-gene-count">0</span> genes,
+		      <span class="wtf-term-count">0</span> terms)
+		    </p>
                   </div>
 		</div>
               </div>
               <div class="col-md-4 col-sm-4">
-		<div class="panel panel-success">
-                  <div class="panel-heading"> Success Panel </div>
+		<div class="panel panel-warning">
+                  <div class="panel-heading"> Uh oh </div>
                   <div class="panel-body">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit. Vestibulum tincidunt est vitae ultrices
-                      accumsan. Aliquam ornare lacus adipiscing, posuere
-                      lectus et, fringilla augue.</p>
+                    <p>There was a problem loading
+		      <span class="wtf-ontology-name">ontology</span> for
+		      <span class="wtf-organism-name">organism</span>.
+		    </p>
                   </div>
 		</div>
               </div>
@@ -263,27 +267,38 @@
             <!-- /. ROW -->
             <div class="row">
               <div class="col-md-4">
-		<div class="panel panel-info">
+		<div class="panel panel-primary">
                   <div class="panel-heading"> GENE SYMBOLS </div>
                   <div class="panel-body">
                     <form role="form">
-                      <div class="form-group">&nbsp; Enter gene symbols
-			below:<textarea class="form-control" rows="10"></textarea>
+                      <div class="form-group">&nbsp;
+			Enter gene symbols below, one per line:
+			<textarea id="wtf-gene-set-textarea" class="form-control" rows="10"></textarea>
                       </div>
-                      <button type="submit" class="btn btn-info">Load from
-			file </button> <button type="submit" class="btn
-								    btn-info">Example </button> </form>
+		      <input id="wtf-gene-set-file-selector" type="file" style="display:none;"/>
+                      <button id="wtf-load-gene-set-from-file" type="submit" class="btn btn-primary">Load from
+			file </button> <button id="wtf-example-gene-set" type="submit" class="btn
+								    btn-primary">Example </button> </form>
                   </div>
 		</div>
               </div>
               <div class="col-md-4 col-sm-4">
 		<div class="panel panel-success">
-                  <div class="panel-heading"> Success Panel </div>
+                  <div class="panel-heading"> Success! </div>
                   <div class="panel-body">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing
-                      elit. Vestibulum tincidunt est vitae ultrices
-                      accumsan. Aliquam ornare lacus adipiscing, posuere
-                      lectus et, fringilla augue.</p>
+                    <p>Successfully parsed
+		      <span class="wtf-gene-set-size">0</span> gene names.
+		    </p>
+                  </div>
+		</div>
+              </div>
+              <div class="col-md-4 col-sm-4">
+		<div class="panel panel-warning">
+                  <div class="panel-heading"> Uh oh </div>
+                  <div class="panel-body">
+                    <p>The following gene names were not recognized:
+		      <span class="wtf-missing-genes"></span>
+		    </p>
                   </div>
 		</div>
               </div>
@@ -294,58 +309,64 @@
               <div class="col-md-12">
 		<h1 class="page-head-line">PARAMETERS <br>
 		</h1>
-		<h1 class="page-subhead-line">This is dummy text , you can
-                  replace it with your original text. </h1>
+		<h1 class="page-subhead-line">
+		  In strict Bayesian terminology, these counts are actually hyperparameters.
+		  Probabilistically, they represent the number of previous occurrences of various stochastic outcomes,
+		  together constituting a prior belief about what kinds of outcomes are likely.
+		  They can be thought of as weights that influence the model's tendency to impute additional events of that kind.
+		  For example, increasing the "False positive" count will tend to encourage the model not to worry so much about predicting additional genes
+		  beyond those listed in the active set.
+		</h1>
               </div>
             </div>
             <!-- /. ROW -->
             <div class="row">
               <div class="col-md-2">
-		<div class="panel panel-info">
-                  <div class="panel-heading"> BASIC FORM </div>
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> TERMS </div>
                   <div class="panel-body">
                     <form role="form">
-                      <div class="form-group"> <label> True </label> <input
-									class="form-control" type="text">
-			<p class="help-block">Help text here.</p>
+                      <div class="form-group"> <label> Terms present </label>
+			<input id="wtf-term-present-pseudocount" class="form-control" type="text">
+			<p class="help-block">The number of times a term was activated, thereby activating all its associated genes.</p>
                       </div>
-                      <div class="form-group"> <label> False </label> <input
-									 class="form-control" type="text">
-			<p class="help-block">Help text here.</p>
+                      <div class="form-group"> <label> Terms absent</label>
+			<input id="wtf-term-absent-pseudocount" class="form-control" type="text">
+			<p class="help-block">The number of times a term was <i>not</i> activated.</p>
                       </div>
                     </form>
                   </div>
 		</div>
               </div>
               <div class="col-md-2">
-		<div class="panel panel-info">
-                  <div class="panel-heading"> BASIC FORM </div>
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> FALSE POSITIVES </div>
                   <div class="panel-body">
                     <form role="form">
-                      <div class="form-group"> <label> True </label> <input
-									class="form-control" type="text">
-			<p class="help-block">Help text here.</p>
+                      <div class="form-group"> <label> False positives </label>
+			<input id="wtf-false-pos-pseudocount" class="form-control" type="text">
+			<p class="help-block">The number of times an inactive gene was incorrectly included in the active gene set.</p>
                       </div>
-                      <div class="form-group"> <label> False </label> <input
-									 class="form-control" type="text">
-			<p class="help-block">Help text here.</p>
+                      <div class="form-group"> <label> True negatives </label>
+			<input id="wtf-true-neg-pseudocount" class="form-control" type="text">
+			<p class="help-block">The number of times an inactive gene was correctly excluded from the active gene set.</p>
                       </div>
                     </form>
                   </div>
 		</div>
               </div>
               <div class="col-md-2">
-		<div class="panel panel-info">
-                  <div class="panel-heading"> BASIC FORM </div>
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> FALSE NEGATIVES </div>
                   <div class="panel-body">
                     <form role="form">
-                      <div class="form-group"> <label> True </label> <input
-									class="form-control" type="text">
-			<p class="help-block">Help text here.</p>
+                      <div class="form-group"> <label> False negatives </label>
+			<input id="wtf-false-neg-pseudocount" class="form-control" type="text">
+			<p class="help-block">The number of times an active gene was incorrectly excluded from the active gene set.</p>
                       </div>
-                      <div class="form-group"> <label> False </label> <input
-									 class="form-control" type="text">
-			<p class="help-block">Help text here.</p>
+                      <div class="form-group"> <label> True positives </label>
+			<input id="wtf-true-pos-pseudocount" class="form-control" type="text">
+			<p class="help-block">The number of times an active gene was correctly excluded from the active gene set.</p>
                       </div>
                     </form>
                   </div>
@@ -355,7 +376,7 @@
           </div>
 	</div>
       </div>
-      <div id="footer-sec"> © 2014 YourCompany
+      <div id="footer-sec"> <a href="http://github.com/ihh/wtfgenes">An Open Source project</a>
         <!-- | Design By : <a
              href="http://www.binarytheme.com/" target="_blank">BinaryTheme.com</a> -->
       </div>

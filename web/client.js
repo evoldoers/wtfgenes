@@ -395,11 +395,16 @@
     }
     
     function log() {
-        this.ui.logDiv.append ('<br/><i>' + Array.prototype.slice.call(arguments).join('') + '</i>')
+        console.log (Array.prototype.slice.call(arguments).join(''))
     }
 
     function textInput() {
 	return $('<input type="text" size="5"/>')
+    }
+
+    function menuClick (id) {
+        $(".wtfpage").hide()
+        $("."+id).show()
     }
 
     function WTFgenes (conf) {
@@ -417,16 +422,9 @@
         $(".wtfpage").hide()
         $(".wtflink-data").show()
         $(".wtflink").click (function(e) {
-            $(".wtfpage").hide()
-            $("."+e.target.id).show()
+            menuClick (e.target.id)
         })
         
-	// initialize UI
-	$("body").append
-	($('<div id="wtf" class="wtfparent"/>')
-	 .append (wtf.ui.parentDiv = $('<div/>'),
-		  wtf.ui.logDiv = $('<div class="wtflog"/>')))
-
 	// create the timer that sets the 'redraw' flag. Leave this running forever
 	wtf.ui.redrawTimer = setInterval (setRedraw.bind(wtf), 1000)
 
@@ -458,88 +456,34 @@
 	// initialize form
         assocsReady.done (function() {
 
-            wtf.ui.parentDiv.prepend
-	    ($('<div class="wtfcontrolpanels"/>')
-	     .append ($('<div class="wtfleftpanel"/>')
-		      .append ($('<div class="wtfgeneset"/>')
-			       .append (wtf.ui.helpText = $('<span>Enter active gene names, one per line </span>'),
-					wtf.ui.geneSetTextArea = $('<textarea class="wtfgenesettextarea" rows="10"/>'),
-					(wtf.ui.loadGeneSetButton = $('<button/>')).text('Load gene-set from file'),
-					wtf.ui.geneSetFileSelector = $('<input type="file" style="display:none;"/>'))),
-		      $('<div class="wtfmidpanel"/>')
-		      .append ($('<div class="wtfprior"/>')
-			       .append ('Pseudocounts for probability parameters',
-					$('<table/>')
-					.append ($('<tr><th>Event</th><th>#True</th><th>#False</th></tr>'),
-						 $('<tr/>')
-						 .append ($('<td>A term\'s associated genes are active</td>'),
-							  $('<td/>')
-							  .append (wtf.ui.termPresentCount = textInput()),
-							  $('<td/>')
-							  .append (wtf.ui.termAbsentCount = textInput())),
-						 $('<tr/>')
-						 .append ($('<td>An inactive gene is mislabeled as active</td>'),
-							  $('<td/>')
-							  .append (wtf.ui.falsePosCount = textInput()),
-							  $('<td/>')
-							  .append (wtf.ui.trueNegCount = textInput())),
-						 $('<tr/>')
-						 .append ($('<td>An active gene is mislabeled as inactive</td>'),
-							  $('<td/>')
-							  .append (wtf.ui.falseNegCount = textInput()),
-							  $('<td/>')
-							  .append (wtf.ui.truePosCount = textInput())))),
-			       $('<div class="wtfbuttons"/>')
-			       .append ((wtf.ui.startButton = $('<button/>')),
-					(wtf.ui.resetButton = $('<button/>')).text('Reset sampler'),
-					$('<label class="wtfpaircheckbox"/>')
-					.append ('Track term correlations',
-						 wtf.ui.pairCheckbox = $('<input type="checkbox" value="trackpairs"/>'))),
-			       (wtf.ui.statusDiv = $('<div class="wtfstatus"/>'))
-			       .append (wtf.ui.totalSamples = $('<span>0</span>'),
-					" samples, ",
-					wtf.ui.samplesPerTerm = $('<span>0</span>'),
-					" samples/term, ",
-					wtf.ui.samplesPerSec = $('<span>0</span>'),
-					" samples/sec")),
-		      $('<div class="wtfrightpanel"/>')
-		      .append (wtf.ui.logLikePlot = $('<div class="wtfloglike"/>'))),
-	     (wtf.ui.results = $('<div class="wtfresults"/>'))
-	     .append ($('<div class="wtftable wtftermtable">Terms that explain the genes in the active set</div>')
-		      .append (wtf.ui.termTableParent = $('<div/>')),
-		      $('<div class="wtftable wtfgenetable">False positives: genes labeled as active that are unexplained by activated terms</div>')
-		      .append (wtf.ui.falsePosTableParent = $('<div/>')),
-		      $('<div class="wtftable wtfgenetable">False negatives: genes labeled as inactive that are predicted to be active</div>')
-		      .append (wtf.ui.falseNegTableParent = $('<div/>'))))
+            $('#wtf-term-present-pseudocount').val(1)
+            $('#wtf-term-absent-pseudocount').val(99)
+            $('#wtf-false-pos-pseudocount').val(1)
+            $('#wtf-true-neg-pseudocount').val(99)
+            $('#wtf-false-neg-pseudocount').val(1)
+            $('#wtf-true-pos-pseudocount').val(99)
 
-            wtf.ui.termPresentCount.val(1)
-	    wtf.ui.termAbsentCount.val(99)
-	    wtf.ui.falsePosCount.val(1)
-	    wtf.ui.trueNegCount.val(99)
-	    wtf.ui.falseNegCount.val(1)
-	    wtf.ui.truePosCount.val(99)
-
-	    wtf.ui.geneSetFileSelector.on ('change', function (fileSelectEvt) {
+            $('#wtf-gene-set-file-selector').on ('change', function (fileSelectEvt) {
 		var reader = new FileReader()
 		reader.onload = function (fileLoadEvt) {
-		    wtf.ui.geneSetTextArea.val (fileLoadEvt.target.result)
+                    $('#wtf-gene-set-textarea').val (fileLoadEvt.target.result)
 		}
 		reader.readAsText(fileSelectEvt.target.files[0])
 	    })
-	    wtf.ui.loadGeneSetButton
+            $('#wtf-load-gene-set-from-file')
 		.on ('click', function() {
-		    wtf.ui.geneSetFileSelector.click()
+                    $('#wtf-gene-set-file-selector').click()
 		    return false
 		})
 
-	    wtf.ui.resetButton
+            $('#wtf-reset')
                 .on('click', reset.bind(wtf))
 
             if (wtf.exampleURL) {
-                wtf.ui.exampleLink = $('<a href="#">(example)</a>')
-                wtf.ui.helpText.append(wtf.ui.exampleLink)
+                $('#wtf-example-gene-set').show()
                 enableExampleLink (wtf)
-            }
+            } else
+                $('#wtf-example-gene-set').hide()
 
             reset.call (wtf)
 	})
