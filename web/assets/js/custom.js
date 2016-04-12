@@ -21,7 +21,7 @@
             METIS MENU 
             ======================================*/
 
-            $('#main-menu').metisMenu();
+        $('#main-menu').metisMenu({toggle:false});
 
         },
 
