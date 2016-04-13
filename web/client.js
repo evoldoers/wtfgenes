@@ -68,13 +68,6 @@
                 wtf.milestonePassed.burnIn = true
             }
             
-	    if (!wtf.milestonePassed.trackPairSamples && wtf.mcmc.samplesIncludingBurn >= wtf.milestone.trackPairSamples) {
-                $('.wtf-sampler-notifications').append (makeAlert ('info', 'The sampler is halfway through its run. Tracking of correlations between terms has automatically been turned on, to assist with diagnosis of interfering terms. This may slightly affect performance; it can be manually disabled on the Sampler page.'))
-		$('#wtf-track-term-pairs').prop('checked',true)
-		pairCheckboxClicked.call(wtf)
-		wtf.milestonePassed.trackPairSamples = true
-	    }
-	    
 	    if (!wtf.milestonePassed.targetSamples && wtf.mcmc.samplesIncludingBurn >= wtf.milestone.targetSamples) {
 		pauseAnalysis.call (wtf, null, 'success', 'the target of ' + wtf.milestone.targetSamples + ' samples was reached')
 		wtf.milestonePassed.targetSamples = true
@@ -327,7 +320,6 @@
 
 	    var samplesPerTerm = $('#wtf-target-samples-per-term').val()
 	    wtf.mcmc.burn = $('#wtf-burn-per-term').val() * wtf.mcmc.nVariables()
-	    wtf.milestone.trackPairSamples = wtf.mcmc.burn + (samplesPerTerm / 2) * wtf.mcmc.nVariables()
 	    wtf.milestone.targetSamples = wtf.mcmc.burn + samplesPerTerm * wtf.mcmc.nVariables()
 	    wtf.milestone.startOfRun = 0
 
