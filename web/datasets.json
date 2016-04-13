@@ -12,6 +12,24 @@
 		    "example":  "../test/data/yeast/cerevisiae-mating.txt"
 		}
 	    ]
+	},
+	{
+	    "name": "Saccharomyces cerevisiae (2)",
+	    "ontologies":
+	    [
+		{
+		    "name": "Gene Ontology",
+		    "ontology": "../test/data/yeast/go-basic.json",
+		    "assocs":   "../test/data/yeast/gene_association.sgd.json",
+		    "example":  "../test/data/yeast/cerevisiae-mating.txt"
+		},
+		{
+		    "name": "Gene Ontology (2)",
+		    "ontology": "../test/data/yeast/go-basic.json",
+		    "assocs":   "../test/data/yeast/gene_association.sgd.json",
+		    "example":  "../test/data/yeast/cerevisiae-mating.txt"
+		}
+	    ]
 	}
     ]
 }

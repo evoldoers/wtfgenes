@@ -31,18 +31,117 @@
       <nav class="navbar-default navbar-side" role="navigation">
         <div class="sidebar-collapse">
           <ul class="nav" id="main-menu">
-                <li> <a class="wtflink" id="wtflink-data" href="#">Data</a> </li>
-                <li> <a class="wtflink" id="wtflink-parameters" href="#">Parameters</a> </li>
-		<li> <a class="wtflink" id="wtflink-progress" href="#">Progress</a> </li>
-                <li> <a class="wtflink" id="wtflink-term-report" href="#">Term report</a> </li>
-                <li> <a class="wtflink" id="wtflink-gene-report" href="#">Gene report</a> </li>
+                <li> <a class="wtf-link" id="wtf-data-link" data-target="data" href="#">Data</a> </li>
+                <li> <a class="wtf-link" id="wtf-parameters-link" data-target="parameters" href="#">Parameters</a> </li>
+		<li> <a class="wtf-link" id="wtf-sampler-link" data-target="sampler" href="#">Sampler</a> </li>
+                <li> <a class="wtf-link" id="wtf-term-report-link" data-target="term-report" href="#">Term report</a> </li>
+                <li> <a class="wtf-link" id="wtf-gene-report-link" data-target="gene-report" href="#">Gene report</a> </li>
           </ul>
         </div>
       </nav>
       <!-- /. NAV SIDE  -->
+
+      <!-- Modal dialog -->
+      <div class="modal fade" id="wtf-cancel-start" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+              <h4 class="modal-title" id="myModalLabel">Hold your horses!</h4>
+            </div>
+            <div id="wtf-cancel-start-text" class="modal-body">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
       <div id="page-wrapper">
 	<div id="page-inner">
-          <div class="wtfpage wtflink-term-report">
+
+          <div id="wtf-data-page" class="wtf-page">
+            <div class="row">
+              <div class="col-md-12">
+		<h1 class="page-head-line">DATA <br>
+		</h1>
+		<h1 class="page-subhead-line">Select organism and
+                  ontology, and enter the set of genes to be analyzed for enrichment.
+		  (For example, this might be the set of genes that were differentially regulated in an RNA-Seq experiment,
+		  or are found to be associated with a disease.)
+		  <br>
+		</h1>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> ORGANISM AND ONTOLOGY </div>
+                  <div id="wtf-select-ontology-panel-body" class="panel-body">
+                    <div class="wtf-input-panel" style="margin-top: 20px;">
+                      <div class="btn-group">
+			<button id="wtf-select-organism-button" data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
+			  <span id="wtf-select-organism-button-text">Select organism</span>
+			  <span class="caret"></span></button>
+			<ul id="wtf-organism-list" class="dropdown-menu">
+			</ul>
+		      </div>
+                      <div class="btn-group">
+			<button id="wtf-select-ontology-button" data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
+			  <span id="wtf-select-ontology-button-text">Select ontology</span>
+			  <span class="caret"></span>
+			</button>
+			<ul id="wtf-ontology-list" class="dropdown-menu">
+			</ul>
+                      </div>
+                    </div>
+		    <div id="wtf-ontology-notifications" style="margin-top: 20px;">
+		    </div>
+                  </div>
+		</div>
+              </div>
+            </div>
+            <div id="wtf-gene-symbols" class="row">
+              <div class="col-md-12">
+		<div class="panel panel-primary wtf-input-panel">
+                  <div class="panel-heading"> GENE SYMBOLS </div>
+                  <div class="panel-body">
+                    <form role="form">
+                      <div class="form-group">&nbsp;
+			Enter gene symbols below, one per line:
+			<textarea id="wtf-gene-set-textarea" class="form-control" rows="10"></textarea>
+                      </div>
+		      <input id="wtf-gene-set-file-selector" type="file" style="display:none;"/>
+                      <button id="wtf-load-gene-set-button" type="submit" class="btn btn-primary">
+			Load from file
+		      </button>
+		      <button id="wtf-example-gene-set-button" type="submit" class="btn btn-primary">
+			Example
+		      </button>
+		    </form>
+                  </div>
+		</div>
+              </div>
+            </div>
+            <div id="wtf-sampler-controls" class="row">
+              <div class="col-md-12">
+		<div class="panel panel-primary">
+                  <div class="panel-heading"> SAMPLER </div>
+                  <div class="panel-body">
+		    <button type="button" class="btn btn-lg btn-primary wtf-start">
+		      Start sampling</button>
+		    <button type="button" class="btn btn-lg btn-danger wtf-reset">
+		      Reset sampler</button>
+		    <div class="wtf-sampler-notifications" style="margin-top: 20px;">
+		    </div>
+                  </div>
+		</div>
+              </div>
+            </div>
+          </div>
+          <div id="wtf-term-report-page" class="wtf-page">
             <div class="row">
               <div class="col-md-12">
 		<h1 class="page-head-line">TERM REPORT <br>
@@ -50,7 +149,6 @@
 		<h1 class="page-subhead-line">This page lists the terms proposed as explanations for the combination of genes in the active set. </h1>
               </div>
             </div>
-            <!-- /. ROW -->
             <div class="row wtf-results">
               <div class="col-md-12">
 		<div class="panel panel-info">
@@ -64,7 +162,7 @@
               </div>
             </div>
           </div>
-          <div class="wtfpage wtflink-gene-report">
+          <div id="wtf-gene-report-page" class="wtf-page">
             <div class="row">
               <div class="col-md-12">
 		<h1 class="page-head-line">GENE REPORT <br>
@@ -74,7 +172,6 @@
 		</h1>
               </div>
             </div>
-            <!-- /. ROW -->
             <div class="row wtf-results">
               <div class="col-md-12">
 		<div class="panel panel-info">
@@ -102,15 +199,14 @@
               </div>
             </div>
           </div>
-          <div class="wtfpage wtflink-progress">
+          <div id="wtf-sampler-page" class="wtf-page">
             <div class="row">
               <div class="col-md-12">
-		<h1 class="page-head-line">PROGRESS <br>
+		<h1 class="page-head-line">SAMPLER <br>
 		</h1>
 		<h1 class="page-subhead-line">This page shows information about the <a href="https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo" target="_blank">MCMC</a> sampling run. </h1>
               </div>
             </div>
-            <!-- /. ROW -->
             <div class="row wtf-mcmc-status">
               <div class="col-md-4">
 		<div class="alert alert-success">
@@ -128,7 +224,6 @@
 		  samples/sec </div>
               </div>
             </div>
-            <!--/.ROW-->
             <div class="row wtf-mcmc-status">
               <div class="col-md-12">
 		<div class="panel panel-info">
@@ -139,165 +234,27 @@
               </div>
             </div>
             <div class="row">
-              <div class="col-md-4">
+              <div class="col-md-12">
 		<div class="panel panel-primary">
                   <div class="panel-heading"> CONFIGURATION </div>
                   <div class="panel-body">
+		    <button type="button" class="btn btn-lg btn-primary wtf-start">
+		      Start sampling</button>
+		    <button type="button" class="btn btn-lg btn-danger wtf-reset">
+		      Reset sampler</button>
+		    <hr/>
                     <div class="checkbox"> <label>
 			<input id="wtf-track-term-pairs" value="" type="checkbox">
 			Track term correlations</label> </div>
-                  </div>
-		</div>
-              </div>
-              <div class="col-md-4">
-		<div class="panel panel-primary">
-                  <div class="panel-heading"> RUN </div>
-                  <div class="panel-body">
-                    <p> <button type="button" class="btn btn-lg btn-primary wtf-start">
-			Start sampling</button> </p>
-                  </div>
-		</div>
-              </div>
-              <div class="col-md-4">
-		<div class="panel panel-danger">
-                  <div class="panel-heading"> RESET </div>
-                  <div class="panel-body">
-                    <p> <button type="button" class="btn btn-lg btn-danger wtf-reset">
-			Reset</button> </p>
-                  </div>
-		</div>
-              </div>
-            </div>
-            <!--/.ROW-->
-            <!-- /. PAGE INNER --> </div>
-          <div class="wtfpage wtflink-data">
-            <div class="row">
-              <div class="col-md-12">
-		<h1 class="page-head-line">DATA <br>
-		</h1>
-		<h1 class="page-subhead-line">Select organism and
-                  ontology, and enter the set of genes to be analyzed for enrichment.
-		  (For example, this might be the set of genes that were differentially regulated in an RNA-Seq experiment,
-		  or are found to be associated with a disease.)
-		  <br>
-		</h1>
-              </div>
-            </div>
-            <!-- /. ROW -->
-            <div class="row">
-              <div class="col-md-4">
-		<div class="panel panel-primary">
-                  <div class="panel-heading"> ORGANISM </div>
-                  <div class="panel-body">
-                    <div style="margin-top: 20px;">
-                      <div class="btn-group">
-			<button data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
-			  <span id="wtf-select-organism-button-text">Select organism</span>
-			  <span class="caret"></span></button>
-			<ul id="wtf-organism-list" class="dropdown-menu">
-			</ul>
-                      </div>
-                    </div>
-                  </div>
-		</div>
-              </div>
-            </div>
-            <!-- /. ROW -->
-            <div class="row">
-              <div id="wtf-select-ontology-panel" class="col-md-4">
-		<div class="panel panel-primary">
-                  <div class="panel-heading"> ONTOLOGY </div>
-                  <div class="panel-body">
-                    <div style="margin-top: 20px;">
-                      <div class="btn-group">
-			<button id="wtf-select-ontology-button" data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
-			  <span id="wtf-select-ontology-button-text">Select ontology</span>
-			  <span class="caret"></span>
-			</button>
-			<ul id="wtf-ontology-list" class="dropdown-menu">
-			</ul>
-                      </div>
-                    </div>
-                  </div>
-		</div>
-              </div>
-              <div id="wtf-ontology-load-success" class="col-md-4 col-sm-4 wtf-data-alert">
-		<div class="panel panel-success">
-                  <div class="panel-heading"> Success! </div>
-                  <div class="panel-body">
-                    <p>Loaded
-		      <span class="wtf-ontology-name">ontology</span> associations for
-		      <i><span class="wtf-organism-name">organism</span></i>
-		      (<span class="wtf-gene-count">0</span> genes,
-		      <span class="wtf-term-count">0</span> terms)
-		    </p>
-                  </div>
-		</div>
-              </div>
-              <div id="wtf-ontology-load-failure" class="col-md-4 col-sm-4 wtf-data-alert">
-		<div class="panel panel-warning">
-                  <div class="panel-heading"> Uh oh </div>
-                  <div class="panel-body">
-                    <p>There was a problem loading
-		      <span class="wtf-ontology-name">ontology</span> for
-		      <span class="wtf-organism-name">organism</span>.
-		    </p>
-                  </div>
-		</div>
-              </div>
-              <div id="wtf-associations-load-failure" class="col-md-4 col-sm-4 wtf-data-alert">
-		<div class="panel panel-warning">
-                  <div class="panel-heading"> Uh oh </div>
-                  <div class="panel-body">
-                    <p>There was a problem loading the gene-term associations between
-		      <span class="wtf-ontology-name">ontology</span> and
-		      <span class="wtf-organism-name">organism</span>.
-		    </p>
-                  </div>
-		</div>
-              </div>
-            </div>
-            <!-- /. ROW -->
-            <div id="wtf-gene-symbols" class="row">
-              <div class="col-md-4">
-		<div class="panel panel-primary">
-                  <div class="panel-heading"> GENE SYMBOLS </div>
-                  <div class="panel-body">
-                    <form role="form">
-                      <div class="form-group">&nbsp;
-			Enter gene symbols below, one per line:
-			<textarea id="wtf-gene-set-textarea" class="form-control" rows="10"></textarea>
-                      </div>
-		      <input id="wtf-gene-set-file-selector" type="file" style="display:none;"/>
-                      <button id="wtf-load-gene-set-button" type="submit" class="btn btn-primary">Load from
-			file </button> <button id="wtf-example-gene-set-button" type="submit" class="btn
-								    btn-primary">Example </button> </form>
-                  </div>
-		</div>
-              </div>
-              <div class="col-md-4 col-sm-4 wtf-data-alert">
-		<div class="panel panel-success">
-                  <div class="panel-heading"> Success! </div>
-                  <div class="panel-body">
-                    <p>Successfully parsed
-		      <span class="wtf-gene-set-size">0</span> gene names.
-		    </p>
-                  </div>
-		</div>
-              </div>
-              <div class="col-md-4 col-sm-4 wtf-data-alert">
-		<div class="panel panel-warning">
-                  <div class="panel-heading"> Uh oh </div>
-                  <div class="panel-body">
-                    <p>The following gene names were not recognized:
-		      <span class="wtf-missing-genes"></span>
-		    </p>
+		    <hr/>
+		    <div class="wtf-sampler-notifications" style="margin-top: 20px;">
+		    </div>
                   </div>
 		</div>
               </div>
             </div>
           </div>
-          <div class="wtfpage wtflink-parameters">
+          <div id="wtf-parameters-page" class="wtf-page">
             <div class="row">
               <div class="col-md-12">
 		<h1 class="page-head-line">PARAMETERS <br>
@@ -312,19 +269,18 @@
 		</h1>
               </div>
             </div>
-            <!-- /. ROW -->
             <div class="row">
               <div class="col-md-2">
-		<div class="panel panel-primary">
+		<div class="panel panel-primary wtf-input-panel">
                   <div class="panel-heading"> TERMS </div>
                   <div class="panel-body">
                     <form role="form">
                       <div class="form-group"> <label> Terms present </label>
-			<input id="wtf-term-present-pseudocount" class="form-control" type="text">
+			<input id="wtf-term-present-pseudocount" class="form-control wtf-prior" type="text">
 			<p class="help-block">The number of times a term was activated, thereby activating all its associated genes.</p>
                       </div>
                       <div class="form-group"> <label> Terms absent</label>
-			<input id="wtf-term-absent-pseudocount" class="form-control" type="text">
+			<input id="wtf-term-absent-pseudocount" class="form-control wtf-prior" type="text">
 			<p class="help-block">The number of times a term was <i>not</i> activated.</p>
                       </div>
                     </form>
@@ -332,16 +288,16 @@
 		</div>
               </div>
               <div class="col-md-2">
-		<div class="panel panel-primary">
+		<div class="panel panel-primary wtf-input-panel">
                   <div class="panel-heading"> FALSE POSITIVES </div>
                   <div class="panel-body">
                     <form role="form">
                       <div class="form-group"> <label> False positives </label>
-			<input id="wtf-false-pos-pseudocount" class="form-control" type="text">
+			<input id="wtf-false-pos-pseudocount" class="form-control wtf-prior" type="text">
 			<p class="help-block">The number of times an inactive gene was incorrectly included in the active gene set.</p>
                       </div>
                       <div class="form-group"> <label> True negatives </label>
-			<input id="wtf-true-neg-pseudocount" class="form-control" type="text">
+			<input id="wtf-true-neg-pseudocount" class="form-control wtf-prior" type="text">
 			<p class="help-block">The number of times an inactive gene was correctly excluded from the active gene set.</p>
                       </div>
                     </form>
@@ -349,16 +305,16 @@
 		</div>
               </div>
               <div class="col-md-2">
-		<div class="panel panel-primary">
+		<div class="panel panel-primary wtf-input-panel">
                   <div class="panel-heading"> FALSE NEGATIVES </div>
                   <div class="panel-body">
                     <form role="form">
                       <div class="form-group"> <label> False negatives </label>
-			<input id="wtf-false-neg-pseudocount" class="form-control" type="text">
+			<input id="wtf-false-neg-pseudocount" class="form-control wtf-prior" type="text">
 			<p class="help-block">The number of times an active gene was incorrectly excluded from the active gene set.</p>
                       </div>
                       <div class="form-group"> <label> True positives </label>
-			<input id="wtf-true-pos-pseudocount" class="form-control" type="text">
+			<input id="wtf-true-pos-pseudocount" class="form-control wtf-prior" type="text">
 			<p class="help-block">The number of times an active gene was correctly excluded from the active gene set.</p>
                       </div>
                     </form>
@@ -390,8 +346,8 @@
       <!-- WTFgenes -->
       <script type="text/javascript" src="assets/js/wtfgenes.js"></script>
       <script type="text/javascript">
-	$(function(){
-	var wtf = new WTFgenes()
+	$(function() {
+	  var wtf = new WTFgenes()
 	})
       </script>
 
