@@ -26,6 +26,15 @@
 	<div class="header-left">
 	  What is The Function of these Genes?
 	  </div>
+
+	<div class="header-right wtf-progress-header" style="width:20%;display:none;" title="Sampler progress">
+	  <div class="progress">
+	    <div class="progress-bar progress-bar-warning progress-bar-striped active wtf-progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+	      <span class="wtf-progress-percent"></span>
+	    </div>
+	  </div>
+	</div>
+
       </nav>
       <!-- /. NAV TOP  -->
       <nav class="navbar-default navbar-side" role="navigation">
@@ -60,7 +69,7 @@
 
 
       <div id="page-wrapper">
-	<div id="page-inner">
+	<div id="page-inner" class="wtf-page-inner" style="display:none;">
 
           <div id="wtf-data-page" class="wtf-page">
             <div class="row">
@@ -80,24 +89,26 @@
 		<div class="panel panel-primary">
                   <div class="panel-heading"> ORGANISM AND ONTOLOGY </div>
                   <div id="wtf-select-ontology-panel-body" class="panel-body">
-                    <div class="wtf-input-panel" style="margin-top: 20px;">
-                      <div class="btn-group">
+                    <div class="wtf-input-panel" style="margin-top:20px;">
+		      <div class="btn-group">
 			<button id="wtf-select-organism-button" data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
 			  <span id="wtf-select-organism-button-text">Select organism</span>
 			  <span class="caret"></span></button>
 			<ul id="wtf-organism-list" class="dropdown-menu">
 			</ul>
 		      </div>
-                      <div class="btn-group">
+		      <div class="btn-group" style="padding-left:10px;">
 			<button id="wtf-select-ontology-button" data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
 			  <span id="wtf-select-ontology-button-text">Select ontology</span>
 			  <span class="caret"></span>
 			</button>
 			<ul id="wtf-ontology-list" class="dropdown-menu">
 			</ul>
-                      </div>
+		      </div>
                     </div>
-		    <div id="wtf-ontology-notifications" style="margin-top: 20px;">
+		    <div class="col-md-12" style="padding-left:0px;">
+		      <div id="wtf-ontology-notifications" style="margin-top:20px;">
+		      </div>
 		    </div>
                   </div>
 		</div>
@@ -130,11 +141,28 @@
 		<div class="panel panel-primary">
                   <div class="panel-heading"> SAMPLER </div>
                   <div class="panel-body">
-		    <button type="button" class="btn btn-lg btn-primary wtf-start">
-		      Start sampling</button>
-		    <button type="button" class="btn btn-lg btn-danger wtf-reset">
-		      Reset sampler</button>
-		    <div class="wtf-sampler-notifications" style="margin-top: 20px;">
+		    <div class="col-md-12" style="padding-left:0px;">
+		      <div class="col-md-4" style="padding-left:0px;">
+			<button type="button" class="btn btn-lg btn-primary wtf-start">
+			  Start sampling</button>
+		      </div>
+		      <div class="col-md-4" style="padding-left:0px;">
+			<button type="button" class="btn btn-lg btn-danger wtf-reset">
+			  Reset sampler</button>
+		      </div>
+
+		      <div class="col-md-4 wtf-progress-header" title="Sampler progress">
+			<div class="progress">
+			  <div class="progress-bar progress-bar-warning progress-bar-striped active wtf-progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+			    <span class="wtf-progress-percent"></span>
+			  </div>
+			</div>
+		      </div>
+
+		    </div>
+		    <div class="col-md-12" style="padding-left:0px;">
+		      <div class="wtf-sampler-notifications" style="margin-top: 20px;">
+		      </div>
 		    </div>
                   </div>
 		</div>
@@ -209,18 +237,18 @@
             </div>
             <div class="row wtf-mcmc-status">
               <div class="col-md-4">
-		<div class="alert alert-success">
-		  <span id="wtf-total-samples">0</span>
+		<div class="alert alert-success text-center">
+		  <h1><span id="wtf-total-samples">0</span></h1>
 		  samples </div>
               </div>
               <div class="col-md-4">
-		<div class="alert alert-info">
-		  <span id="wtf-samples-per-term">0</span>
+		<div class="alert alert-danger text-center">
+		  <h1><span id="wtf-samples-per-term">0</span></h1>
 		  samples/term </div>
               </div>
               <div class="col-md-4">
-		<div class="alert alert-warning">
-		  <span id="wtf-samples-per-sec">0</span>
+		<div class="alert alert-warning text-center">
+		  <h1><span id="wtf-samples-per-sec">0</span></h1>
 		  samples/sec </div>
               </div>
             </div>
@@ -238,17 +266,55 @@
 		<div class="panel panel-primary">
                   <div class="panel-heading"> CONFIGURATION </div>
                   <div class="panel-body">
-		    <button type="button" class="btn btn-lg btn-primary wtf-start">
-		      Start sampling</button>
-		    <button type="button" class="btn btn-lg btn-danger wtf-reset">
-		      Reset sampler</button>
-		    <hr/>
-                    <div class="checkbox"> <label>
-			<input id="wtf-track-term-pairs" value="" type="checkbox">
-			Track term correlations</label> </div>
-		    <hr/>
-		    <div class="wtf-sampler-notifications" style="margin-top: 20px;">
+		    <div class="col-md-12" style="padding-left:0px;">
+		      <div class="col-md-4 wtf-input-panel" style="padding-left:0px;">
+			<div class="form-group"> <label> Burn-in time </label>
+			  <input id="wtf-burn-per-term" class="form-control wtf-prior" type="text">
+			  <p class="help-block">The number of samples per term that the sampler is allowed to run before statistics-gathering commences.</p>
+			</div>
+		      </div>
+
+		      <div class="col-md-4" style="padding-left:0px;">
+			<div class="form-group"> <label> Sampling time </label>
+			  <input id="wtf-target-samples-per-term" class="form-control" type="text">
+			  <p class="help-block">The number of samples per term that the sampler runs while statistics are gathered.</p>
+			</div>
+		      </div>
+
+		      <div class="col-md-4">
+			<div class="checkbox"> <label>
+			    <input id="wtf-track-term-pairs" value="" type="checkbox">
+			    Track term correlations</label>
+			</div>
+		      </div>
 		    </div>
+
+		    <hr/>
+
+		    <div class="col-md-12" style="padding-left:0px;">
+		      <div class="col-md-4" style="padding-left:0px;">
+			<button type="button" class="btn btn-lg btn-primary wtf-start">
+			  Start sampling</button>
+			</div>
+		      <div class="col-md-4" style="padding-left:0px;">
+			<button type="button" class="btn btn-lg btn-danger wtf-reset">
+			  Reset sampler</button>
+		      </div>
+		      <div class="col-md-4 wtf-progress-header" style="padding-right:0px;" title="Sampler progress">
+			<div class="progress">
+			  <div class="progress-bar progress-bar-warning progress-bar-striped active wtf-progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+			    <span class="wtf-progress-percent"></span>
+			  </div>
+			</div>
+		      </div>
+		    </div>
+		    <hr/>
+
+		    <div class="col-md-12" style="margin-top:20px;padding-left:0px;">
+		      <div class="wtf-sampler-notifications">
+		      </div>
+		    </div>
+
                   </div>
 		</div>
               </div>
@@ -270,7 +336,7 @@
               </div>
             </div>
             <div class="row">
-              <div class="col-md-2">
+              <div class="col-md-4">
 		<div class="panel panel-primary wtf-input-panel">
                   <div class="panel-heading"> TERMS </div>
                   <div class="panel-body">
@@ -287,7 +353,7 @@
                   </div>
 		</div>
               </div>
-              <div class="col-md-2">
+              <div class="col-md-4">
 		<div class="panel panel-primary wtf-input-panel">
                   <div class="panel-heading"> FALSE POSITIVES </div>
                   <div class="panel-body">
@@ -304,7 +370,7 @@
                   </div>
 		</div>
               </div>
-              <div class="col-md-2">
+              <div class="col-md-4">
 		<div class="panel panel-primary wtf-input-panel">
                   <div class="panel-heading"> FALSE NEGATIVES </div>
                   <div class="panel-body">

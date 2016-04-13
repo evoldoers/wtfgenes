@@ -78,7 +78,12 @@
 	    if (!wtf.milestonePassed.targetSamples && wtf.mcmc.samplesIncludingBurn >= wtf.milestone.targetSamples) {
 		pauseAnalysis.call (wtf, null, 'success', 'the target of ' + wtf.milestone.targetSamples + ' samples was reached')
 		wtf.milestonePassed.targetSamples = true
+		$("#wtf-target-samples-per-term").prop('disabled',false)
 	    }
+
+	    var percent = Math.round (100 * (wtf.mcmc.samplesIncludingBurn - wtf.milestone.startOfRun) / (wtf.milestone.targetSamples - wtf.milestone.startOfRun)) + '%'
+	    $('.wtf-progress-percent').text (percent)
+	    $('.wtf-progress-bar').css('width', percent)
         }
         wtf.mcmcTimer = setTimeout (runMCMC.bind(wtf), delayToNextRun)
     }
@@ -206,6 +211,7 @@
 	wtf.logLikeMinMax = []
 	wtf.logLikeMinMaxSlice = 0
 	getLogLikeRange (wtf)
+	wtf.targetX = [wtf.milestone.targetSamples, wtf.milestone.targetSamples]
         Plotly.newPlot( $('#wtf-loglike-plot')[0],
 			[{ y: wtf.mcmc.logLikelihoodTrace,
 			   name: "Log-likelihood",
@@ -217,21 +223,14 @@
 			   hoverinfo: 'name',
 			   line: { dash: 4 },
 			   showlegend: false },
-			 { x: [wtf.milestone.trackPairSamples, wtf.milestone.trackPairSamples],
-			   y: wtf.logLikeMinMax,
-			   name: "Halfway done",
-			   mode: 'lines',
-			   hoverinfo: 'name',
-			   line: { dash: 4 },
-			   showlegend: false },
-			 { x: [wtf.milestone.targetSamples, wtf.milestone.targetSamples],
+			 { x: wtf.targetX,
 			   y: wtf.logLikeMinMax,
 			   name: "End of run",
 			   mode: 'lines',
 			   hoverinfo: 'name',
 			   line: { dash: 4 },
 			   showlegend: false }],
-			{ margin: { t:10, b:100 },
+			{ margin: { t:10, b:100, r:0 },
 			  yaxis: { title: "Log-likelihood" },
 			  xaxis: { title: "Sample number" } },
 			{ autosizable: true,
@@ -325,9 +324,12 @@
                                    },
 				   seed: 123456789
 			         })
-	    wtf.mcmc.burn = 10 * wtf.mcmc.nVariables()
-	    wtf.milestone.trackPairSamples = wtf.mcmc.burn + 50 * wtf.mcmc.nVariables()
-	    wtf.milestone.targetSamples = wtf.mcmc.burn + 100 * wtf.mcmc.nVariables()
+
+	    var samplesPerTerm = $('#wtf-target-samples-per-term').val()
+	    wtf.mcmc.burn = $('#wtf-burn-per-term').val() * wtf.mcmc.nVariables()
+	    wtf.milestone.trackPairSamples = wtf.mcmc.burn + (samplesPerTerm / 2) * wtf.mcmc.nVariables()
+	    wtf.milestone.targetSamples = wtf.mcmc.burn + samplesPerTerm * wtf.mcmc.nVariables()
+	    wtf.milestone.startOfRun = 0
 
             wtf.mcmc.logLogLikelihood (true)
 
@@ -338,6 +340,9 @@
 
             $('.wtf-start').prop('disabled',false)
             $('.wtf-reset').show()
+
+	    $('.wtf-progress-header').show()
+	    $('.wtf-progress-bar').css('width','0%')
 
             resumeAnalysis.call(wtf)
             plotLogLikelihood.call(wtf)
@@ -359,12 +364,23 @@
 	$('#wtf-track-term-pairs').off('click')
         $('.wtf-sampler-notifications').append (makeAlert (type || 'warning',
                                                            'The sampler was paused at ' + Date() + (reason ? (', because ' + reason) : '') + '.'))
+
+	$('#wtf-samples-per-sec').text(0)
+	$('.wtf-progress-bar').removeClass('active')
     }
 
     function resumeAnalysis (evt) {
         var wtf = this
 	if (evt)
 	    evt.preventDefault()
+
+	if (wtf.milestonePassed.targetSamples) {
+	    delete wtf.milestonePassed.targetSamples
+	    var samplesPerTerm = $('#wtf-target-samples-per-term').val()
+	    wtf.milestone.startOfRun = wtf.mcmc.samplesIncludingBurn
+	    wtf.milestone.targetSamples += samplesPerTerm * wtf.mcmc.nVariables()
+	    wtf.targetX[0] = wtf.targetX[1] = wtf.milestone.targetSamples
+	}
 
         wtf.paused = false
         $('.wtf-start').html('Stop sampling')
@@ -376,7 +392,10 @@
 	$('#wtf-track-term-pairs').on('click',pairCheckboxClicked.bind(wtf))
 
         disableInputControls()
+	$("#wtf-target-samples-per-term").prop('disabled',true)
         $('.wtf-sampler-notifications').append (makeAlert ('success', 'The sampler was started at ' + Date() + '.'))
+
+	$('.wtf-progress-bar').addClass('active')
     }
 
     function reset (evt) {
@@ -402,6 +421,9 @@
 	$('.wtf-results').hide()
         $('.wtf-reset').hide()
         $('.wtf-sampler-notifications').empty()
+	$("#wtf-target-samples-per-term").prop('disabled',false)
+
+	$('.wtf-progress-header').hide()
     }
 
     function inputControls() {
@@ -569,6 +591,7 @@
 		wtf.ontologyURL = ontoJson.ontology
 		wtf.assocsURL = ontoJson.assocs
 		wtf.exampleURL = ontoJson.example
+                wtf.termURL = ontoJson.term || 'http://amigo.geneontology.org/amigo/term/'
 		
                 $('#wtf-ontology-notifications').empty()
 		$('#wtf-select-ontology-button-text').text (ontoJson.name)
@@ -600,6 +623,7 @@
         // set up sidebar menu
         $('.wtf-page').hide()
         selectPage ('data')
+        $('.wtf-page-inner').show()
         $('.wtf-link').click (function (evt) {
 	    evt.preventDefault()
             selectPage (evt.target.getAttribute('data-target'))
@@ -640,6 +664,8 @@
 	$('#wtf-true-pos-pseudocount').val(99)
 
         // set up sampler & results pages
+	$('#wtf-burn-per-term').val(10)
+	$('#wtf-target-samples-per-term').val(100)
         reset.call (wtf)
         
 	// create the timer that sets the 'redraw' flag. Leave this running forever
