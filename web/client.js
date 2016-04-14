@@ -507,7 +507,7 @@
 	    $.get(wtf.assocsURL)
 		.done (function (assocsJson) {
 		    wtf.assocs = new Assocs ({ ontology: wtf.ontology,
-					       assocs: assocsJson })
+					       idAliasTerm: assocsJson.idAliasTerm })
 
 		    wtf.log ("Loaded ", wtf.assocs.nAssocs, " associations (", wtf.assocs.genes(), " genes, ", wtf.assocs.relevantTerms().length, " terms)")
 

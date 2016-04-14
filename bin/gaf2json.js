@@ -3,7 +3,7 @@
 var fs = require('fs'),
     path = require('path'),
     getopt = require('node-getopt'),
-    goa2json = require('../lib/converters').goa2json
+    gaf2json = require('../lib/converters').gaf2json
 
 var opt = getopt.create([
     ['d' , 'database-id'      , 'use database ID, rather than gene symbol'],
@@ -16,7 +16,7 @@ function inputError(err) {
     throw new Error (err)
 }
 
-opt.argv.length || inputError ("You must specify a GOA format input file")
+opt.argv.length || inputError ("You must specify a GAF input file")
 var useDatabaseID = opt.options['database-id']
 
 var text = ""
@@ -27,5 +27,5 @@ opt.argv.forEach (function (filename) {
     text += data.toString()
 })
 
-console.log (JSON.stringify (goa2json ({ goa: text,
+console.log (JSON.stringify (gaf2json ({ gaf: text,
 					 useDatabaseID: useDatabaseID })))

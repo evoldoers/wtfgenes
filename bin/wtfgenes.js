@@ -93,9 +93,9 @@ var ontology = new Ontology (ontologyJson)
 if (logging('data'))
     console.warn("Read " + ontology.terms() + "-term ontology from " + ontologyPath)
 
-var assocJson = readJsonFileSync (assocPath, converters.goa2json)
+var assocJson = readJsonFileSync (assocPath, converters.gaf2json)
 var assocs = new Assocs ({ ontology: ontology,
-			   assocs: assocJson })
+			   idAliasTerm: assocJson.idAliasTerm })
 
 if (logging('data'))
     console.warn("Read " + assocs.nAssocs + " associations (" + assocs.genes() + " genes, " + assocs.relevantTerms().length + " terms) from " + assocPath)

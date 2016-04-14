@@ -2,7 +2,7 @@
 # Scripts
 SCRIPTDIR = ../../../bin
 OBO2JSON = $(SCRIPTDIR)/obo2json.js
-GOA2JSON = $(SCRIPTDIR)/goa2json.js
+GAF2JSON = $(SCRIPTDIR)/gaf2json.js
 WTFGENES = $(SCRIPTDIR)/wtfgenes.js
 
 # Top-level rules
@@ -14,7 +14,7 @@ pombe: gene_association.pombase.json
 
 basic: go-basic.json
 
-# GOA files
+# GAF files
 %: %.gz
 	gunzip $<
 
@@ -22,7 +22,7 @@ gene_association.%.gz:
 	curl -O http://geneontology.org/gene-associations/$@
 
 gene_association.%.json: gene_association.%
-	$(GOA2JSON) $< >$@
+	$(GAF2JSON) $< >$@
 
 # GO-basic
 go-basic.obo: 

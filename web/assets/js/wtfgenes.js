@@ -3963,7 +3963,13 @@ arguments[4][1][0].apply(exports,arguments)
         var assocs = this
         conf = extend ({closure:true}, conf)
 	var ontology = conf.ontology
-	var geneTermList = conf.assocs
+        if (conf.assocs) {
+	    var geneTermList = conf.assocs
+            conf.idAliasTerm = geneTermList.map (function(gt) {
+                return [gt[0], [], [gt[1]]]
+            })
+        }
+        var idAliasTerm = conf.idAliasTerm
         extend (assocs,
                 { 'ontology': ontology,
                   'geneName': [],
@@ -4001,22 +4007,28 @@ arguments[4][1][0].apply(exports,arguments)
         }
 
         var gtCount = [], missing = {}
-        geneTermList.forEach (function(gt) {
-            var gene = gt[0], term = gt[1]
+        idAliasTerm.forEach (function(iat) {
+            var gene = iat[0]
+            var aliases = iat[1]
+            var terms = iat[2]
+
             if (!(gene in assocs.geneIndex)) {
                 assocs.geneIndex[gene] = assocs.genes()
                 assocs.geneName.push (gene)
                 gtCount.push ({})
             }
-            if (!(term in ontology.termIndex))
-		missing[term] = (missing[term] || 0) + 1
-	    else {
-		var g = assocs.geneIndex[gene]
-		var t = ontology.termIndex[term]
-		closure[t].forEach (function(c) {
-                    ++gtCount[g][c]
-		})
-	    }
+
+            terms.forEach (function (term) {
+                if (!(term in ontology.termIndex))
+		    missing[term] = (missing[term] || 0) + 1
+	        else {
+		    var g = assocs.geneIndex[gene]
+		    var t = ontology.termIndex[term]
+		    closure[t].forEach (function(c) {
+                        ++gtCount[g][c]
+		    })
+	        }
+            })
         })
 
 	var missingTerms = Object.keys(missing)
@@ -5996,7 +6008,7 @@ arguments[4][1][0].apply(exports,arguments)
 	    $.get(wtf.assocsURL)
 		.done (function (assocsJson) {
 		    wtf.assocs = new Assocs ({ ontology: wtf.ontology,
-					       assocs: assocsJson })
+					       idAliasTerm: assocsJson.idAliasTerm })
 
 		    wtf.log ("Loaded ", wtf.assocs.nAssocs, " associations (", wtf.assocs.genes(), " genes, ", wtf.assocs.relevantTerms().length, " terms)")
 
