@@ -285,7 +285,7 @@
         $('#wtf-load-gene-set-button').prop('disabled',true)
 	$('.wtf-prior').prop('disabled',true)
         disableInputControls()
-        var geneNames = $('#wtf-gene-set-textarea').val().split("\n")
+        var geneNames = $('#wtf-gene-set-textarea').val().split(/\s*\n\s*/)
             .filter (function (sym) { return sym.length > 0 })
         var validation = wtf.assocs.validateGeneNames (geneNames)
 	if (geneNames.length == 0) {
@@ -433,19 +433,12 @@
         $('.wtf-input-panel').attr('title','')
     }
     
-    function loadExample (evt) {
-        var wtf = this
-	if (evt)
+    function exampleLoader (wtf, exampleJson) {
+        return function (evt) {
 	    evt.preventDefault()
-
-	if (wtf.exampleText) {
-	    $('#wtf-gene-set-textarea').val (wtf.exampleText)
+	    $('#wtf-gene-set-textarea').val (exampleJson.genes.join("\n"))
             showOrHideSamplerControls.call(wtf)
-	} else
-            $.get (wtf.exampleURL, function (data) {
-		$('#wtf-gene-set-textarea').val (wtf.exampleText = data)
-                showOrHideSamplerControls.call(wtf)
-	    })
+        }
     }
     
     function log() {
@@ -515,6 +508,7 @@
 		.done (function (assocsJson) {
 		    wtf.assocs = new Assocs ({ ontology: wtf.ontology,
 					       assocs: assocsJson })
+
 		    wtf.log ("Loaded ", wtf.assocs.nAssocs, " associations (", wtf.assocs.genes(), " genes, ", wtf.assocs.relevantTerms().length, " terms)")
 
 		    $('.wtf-relevant-term-count').text (wtf.assocs.relevantTerms().length)
@@ -538,7 +532,14 @@
 
             showOrHideSamplerControls.call(wtf)
 
-	    if (wtf.exampleURL)
+            var examples = wtf.organismExamples.concat (wtf.ontologyExamples)
+	    $('#wtf-example-list').empty()
+	    $('#wtf-example-list').append (examples.map (function (exampleJson) {
+		return $('<li><a href="#">' + exampleJson.name + '</a></li>')
+		    .click (exampleLoader (wtf, exampleJson))
+	    }))
+            
+	    if (examples.length)
 		$('#wtf-example-gene-set-button').show()
 	    else
 		$('#wtf-example-gene-set-button').hide()
@@ -549,7 +550,10 @@
 	return function (evt) {
 	    evt.preventDefault()
 	    if (wtf.organismName != orgJson.name) {
+
 		wtf.organismName = orgJson.name
+                wtf.organismExamples = orgJson.examples || []
+
 		delete wtf.ontologyName
                 delete wtf.ontology
                 delete wtf.assocs
@@ -557,18 +561,19 @@
 		$('#wtf-select-organism-button-text').text (orgJson.name)
 		$('.wtf-organism-name').text (orgJson.name)
 
-                showOrHideSamplerControls.call(wtf)
-                $('#wtf-example-gene-set-button').hide()
 		$('#wtf-select-ontology-button').show()
 		$('#wtf-select-ontology-button-text').text('Select ontology')
-
-                $('#wtf-ontology-notifications').empty()
 
 		$('#wtf-ontology-list').empty()
 		$('#wtf-ontology-list').append (orgJson.ontologies.map (function (ontoJson) {
 		    return $('<li><a href="#">' + ontoJson.name + '</a></li>')
 			.click (ontologySelector(wtf,ontoJson))
 		}))
+
+                $('#wtf-example-gene-set-button').hide()
+                $('#wtf-ontology-notifications').empty()
+
+                showOrHideSamplerControls.call(wtf)
 
 	        reset.call (wtf)
             }
@@ -579,19 +584,21 @@
 	return function (evt) {
 	    evt.preventDefault()
 	    if (wtf.ontologyName != ontoJson.name) {
-                delete wtf.ontology
-                delete wtf.assocs
-                showOrHideSamplerControls.call(wtf)
 
 		wtf.ontologyName = ontoJson.name
 		wtf.ontologyURL = ontoJson.ontology
 		wtf.assocsURL = ontoJson.assocs
-		wtf.exampleURL = ontoJson.example
                 wtf.termURL = ontoJson.term || 'http://amigo.geneontology.org/amigo/term/'
+                wtf.ontologyExamples = ontoJson.examples || []
 		
-                $('#wtf-ontology-notifications').empty()
+                delete wtf.ontology
+                delete wtf.assocs
+
 		$('#wtf-select-ontology-button-text').text (ontoJson.name)
 		$('.wtf-ontology-name').text (ontoJson.name)
+                $('#wtf-ontology-notifications').empty()
+
+                showOrHideSamplerControls.call(wtf)
 
 		initialize.call(wtf)
 	    }
@@ -632,7 +639,6 @@
 	$('#wtf-sampler-controls').hide()
 
         $('#wtf-gene-set-textarea').bind ('input propertychange', showOrHideSamplerControls.bind(wtf))
-	$('#wtf-example-gene-set-button').on('click',loadExample.bind(wtf))
 
 	$('#wtf-gene-set-file-selector').on ('change', function (fileSelectEvt) {
 	    var reader = new FileReader()

@@ -9,25 +9,43 @@
 		    "name": "Gene Ontology",
 		    "ontology": "../test/data/yeast/go-basic.json",
 		    "assocs":   "../test/data/yeast/gene_association.sgd.json",
-		    "example":  "../test/data/yeast/cerevisiae-mating.txt"
+		    "examples":
+                    [
+                        {
+                            "name": "Yeast mating genes",
+                            "genes": ["STE2","STE3","STE5","GPA1","SST2","STE11","STE50","STE20","STE4","STE18","FUS3","KSS1","PTP2","MSG5","DIG1","DIG2","STE12"]
+                        }
+                    ]
 		}
 	    ]
 	},
 	{
 	    "name": "Saccharomyces cerevisiae (2)",
+	    "examples":
+            [
+                {
+                    "name": "Yeast mating genes",
+                    "genes": ["STE2","STE3","STE5","GPA1","SST2","STE11","STE50","STE20","STE4","STE18","FUS3","KSS1","PTP2","MSG5","DIG1","DIG2","STE12"]
+                }
+            ],
 	    "ontologies":
 	    [
 		{
 		    "name": "Gene Ontology",
 		    "ontology": "../test/data/yeast/go-basic.json",
 		    "assocs":   "../test/data/yeast/gene_association.sgd.json",
-		    "example":  "../test/data/yeast/cerevisiae-mating.txt"
+		    "examples":
+                    [
+                        {
+                            "name": "Yeast mating genes (2)",
+                            "genes": ["STE2","STE3","STE5","GPA1","SST2","STE11","STE50","STE20","STE4","STE18","FUS3","KSS1","PTP2","MSG5","DIG1","DIG2","STE12"]
+                        }
+                    ]
 		},
 		{
 		    "name": "Gene Ontology (2)",
 		    "ontology": "../test/data/yeast/go-basic.json",
-		    "assocs":   "../test/data/yeast/gene_association.sgd.json",
-		    "example":  "../test/data/yeast/cerevisiae-mating.txt"
+		    "assocs":   "../test/data/yeast/gene_association.sgd.json"
 		}
 	    ]
 	}

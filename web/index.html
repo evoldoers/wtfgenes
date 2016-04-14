@@ -97,14 +97,14 @@
                   <div class="panel-heading"> ORGANISM AND ONTOLOGY </div>
                   <div id="wtf-select-ontology-panel-body" class="panel-body">
                     <div class="wtf-input-panel" style="margin-top:20px;">
-		      <div class="btn-group">
+		      <div class="btn-group" style="padding-right:10px;">
 			<button id="wtf-select-organism-button" data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
 			  <span id="wtf-select-organism-button-text">Select organism</span>
 			  <span class="caret"></span></button>
 			<ul id="wtf-organism-list" class="dropdown-menu">
 			</ul>
 		      </div>
-		      <div class="btn-group" style="padding-left:10px;">
+		      <div class="btn-group">
 			<button id="wtf-select-ontology-button" data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
 			  <span id="wtf-select-ontology-button-text">Select ontology</span>
 			  <span class="caret"></span>
@@ -132,12 +132,20 @@
 			<textarea id="wtf-gene-set-textarea" class="form-control" rows="10"></textarea>
                       </div>
 		      <input id="wtf-gene-set-file-selector" type="file" style="display:none;"/>
-                      <button id="wtf-load-gene-set-button" type="submit" class="btn btn-primary">
-			Load from file
-		      </button>
-		      <button id="wtf-example-gene-set-button" type="submit" class="btn btn-primary">
-			Example
-		      </button>
+		      <div class="btn-group" style="padding-right:10px;">
+			<button id="wtf-load-gene-set-button" type="submit" class="btn btn-primary">
+			  Load from file
+			</button>
+		      </div>
+		      <div class="btn-group">
+			<button id="wtf-example-gene-set-button" data-toggle="dropdown" class="btn btn-primary dropdown-toggle">
+			  Example
+			  <span class="caret"></span>
+			</button>
+			<ul id="wtf-example-list" class="dropdown-menu">
+			</ul>
+			</button>
+		      </div>
 		    </form>
                   </div>
 		</div>
