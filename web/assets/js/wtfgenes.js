@@ -3988,8 +3988,11 @@ arguments[4][1][0].apply(exports,arguments)
 		  },
                   'equivClassByTerm': [],
                   'termsInEquivClass': [],
+		  'getExemplar': function(termIndex) {
+                      return this.termsInEquivClass[this.equivClassByTerm[termIndex]][0]
+		  },
                   'termIsExemplar': function(termIndex) {
-                      return this.termsInEquivClass[this.equivClassByTerm[termIndex]][0] == termIndex
+                      return this.getExemplar(termIndex) == termIndex
                   },
 		  'nAssocs': 0,
 		  'hypergeometricPValues': hypergeometricPValues,
@@ -5516,23 +5519,12 @@ arguments[4][1][0].apply(exports,arguments)
 	var bg = 0x10000*r + 0x100*g + b
 	var bgStr = "000000" + bg.toString(16)
 	bgStr = bgStr.substring (bgStr.length - 6)
-	return 'style="background-color:#' + bgStr + '"'
+	return 'background-color:#' + bgStr + ';'
     }
     
     function probStyle (p) {
 	var level = Math.floor ((1-p) * 255)
 	return bgColorStyle (level, 255, level)
-    }
-
-    function blankStyle() {
-	return 'style="background-color:#c0c0c0"'
-    }
-
-    function ratioText (r) {
-	return (r > .5 && r < 1.5) ? "~1"
-            : (r < 1
-	       ? (isFinite(1/r) ? ("1/" + Math.round(1/r)) : "0")
-	       : Math.round(r))
     }
 
     function runMCMC() {
@@ -5589,7 +5581,7 @@ arguments[4][1][0].apply(exports,arguments)
     
     var termPairProbThreshold = .05, termOddsRatioThreshold = 100
     function showTermTable (wtf) {
-	var termTable = $('<table></table>')
+	var termTable = $('<table class="table"/>')
 	var termProb = wtf.mcmc.termSummary(0)
 	var terms = util.sortKeys(termProb).reverse()
 
@@ -5622,19 +5614,21 @@ arguments[4][1][0].apply(exports,arguments)
 	}))
 	var gotEquivalents = terms.some (function(t) { return equivalents[t].length > 0 })
 
-	termTable.append ($('<tr>'
-			    + [[gotEquivalents ? 'Term(s)' : 'Term', 'An ontology term' + (gotEquivalents ? ', or class of terms. (Terms that have exactly the same gene associations are collapsed into a single equivalence class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : '')],
-			       ['P(Term)', 'The posterior probability that the term is activated.'],
-			       ['Explains', 'Genes that are associated with the term and are in the active set.'],
-			       ['Also predicts', 'Genes that are associated with the term but are not in the active set.'],
-			       gotBosons ? ['Positively correlated with', 'Other terms from this table that often co-occur with this term. An interpretation is that these terms collaborate to explain complementary/disjoint subsets of the active genes.'] : [],
-			       gotFermions ? ['Negatively correlated with', 'Other terms from this table that rarely co-occur with this term. An interpretation is that these terms compete to explain similar/overlapping subsets of the active genes.'] : []]
+	termTable.append ($('<thead><tr>'
+			    + [[gotEquivalents ? 'ID(s)' : 'ID', gotEquivalents ? 'IDs for ontology terms. (Terms that have exactly the same gene associations are collapsed into a single class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : 'ID of an ontology term.'],
+			       [gotEquivalents ? 'Term(s)' : 'Term', 'Name of ontology term.' + (gotEquivalents ? ' (Terms that have exactly the same gene associations are collapsed into a single equivalence class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : '')],
+			       ['P(Term)', 'The posterior probability that ' + (gotEquivalents ? 'one of the terms in the equivalence class' : 'the term') + ' is activated.'],
+			       ['Explains', 'Genes that are associated with ' + (gotEquivalents ? 'this class of terms' : 'the term') + ' and are in the active set.'],
+			       ['Also predicts', 'Genes that are associated with ' + (gotEquivalents ? 'this class of terms' : 'the term') + ' but are not in the active set.'],
+			       gotBosons ? ['Positively correlated with', 'Other terms from this table that often co-occur with ' + (gotEquivalents ? 'this class of terms' : 'this term') + '. An interpretation is that these terms collaborate to explain complementary/disjoint subsets of the active genes.'] : [],
+			       gotFermions ? ['Negatively correlated with', 'Other terms from this table that rarely co-occur with ' + (gotEquivalents ? 'this class of terms' : 'this term') + '. An interpretation is that these terms compete to explain similar/overlapping subsets of the active genes.'] : []]
 			    .map (function (text_mouseover) {
 				return text_mouseover.length == 2
 				    ? ('<th><span title="' + text_mouseover[1] + '">' + text_mouseover[0] + '</span></th>')
 				    : ""
 			    }).join('')
-			    + '</tr>'))
+			    + '</tr></thead>'))
+	var termTableBody = $('<tbody/>')
         terms.forEach (function (t,i) {
 	    var p = termProb[t]
 	    var pStyle = probStyle(p)
@@ -5644,18 +5638,26 @@ arguments[4][1][0].apply(exports,arguments)
 		.map (function(g) { return wtf.assocs.geneName[g] })
 	    var predicted = genes.filter (util.negate (inGeneSet))
 		.map (function(g) { return wtf.assocs.geneName[g] })
-	    termTable
-		.append ($('<tr ' + pStyle + '>'
-                           + '<td>' + equivalents[t].map(function(e) {
-			       return linkTerm.call(wtf,e) + ' ' + wtf.ontology.getTermInfo(e)
-			   }).join('<br/>') + '</td>'
-			   + '<td>' + p.toPrecision(5) + '</td>'
-			   + '<td>' + explained.join(", ") + '</td>'
-			   + '<td>' + predicted.join(", ") + '</td>'
-			   + (gotBosons ? '<td>' + bosons[i].map(function(b){return equivalents[b].map(linkTerm.bind(wtf)).join(", ")}).join("<br/>") + '</td>' : '')
-			   + (gotFermions ? '<td>' + fermions[i].map(function(f){return equivalents[f].map(linkTerm.bind(wtf)).join(", ")}).join("<br/>") + '</td>' : '')
-			   + '</tr>'))
+	    function eqtd(x) {
+		return '<td rowspan="' + equivalents[t].length + '">' + x + '</td>'
+	    }
+	    function eqtdsets(l) {
+		return eqtd (l.map(function(f){return equivalents[f].map(linkTerm.bind(wtf)).join(", ")}).join("<br/>"))
+	    }
+	    equivalents[t].forEach (function (e, ei) {
+		termTableBody
+		    .append ($('<tr style="' + pStyle + '">'
+                               + (ei == 0 ? '<td>' : '<td style="border-top-style:none;">') + linkTerm.call(wtf,e) + '</td>'
+                               + (ei == 0 ? '<td>' : '<td style="border-top-style:none;">') + wtf.ontology.getTermInfo(e) + '</td>'
+			       + (ei == 0 ? eqtd(p.toPrecision(5)) : '')
+			       + (ei == 0 ? eqtd(explained.join(", ")) : '')
+			       + (ei == 0 ? eqtd(predicted.join(", ")) : '')
+			       + (ei == 0 && gotBosons ? eqtdsets(bosons[i]) : '')
+			       + (ei == 0 && gotFermions ? eqtdsets(fermions[i]) : '')
+			       + '</tr>'))
+	    })
         })
+	termTable.append (termTableBody)
 	$('#wtf-term-table-parent').empty()
 	    .append (termTable)
 
@@ -5663,29 +5665,42 @@ arguments[4][1][0].apply(exports,arguments)
     }
 
     function showGeneTable (wtf, parent, geneProb, label, terms) {
-	var geneTable = $('<table></table>')
+	var geneTable = $('<table class="table"/>')
 	var genes = util.sortKeys(geneProb).reverse()
         var showTerm = terms ? util.listToCounts(terms) : {}
-	geneTable.append ($('<tr><th>Gene name</th><th>P(' + label + ')</th>'
-                            + (terms ? '<th>Predicted by terms</th>' : '')
-                            + '</tr>'))
+	geneTable.append ($('<thead><tr><th>Gene name</th><th>P(' + label + ')</th>'
+                            + (terms ? '<th colspan="2">Predicted by terms</th>' : '')
+                            + '</tr></thead>'))
+	var geneTableBody = $('<tbody/>')
+	function pbtd(t,x) { return (t.length > 1 ? ('<td rowspan="' + t.length + '">') : '<td>') + x + '</td>' }
         genes.forEach (function (g,i) {
 	    var p = geneProb[g]
 	    var pStyle = probStyle(p)
-	    geneTable
-		.append ($('<tr>'
-			   + '<td ' + pStyle + '>' + g + '</td>'
-			   + '<td ' + pStyle + '>' + p.toPrecision(5) + '</td>'
-                           + (terms
-                              ? ('<td ' + pStyle + '>' + wtf.assocs.termsByGene[wtf.assocs.geneIndex[g]]
-                                 .map (function (ti) { return wtf.ontology.termName[ti] })
-                                 .filter (function (t) { return showTerm[t] })
-                                 .map (function (t) {
-			             return linkTerm.call(wtf,t) + ' ' + wtf.ontology.getTermInfo(t)
-			         }).join('<br/>') + '</td>')
-                              : '')
-			   + '</tr>'))
+	    var predictedBy = []
+	    if (terms)
+		wtf.assocs.termsByGene[wtf.assocs.geneIndex[g]].forEach (function (ti) {
+		    var tx = wtf.assocs.getExemplar(ti)
+		    if (showTerm[wtf.ontology.termName[tx]])
+			predictedBy.push (wtf.ontology.termName[ti])
+		})
+	    else
+		predictedBy = [null]
+
+	    predictedBy.forEach (function (t, ti) {
+		geneTableBody
+		    .append ($('<tr style="' + pStyle + '">'
+			       + (ti == 0 ? pbtd(predictedBy,g) : '')
+			       + (ti == 0 ? pbtd(predictedBy,p.toPrecision(5)) : '')
+                               + (t
+				  ? ((ti == 0 ? '<td>' : '<td style="border-top-style:none;">')
+				     + linkTerm.call(wtf,t) + '</td>'
+				     + (ti == 0 ? '<td>' : '<td style="border-top-style:none;">')
+				     + wtf.ontology.getTermInfo(t) + '</td>')
+				  : '')
+			       + '</tr>'))
+	    })
         })
+	geneTable.append (geneTableBody)
 	parent.empty()
 	parent.append (geneTable)
     }
