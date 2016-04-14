@@ -459,8 +459,8 @@
     function selectPage (id) {
         $('.wtf-page').hide()
         $('.wtf-link').removeClass('active-menu')
+        $('.wtf-' + id + '-link').addClass('active-menu')
         $('#wtf-' + id + '-page').show()
-        $('#wtf-' + id + '-link').addClass('active-menu')
     }
 
     function makeAlert (type, text) {
@@ -579,6 +579,10 @@
 	return function (evt) {
 	    evt.preventDefault()
 	    if (wtf.ontologyName != ontoJson.name) {
+                delete wtf.ontology
+                delete wtf.assocs
+                showOrHideSamplerControls.call(wtf)
+
 		wtf.ontologyName = ontoJson.name
 		wtf.ontologyURL = ontoJson.ontology
 		wtf.assocsURL = ontoJson.assocs

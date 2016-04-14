@@ -22,7 +22,14 @@
     <div id="wrapper">
       <nav class="navbar navbar-default navbar-cls-top "
            role="navigation" style="margin-bottom: 0">
-        <div class="navbar-header"> <span class="navbar-brand">WTFgenes</span> </div>
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+	  <span class="navbar-brand">WTFgenes</span> </div>
 	<div class="header-left">
 	  What is The Function of these Genes?
 	  </div>
@@ -40,11 +47,11 @@
       <nav class="navbar-default navbar-side" role="navigation">
         <div class="sidebar-collapse">
           <ul class="nav" id="main-menu">
-                <li> <a class="wtf-link" id="wtf-data-link" data-target="data" href="#">Data</a> </li>
-                <li> <a class="wtf-link" id="wtf-parameters-link" data-target="parameters" href="#">Parameters</a> </li>
-		<li> <a class="wtf-link" id="wtf-sampler-link" data-target="sampler" href="#">Sampler</a> </li>
-                <li> <a class="wtf-link" id="wtf-term-report-link" data-target="term-report" href="#">Term report</a> </li>
-                <li> <a class="wtf-link" id="wtf-gene-report-link" data-target="gene-report" href="#">Gene report</a> </li>
+                <li> <a class="wtf-link wtf-data-link" data-target="data" href="#">Data</a> </li>
+                <li> <a class="wtf-link wtf-parameters-link" data-target="parameters" href="#">Parameters</a> </li>
+		<li> <a class="wtf-link wtf-sampler-link" data-target="sampler" href="#">Sampler</a> </li>
+                <li> <a class="wtf-link wtf-term-report-link" data-target="term-report" href="#">Term report</a> </li>
+                <li> <a class="wtf-link wtf-gene-report-link" data-target="gene-report" href="#">Gene report</a> </li>
           </ul>
         </div>
       </nav>
@@ -106,7 +113,7 @@
 			</ul>
 		      </div>
                     </div>
-		    <div class="col-md-12" style="padding-left:0px;">
+		    <div class="col-md-12" style="padding-left:0px;padding-right:0px;">
 		      <div id="wtf-ontology-notifications" style="margin-top:20px;">
 		      </div>
 		    </div>
@@ -141,7 +148,7 @@
 		<div class="panel panel-primary">
                   <div class="panel-heading"> SAMPLER </div>
                   <div class="panel-body">
-		    <div class="col-md-12" style="padding-left:0px;">
+		    <div class="col-md-12" style="padding-left:0px;padding-right:0px;">
 		      <div class="col-md-4" style="padding-left:0px;">
 			<button type="button" class="btn btn-lg btn-primary wtf-start">
 			  Start sampling</button>
@@ -151,7 +158,7 @@
 			  Reset sampler</button>
 		      </div>
 
-		      <div class="col-md-4 wtf-progress-header" title="Sampler progress">
+		      <div class="col-md-4 wtf-progress-header" style="padding-right:0px;" title="Sampler progress">
 			<div class="progress">
 			  <div class="progress-bar progress-bar-warning progress-bar-striped active wtf-progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
 			    <span class="wtf-progress-percent"></span>
@@ -160,7 +167,7 @@
 		      </div>
 
 		    </div>
-		    <div class="col-md-12" style="padding-left:0px;">
+		    <div class="col-md-12" style="padding-left:0px;padding-right:0px;">
 		      <div class="wtf-sampler-notifications" style="margin-top: 20px;">
 		      </div>
 		    </div>
@@ -232,7 +239,7 @@
               <div class="col-md-12">
 		<h1 class="page-head-line">SAMPLER <br>
 		</h1>
-		<h1 class="page-subhead-line">This page shows information about the <a href="https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo" target="_blank">MCMC</a> sampling run. </h1>
+		<h1 class="page-subhead-line">This page shows information about the MCMC sampling run. </h1>
               </div>
             </div>
             <div class="row wtf-mcmc-status">
@@ -266,7 +273,7 @@
 		<div class="panel panel-primary">
                   <div class="panel-heading"> CONFIGURATION </div>
                   <div class="panel-body">
-		    <div class="col-md-12" style="padding-left:0px;">
+		    <div class="col-md-12" style="padding-left:0px;padding-right:0px;">
 		      <div class="col-md-4 wtf-input-panel" style="padding-left:0px;">
 			<div class="form-group"> <label> Burn-in time </label>
 			  <input id="wtf-burn-per-term" class="form-control wtf-prior" type="text">
@@ -281,7 +288,7 @@
 			</div>
 		      </div>
 
-		      <div class="col-md-4">
+		      <div class="col-md-4" style="padding-right:0px;">
 			<div class="checkbox">
 			  <label title="Turn on this option to analyze interactions between terms. This is useful for diagnosing problems such as probability dilution due to term overlap, but it can slow the sampler down slightly.">
 			    <input id="wtf-track-term-pairs" value="" type="checkbox" checked="checked">
@@ -292,7 +299,7 @@
 
 		    <hr/>
 
-		    <div class="col-md-12" style="padding-left:0px;">
+		    <div class="col-md-12" style="padding-left:0px;padding-right:0px;">
 		      <div class="col-md-4" style="padding-left:0px;">
 			<button type="button" class="btn btn-lg btn-primary wtf-start">
 			  Start sampling</button>
@@ -311,7 +318,7 @@
 		    </div>
 		    <hr/>
 
-		    <div class="col-md-12" style="margin-top:20px;padding-left:0px;">
+		    <div class="col-md-12" style="margin-top:20px;padding-left:0px;padding-right:0px;">
 		      <div class="wtf-sampler-notifications">
 		      </div>
 		    </div>
