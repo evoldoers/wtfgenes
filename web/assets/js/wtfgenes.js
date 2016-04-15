@@ -4320,9 +4320,11 @@ arguments[4][1][0].apply(exports,arguments)
 
     function logState() {
 	this.postMoveCallback.push (function (mcmc, move) {
-	    console.warn ("State #" + mcmc.samples + ": " + mcmc.models.map (function (model) {
-		return JSON.stringify (model.toJSON())
-	    }))
+	    console.warn ("Sample #" + mcmc.samples
+                          + ": log-likelihood " + mcmc.quickCollapsedLogLikelihood()
+                          + ", state " + mcmc.models.map (function (model) {
+		              return JSON.stringify (model.toJSON())
+	                  }))
 	})
     }
     
