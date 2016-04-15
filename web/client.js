@@ -234,8 +234,10 @@
 	    $('#wtf-quick-report').hide()
 
 	    getGeneSet(wtf)
-		.fail (function (msg) { modalAlert (msg) })
-		.done (function (validation) {
+		.fail (function (msg) {
+                    $('.wtf-no-report-text').html ('No results yet! Please go back to the Data page and ' + msg)
+                    $('.wtf-no-report').show()
+                }).done (function (validation) {
 		    var relevantTerms = wtf.assocs.relevantTermsForGeneSet (validation.resolvedGeneIndices)
 		    var hyperByTermIndex = wtf.assocs.hypergeometricPValues (validation.resolvedGeneIndices)
 		    var sidakThreshold = 1 - Math.pow (1 - hypergeometricThreshold, 1 / relevantTerms.length)
@@ -277,6 +279,7 @@
 		    termTable.append (termTableBody)
 		    $('#wtf-hypergeometric-term-table-parent').append (termTable)
 		    $('#wtf-quick-report').show()
+                    $('.wtf-no-report').hide()
 		    wtf.madeQuickReport = true
 		})
 	}
@@ -379,18 +382,20 @@
     function getGeneSet (wtf) {
 	var def = $.Deferred()
         if (!wtf.assocs)
-	    def.reject ('Please select an organism and ontology, before starting analysis.')
+	    def.reject ('select an organism and ontology.')
 	else {
 	    var geneNames = $('#wtf-gene-set-textarea').val().split(/\s*\n\s*/)
 		.filter (function (sym) { return sym.length > 0 })
             var valid = wtf.assocs.validateGeneNames (geneNames)
 	    if (valid.geneNames.length == 0)
-		def.reject ('Please provide some gene names, before starting analysis.')
+		def.reject ('provide some gene names.')
 	    else if (valid.missingGeneNames.length > 0)
-		def.reject ('Please check the following gene names, which were not found in the associations list: '
+		def.reject ('check the gene names for validity. <p/>The following gene names were not found in the gene-term associations database:<br/>'
 			    + '<i>' + valid.missingGeneNames.join(" ") + '</i>')
-	    else
+	    else {
+                wtf.userGeneName = valid.suppliedGeneName
 		def.resolve (valid)
+            }
 	}
 	return def
     }
@@ -424,11 +429,9 @@
 
         setTimeout (function() {  // give buttons a chance to update
 	    getGeneSet(wtf)
-	        .fail (function (msg) { cancelStart (wtf, msg) })
+	        .fail (function (msg) { cancelStart (wtf, 'Before starting analysis, please ' + msg) })
 	        .done (function (validation) {
-
-                    wtf.userGeneName = validation.suppliedGeneName
-                    
+                   
 		    var prior = {
 		        succ: {
 			    t: parseFloatAndSet ('wtf-term-present-pseudocount', 1),
@@ -571,12 +574,22 @@
 	$('.wtf-prior-slider').slider('enable')
         $('.wtf-input-panel').attr('title','')
     }
-    
+
+    function geneSetTextAreaChanged (wtf) {
+	delete wtf.madeQuickReport
+	delete wtf.hyperByTermIndex
+        showOrHideSamplerControls.call(wtf)
+    }
+
+    function setGeneSetTextArea (wtf, text) {
+	$('#wtf-gene-set-textarea').val (text)
+        geneSetTextAreaChanged (wtf)
+    }
+
     function exampleLoader (wtf, exampleJson) {
         return function (evt) {
 	    evt.preventDefault()
-	    $('#wtf-gene-set-textarea').val (exampleJson.genes.join("\n"))
-            showOrHideSamplerControls.call(wtf)
+            setGeneSetTextArea (wtf, exampleJson.genes.join("\n"))
         }
     }
     
@@ -593,11 +606,14 @@
         $('.wtf-link').removeClass('active-menu')
         $('.wtf-' + id + '-link').addClass('active-menu')
         $('#wtf-' + id + '-page').show()
+        $('.wtf-no-report').hide()
 	if (id == 'quick-report')
 	    setTimeout (makeQuickReport.bind(wtf), 1)  // don't delay redraw
 	else if (id == 'term-report' || id == 'gene-report') {
-	    if (!wtf.mcmc)
-		modalAlert ("You won't see anything on this page until you start running the sampler.")
+	    if (!wtf.mcmc) {
+                $('.wtf-no-report-text').html ("You won't see anything on this page until you start running the sampler.")
+                $('.wtf-no-report').show()
+            }
 	}
     }
 
@@ -788,15 +804,13 @@
 	$('#wtf-sampler-controls').hide()
 
         $('#wtf-gene-set-textarea').bind ('input propertychange', function() {
-	    showOrHideSamplerControls.bind(wtf)
-	    delete wtf.madeQuickReport
-	    delete wtf.hyperByTermIndex
+            geneSetTextAreaChanged (wtf)
 	})
 
 	$('#wtf-gene-set-file-selector').on ('change', function (fileSelectEvt) {
 	    var reader = new FileReader()
 	    reader.onload = function (fileLoadEvt) {
-		$('#wtf-gene-set-textarea').val (fileLoadEvt.target.result)
+		setGeneSetTextArea (wtf, fileLoadEvt.target.result)
 	    }
 	    reader.readAsText(fileSelectEvt.target.files[0])
 	})
