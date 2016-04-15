@@ -17,6 +17,9 @@
     <!-- GOOGLE FONTS-->
     <link href="http://fonts.googleapis.com/css?family=Open+Sans"
 	  rel="stylesheet" type="text/css">
+    <!-- JQUERY UI STYLES-->
+    <link rel="stylesheet" href="assets/css/jquery-ui.min.css">
+    <link rel="stylesheet" href="assets/css/jquery-ui.theme.min.css">
   </head>
   <body>
     <div id="wrapper">
@@ -246,12 +249,20 @@
 		<div class="panel panel-primary wtf-input-panel">
 		  <div class="panel-heading"> TERMS </div>
 		  <div class="panel-body">
+		    <div>
+		      P(Term is present) = <span class="wtf-term-prob"></span>
+		      <div id="wtf-term-prob-slider"></div>
+		    </div>
+		    <div>
+		      Prior weight (#pseudocounts) = <span class="wtf-term-weight"></span>
+		      <div id="wtf-term-weight-slider"></div>
+		    </div>
 		    <form role="form">
-		      <div class="form-group"> <label> Terms present </label>
+		      <div class="form-group"> <label> # terms present </label>
 			<input id="wtf-term-present-pseudocount" class="form-control wtf-prior" type="text">
 			<p class="help-block">The number of times a term was activated, thereby activating all its associated genes.</p>
 		      </div>
-		      <div class="form-group"> <label> Terms absent</label>
+		      <div class="form-group"> <label> # terms absent</label>
 			<input id="wtf-term-absent-pseudocount" class="form-control wtf-prior" type="text">
 			<p class="help-block">The number of times a term was <i>not</i> activated.</p>
 		      </div>
@@ -264,11 +275,11 @@
 		  <div class="panel-heading"> FALSE POSITIVES </div>
 		  <div class="panel-body">
 		    <form role="form">
-		      <div class="form-group"> <label> False positives </label>
+		      <div class="form-group"> <label> # false positives </label>
 			<input id="wtf-false-pos-pseudocount" class="form-control wtf-prior" type="text">
 			<p class="help-block">The number of times an inactive gene was incorrectly included in the active gene set.</p>
 		      </div>
-		      <div class="form-group"> <label> True negatives </label>
+		      <div class="form-group"> <label> # true negatives </label>
 			<input id="wtf-true-neg-pseudocount" class="form-control wtf-prior" type="text">
 			<p class="help-block">The number of times an inactive gene was correctly excluded from the active gene set.</p>
 		      </div>
@@ -281,11 +292,11 @@
 		  <div class="panel-heading"> FALSE NEGATIVES </div>
 		  <div class="panel-body">
 		    <form role="form">
-		      <div class="form-group"> <label> False negatives </label>
+		      <div class="form-group"> <label> # false negatives </label>
 			<input id="wtf-false-neg-pseudocount" class="form-control wtf-prior" type="text">
 			<p class="help-block">The number of times an active gene was incorrectly excluded from the active gene set.</p>
 		      </div>
-		      <div class="form-group"> <label> True positives </label>
+		      <div class="form-group"> <label> # true positives </label>
 			<input id="wtf-true-pos-pseudocount" class="form-control wtf-prior" type="text">
 			<p class="help-block">The number of times an active gene was correctly excluded from the active gene set.</p>
 		      </div>
@@ -472,6 +483,9 @@
       <!-- CUSTOM SCRIPTS -->
       <script src="assets/js/custom.js"></script>
 
+      <!-- JQuery UI -->
+      <script src="assets/js/jquery-ui.min.js"></script>
+      
       <!-- Plotly -->
       <script type="text/javascript" src="assets/js/plotly-latest.min.js"></script>
 

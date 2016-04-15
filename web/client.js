@@ -811,6 +811,55 @@
 	    })
 
         // set up parameters page
+        function textChangeFunction (probId, weightId, succId, failId) {
+            return function() {
+                var succ = parseFloatAndSet (succId, 1),
+                    fail = parseFloatAndSet (failId, 1)
+                $('#'+probId+'-slider').slider ('value', succ / (succ + fail))
+                $('#'+weightId+'-slider').slider ('value', fail / (succ + fail))
+                $('.'+probId).text (succ / (succ + fail))
+                $('.'+weightId).text (fail / (succ + fail))
+            }
+        }
+
+        function sliderChangeFunction (probId, weightId, succId, failId) {
+            return function() {
+                var prob = Math.pow(10,$('#'+probId+'-slider').slider('value')),
+                    weight = Math.pow(10,$('#'+weightId+'-slider').slider('value'))
+                $('#'+succId).val (prob * weight)
+                $('#'+failId).val ((1 - prob) * weight)
+                $('.'+probId).text (prob)
+                $('.'+weightId).text (weight)
+            }
+        }
+
+        $('#wtf-term-prob-slider')
+            .slider({ value: -1,
+                      min: -6,
+                      max: 0,
+                      slide: sliderChangeFunction ('wtf-term-prob',
+                                                   'wtf-term-weight',
+                                                   'wtf-term-present-pseudocount',
+                                                   'wtf-term-absent-pseudocount')
+                    })
+
+        $('#wtf-term-weight-slider')
+            .slider({ value: 2,
+                      min: -2,
+                      max: 6,
+                      slide: sliderChangeFunction ('wtf-term-prob',
+                                                   'wtf-term-weight',
+                                                   'wtf-term-present-pseudocount',
+                                                   'wtf-term-absent-pseudocount')
+                    })
+        
+        $('#wtf-term-present-pseudocount,#wtf-term-absent-pseudocount')
+            .bind ('input propertychange', textChangeFunction ('wtf-term-prob',
+                                                               'wtf-term-weight',
+                                                               'wtf-term-present-pseudocount',
+                                                               'wtf-term-absent-pseudocount'))
+
+                                           
 	$('#wtf-term-present-pseudocount').val(1)
 	$('#wtf-term-absent-pseudocount').val(99)
 	$('#wtf-false-pos-pseudocount').val(1)
@@ -818,6 +867,7 @@
 	$('#wtf-false-neg-pseudocount').val(1)
 	$('#wtf-true-pos-pseudocount').val(99)
 
+        
         // set up sampler & results pages
 	$('#wtf-burn-per-term').val(10)
 	$('#wtf-target-samples-per-term').val(100)
