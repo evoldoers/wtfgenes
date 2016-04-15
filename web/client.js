@@ -19,8 +19,8 @@
     }
     
     function probStyle (p) {
-	var level = Math.floor ((1-p) * 255)
-	return bgColorStyle (level, 255, level)
+	var rgb = util.HSVtoRGB (.43, p, 1)  // hue matches active-menu color in basic.css; value changed from .79 to 1 to fade naturally to white background
+	return bgColorStyle (rgb.r, rgb.g, rgb.b)
     }
 
     function runMCMC() {

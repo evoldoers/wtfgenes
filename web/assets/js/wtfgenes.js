@@ -5471,6 +5471,28 @@ arguments[4][1][0].apply(exports,arguments)
 	}
     }
 
+    function HSVtoRGB(h, s, v) {
+	var r, g, b, i, f, p, q, t
+	i = Math.floor(h * 6)
+	f = h * 6 - i
+	p = v * (1 - s)
+	q = v * (1 - f * s)
+	t = v * (1 - (1 - f) * s)
+	switch (i % 6) {
+        case 0: r = v, g = t, b = p; break
+        case 1: r = q, g = v, b = p; break
+        case 2: r = p, g = v, b = t; break
+        case 3: r = p, g = q, b = v; break
+        case 4: r = t, g = p, b = v; break
+        case 5: r = v, g = p, b = q; break
+	}
+	return {
+            r: Math.round(r * 255),
+            g: Math.round(g * 255),
+            b: Math.round(b * 255)
+	}
+    }
+
     module.exports.numCmp = numCmp
     module.exports.reverseCmp = reverseCmp
     module.exports.sortAscending = sortAscending
@@ -5501,6 +5523,7 @@ arguments[4][1][0].apply(exports,arguments)
     module.exports.toHHMMSS = toHHMMSS
     module.exports.progressLogger = progressLogger
     module.exports.logRandomNumbers = logRandomNumbers
+    module.exports.HSVtoRGB = HSVtoRGB
     module.exports.extend = extend
 }) ()
 
@@ -5527,8 +5550,8 @@ arguments[4][1][0].apply(exports,arguments)
     }
     
     function probStyle (p) {
-	var level = Math.floor ((1-p) * 255)
-	return bgColorStyle (level, 255, level)
+	var rgb = util.HSVtoRGB (.43, p, 1)  // hue matches active-menu color in basic.css; value changed from .79 to 1 to fade naturally to white background
+	return bgColorStyle (rgb.r, rgb.g, rgb.b)
     }
 
     function runMCMC() {
