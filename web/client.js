@@ -141,9 +141,9 @@
 	    var pStyle = probStyle(p)
 	    var genes = wtf.assocs.genesByTerm[wtf.ontology.termIndex[t]]
 	    var explained = genes.filter (inGeneSet)
-		.map (function(g) { return wtf.assocs.geneName[g] })
+		.map (function(g) { return wtf.userGeneName[g] })
 	    var predicted = genes.filter (util.negate (inGeneSet))
-		.map (function(g) { return wtf.assocs.geneName[g] })
+		.map (function(g) { return wtf.userGeneName[g] })
 	    function eqtd(x) {
 		return '<td rowspan="' + equivalents[t].length + '">' + x + '</td>'
 	    }
@@ -207,9 +207,9 @@
 
 		var genes = t ? wtf.assocs.genesByTerm[wtf.ontology.termIndex[t]] : []
 		var explained = genes.filter (inGeneSet)
-		    .map (function(g) { return wtf.assocs.geneName[g] })
+		    .map (function(g) { return wtf.userGeneName[g] })
 		var predicted = genes.filter (util.negate (inGeneSet))
-		    .map (function(g) { return wtf.assocs.geneName[g] })
+		    .map (function(g) { return wtf.userGeneName[g] })
 
 		geneTableBody
 		    .append ($('<tr style="' + pStyle + '"/>')
@@ -263,9 +263,9 @@
 			var p = hyperByTerm[t]
 			var genes = wtf.assocs.genesByTerm[wtf.ontology.termIndex[t]]
 			var explained = genes.filter (inGeneSet)
-			    .map (function(g) { return wtf.assocs.geneName[g] })
+			    .map (function(g) { return wtf.userGeneName[g] })
 			var predicted = genes.filter (util.negate (inGeneSet))
-			    .map (function(g) { return wtf.assocs.geneName[g] })
+			    .map (function(g) { return wtf.userGeneName[g] })
 			termTableBody
 			    .append ($('<tr/>')
 				     .append ($('<td/>').html (linkTerm.call(wtf,t)),
@@ -420,15 +420,14 @@
 
 	$('.wtf-reset').prop('disabled',true)
         $('.wtf-start').prop('disabled',true)
-        $('#wtf-gene-set-textarea').prop('disabled',true)
-        $('#wtf-load-gene-set-button').prop('disabled',true)
-	$('.wtf-prior').prop('disabled',true)
         disableInputControls()
 
 	getGeneSet(wtf)
 	    .fail (function (msg) { cancelStart (wtf, msg) })
 	    .done (function (validation) {
 
+                wtf.userGeneName = validation.suppliedGeneName
+                
 		var prior = {
 		    succ: {
 			t: parseFloatAndSet ('wtf-term-present-pseudocount', 1),
@@ -556,17 +555,18 @@
     }
 
     function inputControls() {
-        return $('#wtf-example-gene-set-button, #wtf-select-organism-button, #wtf-select-ontology-button, #wtf-gene-set-textarea, #wtf-load-gene-set-button, .wtf-prior')
-
+        return $('#wtf-select-organism-button, #wtf-select-ontology-button, #wtf-gene-set-textarea, #wtf-load-gene-set-button, #wtf-example-gene-set-button, .wtf-prior')
     }
     
     function disableInputControls() {
         inputControls().prop('disabled',true)
+	$('.wtf-prior-slider').slider('disable')
         $('.wtf-input-panel').attr('title','These controls are disabled once sampling begins. To modify them, reset the sampler.')
     }
     
     function enableInputControls() {
         inputControls().prop('disabled',false)
+	$('.wtf-prior-slider').slider('enable')
         $('.wtf-input-panel').attr('title','')
     }
     
@@ -811,62 +811,45 @@
 	    })
 
         // set up parameters page
-        function textChangeFunction (probId, weightId, succId, failId) {
-            return function() {
-                var succ = parseFloatAndSet (succId, 1),
-                    fail = parseFloatAndSet (failId, 1)
-                $('#'+probId+'-slider').slider ('value', succ / (succ + fail))
-                $('#'+weightId+'-slider').slider ('value', fail / (succ + fail))
-                $('.'+probId).text (succ / (succ + fail))
-                $('.'+weightId).text (fail / (succ + fail))
-            }
-        }
-
-        function sliderChangeFunction (probId, weightId, succId, failId) {
-            return function() {
-                var prob = Math.pow(10,$('#'+probId+'-slider').slider('value')),
-                    weight = Math.pow(10,$('#'+weightId+'-slider').slider('value'))
-                $('#'+succId).val (prob * weight)
-                $('#'+failId).val ((1 - prob) * weight)
-                $('.'+probId).text (prob)
-                $('.'+weightId).text (weight)
-            }
-        }
-
-        $('#wtf-term-prob-slider')
-            .slider({ value: -1,
-                      min: -6,
-                      max: 0,
-                      slide: sliderChangeFunction ('wtf-term-prob',
-                                                   'wtf-term-weight',
-                                                   'wtf-term-present-pseudocount',
-                                                   'wtf-term-absent-pseudocount')
-                    })
-
-        $('#wtf-term-weight-slider')
-            .slider({ value: 2,
-                      min: -2,
-                      max: 6,
-                      slide: sliderChangeFunction ('wtf-term-prob',
-                                                   'wtf-term-weight',
-                                                   'wtf-term-present-pseudocount',
-                                                   'wtf-term-absent-pseudocount')
-                    })
+        var sliderProbs = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, .1, .2, .3, .4, .5, .6],
+            sliderWeights = [0, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8],
+            initSliderProb = 4,
+            initSliderWeight = 4
         
-        $('#wtf-term-present-pseudocount,#wtf-term-absent-pseudocount')
-            .bind ('input propertychange', textChangeFunction ('wtf-term-prob',
-                                                               'wtf-term-weight',
-                                                               'wtf-term-present-pseudocount',
-                                                               'wtf-term-absent-pseudocount'))
+        function sliderChangeCallback (probId, weightId, succId, failId, thisId) {
+            return function (event, ui) {
+                var prob = sliderProbs[thisId==probId ? ui.value : $('#wtf-'+probId+'-slider').slider('value')]
+                var weight = sliderWeights[thisId==weightId ? ui.value : $('#wtf-'+weightId+'-slider').slider('value')]
+                $('#wtf-'+succId+'-pseudocount').val (prob * weight)
+                $('#wtf-'+failId+'-pseudocount').val ((1 - prob) * weight)
+                $('.wtf-'+probId).text (prob)
+                $('.wtf-'+weightId).text (weight)
+            }
+        }
 
+        function initSliders (probId, weightId, succId, failId) {
+            var probChange = sliderChangeCallback (probId, weightId, succId, failId, probId)
+            var weightChange = sliderChangeCallback (probId, weightId, succId, failId, weightId)
+            $('#wtf-'+probId+'-slider')
+                .slider({ value: initSliderProb,
+                          min: 0,
+                          max: sliderProbs.length - 1,
+                          slide: probChange,
+                          stop: probChange
+                        })
+            $('#wtf-'+weightId+'-slider')
+                .slider({ value: initSliderWeight,
+                          min: 0,
+                          max: sliderWeights.length - 1,
+                          slide: weightChange,
+                          stop: weightChange
+                        })
+            sliderChangeCallback (probId, weightId, succId, failId) ()
+        }
                                            
-	$('#wtf-term-present-pseudocount').val(1)
-	$('#wtf-term-absent-pseudocount').val(99)
-	$('#wtf-false-pos-pseudocount').val(1)
-	$('#wtf-true-neg-pseudocount').val(99)
-	$('#wtf-false-neg-pseudocount').val(1)
-	$('#wtf-true-pos-pseudocount').val(99)
-
+        initSliders ('term-prob', 'term-weight', 'term-present', 'term-absent')
+        initSliders ('false-pos-prob', 'false-pos-weight', 'false-pos', 'true-neg')
+        initSliders ('false-neg-prob', 'false-neg-weight', 'false-neg', 'true-pos')
         
         // set up sampler & results pages
 	$('#wtf-burn-per-term').val(10)
