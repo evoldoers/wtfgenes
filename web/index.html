@@ -32,7 +32,7 @@
 	  <span class="navbar-brand">WTFgenes</span> </div>
 	<div class="header-left">
 	  What is The Function of these Genes?
-	  </div>
+	</div>
 
 	<div class="header-right wtf-progress-header" style="width:20%;display:none;" title="Sampler progress">
 	  <div class="progress">
@@ -47,25 +47,26 @@
       <nav class="navbar-default navbar-side" role="navigation">
         <div class="sidebar-collapse">
           <ul class="nav" id="main-menu">
-                <li> <a class="wtf-link wtf-data-link" data-target="data" href="#">Data</a> </li>
-                <li> <a class="wtf-link wtf-parameters-link" data-target="parameters" href="#">Parameters</a> </li>
-		<li> <a class="wtf-link wtf-sampler-link" data-target="sampler" href="#">Sampler</a> </li>
-                <li> <a class="wtf-link wtf-term-report-link" data-target="term-report" href="#">Term report</a> </li>
-                <li> <a class="wtf-link wtf-gene-report-link" data-target="gene-report" href="#">Gene report</a> </li>
+            <li> <a class="wtf-link wtf-data-link" data-target="data" href="#">Data</a> </li>
+            <li> <a class="wtf-link wtf-quick-report-link" data-target="quick-report" href="#">Quick report</a> </li>
+            <li> <a class="wtf-link wtf-parameters-link" data-target="parameters" href="#">Parameters</a> </li>
+	    <li> <a class="wtf-link wtf-sampler-link" data-target="sampler" href="#">Sampler</a> </li>
+            <li> <a class="wtf-link wtf-term-report-link" data-target="term-report" href="#">Term report</a> </li>
+            <li> <a class="wtf-link wtf-gene-report-link" data-target="gene-report" href="#">Gene report</a> </li>
           </ul>
         </div>
       </nav>
       <!-- /. NAV SIDE  -->
 
-      <!-- Modal dialog -->
-      <div class="modal fade" id="wtf-cancel-start" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <!-- Modal dialog: "Hold your horses!" -->
+      <div class="modal fade" id="wtf-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
               <h4 class="modal-title" id="myModalLabel">Hold your horses!</h4>
             </div>
-            <div id="wtf-cancel-start-text" class="modal-body">
+            <div id="wtf-modal-text" class="modal-body">
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -74,10 +75,28 @@
         </div>
       </div>
 
+      <!-- Modal dialog: "Are you sure?" -->
+      <div class="modal fade" id="wtf-confirm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+              <h4 class="modal-title" id="myModalLabel">Are you quite sure?</h4>
+            </div>
+            <div id="wtf-confirm-text" class="modal-body">
+            </div>
+            <div class="modal-footer">
+	      <button id="wtf-confirm-no-button" type="button" class="btn btn-default" data-dismiss="modal">No</button>
+	      <button id="wtf-confirm-yes-button" type="button" class="btn btn-primary" data-dismiss="modal">Yes</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div id="page-wrapper">
 	<div id="page-inner" class="wtf-page-inner" style="display:none;">
 
+	  <!-- DATA -->
           <div id="wtf-data-page" class="wtf-page">
             <div class="row">
               <div class="col-md-12">
@@ -144,18 +163,17 @@
 			</button>
 			<ul id="wtf-example-list" class="dropdown-menu">
 			</ul>
-			</button>
 		      </div>
 		    </form>
-                  </div>
+		  </div>
 		</div>
-              </div>
-            </div>
-            <div id="wtf-sampler-controls" class="row">
-              <div class="col-md-12">
+	      </div>
+	    </div>
+	    <div id="wtf-sampler-controls" class="row">
+	      <div class="col-md-12">
 		<div class="panel panel-primary">
-                  <div class="panel-heading"> SAMPLER </div>
-                  <div class="panel-body">
+		  <div class="panel-heading"> SAMPLER </div>
+		  <div class="panel-body">
 		    <div class="col-md-12" style="padding-left:0px;padding-right:0px;">
 		      <div class="col-md-4" style="padding-left:0px;">
 			<button type="button" class="btn btn-lg btn-primary wtf-start">
@@ -165,7 +183,6 @@
 			<button type="button" class="btn btn-lg btn-danger wtf-reset">
 			  Reset sampler</button>
 		      </div>
-
 		      <div class="col-md-4 wtf-progress-header" style="padding-left:0px;padding-right:0px;" title="Sampler progress">
 			<div class="progress">
 			  <div class="progress-bar progress-bar-warning progress-bar-striped active wtf-progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
@@ -179,108 +196,146 @@
 		      <div class="wtf-sampler-notifications" style="margin-top: 20px;">
 		      </div>
 		    </div>
-                  </div>
+		  </div>
 		</div>
-              </div>
-            </div>
-          </div>
-          <div id="wtf-term-report-page" class="wtf-page">
-            <div class="row">
-              <div class="col-md-12">
-		<h1 class="page-head-line">TERM REPORT <br>
+	      </div>
+	    </div>
+	  </div>
+
+	  <!-- QUICK REPORT -->
+	  <div id="wtf-quick-report-page" class="wtf-page">
+	    <div class="row">
+	      <div class="col-md-12">
+		<h1 class="page-head-line">QUICK TERM REPORT <br>
 		</h1>
-		<h1 class="page-subhead-line">This page lists the terms proposed as explanations for the combination of genes in the active set. </h1>
-              </div>
-            </div>
-            <div class="row wtf-results">
-              <div class="col-md-12">
+		<h1 class="page-subhead-line">This page lists the terms that <a href="https://en.wikipedia.org/wiki/Fisher%27s_exact_test" target="_blank">Fisher's exact test</a> proposes as possible explanations for the genes in the active set. Fisher's exact test is very quick: results will show up on this page instantly, as soon as you have entered some gene names on the Data page. However, be aware that Fisher's test ignores interactions between the terms, and so is generally less discriminatory than the alternative (model-based MCMC-sampling) analysis implemented by this app, which allows multiple terms to "collaborate" in explaining the data.</h1>
+	      </div>
+	    </div>
+	    <div id="wtf-quick-report" class="row">
+	      <div class="col-md-12">
 		<div class="panel panel-info">
-                  <div class="panel-heading"> Explanatory terms </div>
-                  <div class="panel-body">
-                    <!-- Basic Table -->
-                    <div id="wtf-term-table-parent" class="table-responsive">
-                    </div>
-                  </div>
+		  <div class="panel-heading"> Explanatory terms </div>
+		  <div class="panel-body">
+		    <!-- Basic Table -->
+		    <div id="wtf-hypergeometric-term-table-parent" class="table-responsive">
+		    </div>
+		  </div>
 		</div>
-              </div>
-            </div>
-          </div>
-          <div id="wtf-gene-report-page" class="wtf-page">
-            <div class="row">
-              <div class="col-md-12">
-		<h1 class="page-head-line">GENE REPORT <br>
+	      </div>
+	    </div>
+	  </div>
+
+	  <!-- PARAMETERS -->
+	  <div id="wtf-parameters-page" class="wtf-page">
+	    <div class="row">
+	      <div class="col-md-12">
+		<h1 class="page-head-line">PARAMETERS <br>
 		</h1>
 		<h1 class="page-subhead-line">
-		  This page summarizes the results of the analysis on the gene set.
+		  In strict Bayesian terminology, these counts are actually hyperparameters.
+		  Probabilistically, they represent the number of previous occurrences of various stochastic outcomes,
+		  together constituting a prior belief about what kinds of outcomes are likely.
+		  They can be thought of as weights that influence the model's tendency to impute additional events of that kind.
+		  For example, increasing the "False positive" count will tend to encourage the model not to worry so much about predicting additional genes
+		  beyond those listed in the active set.
 		</h1>
-              </div>
-            </div>
-            <div class="row wtf-results">
-              <div class="col-md-12">
-		<div class="panel panel-info">
-                  <div class="panel-heading"> Unexplained Genes </div>
-                  <div class="panel-body">
-		    The genes in this table are potential false positives: they are part of the active set, but no terms were found to explain them.
-                    <!-- Basic Table -->
-                    <div id="wtf-false-pos-table-parent" class="table-responsive">
-                    </div>
-                  </div>
+	      </div>
+	    </div>
+	    <div class="row">
+	      <div class="col-md-4">
+		<div class="panel panel-primary wtf-input-panel">
+		  <div class="panel-heading"> TERMS </div>
+		  <div class="panel-body">
+		    <form role="form">
+		      <div class="form-group"> <label> Terms present </label>
+			<input id="wtf-term-present-pseudocount" class="form-control wtf-prior" type="text">
+			<p class="help-block">The number of times a term was activated, thereby activating all its associated genes.</p>
+		      </div>
+		      <div class="form-group"> <label> Terms absent</label>
+			<input id="wtf-term-absent-pseudocount" class="form-control wtf-prior" type="text">
+			<p class="help-block">The number of times a term was <i>not</i> activated.</p>
+		      </div>
+		    </form>
+		  </div>
 		</div>
-              </div>
-            </div>
-            <div class="row wtf-results">
-              <div class="col-md-12">
-		<div class="panel panel-info">
-                  <div class="panel-heading"> Predicted Genes </div>
-                  <div class="panel-body">
-		    The genes in this table are potential false negatives: although they are not part of the active set, they are predicted to be so, by terms that explain other genes.
-                    <!-- Basic Table -->
-                    <div id="wtf-false-neg-table-parent" class="table-responsive">
-                    </div>
-                  </div>
+	      </div>
+	      <div class="col-md-4">
+		<div class="panel panel-primary wtf-input-panel">
+		  <div class="panel-heading"> FALSE POSITIVES </div>
+		  <div class="panel-body">
+		    <form role="form">
+		      <div class="form-group"> <label> False positives </label>
+			<input id="wtf-false-pos-pseudocount" class="form-control wtf-prior" type="text">
+			<p class="help-block">The number of times an inactive gene was incorrectly included in the active gene set.</p>
+		      </div>
+		      <div class="form-group"> <label> True negatives </label>
+			<input id="wtf-true-neg-pseudocount" class="form-control wtf-prior" type="text">
+			<p class="help-block">The number of times an inactive gene was correctly excluded from the active gene set.</p>
+		      </div>
+		    </form>
+		  </div>
 		</div>
-              </div>
-            </div>
-          </div>
-          <div id="wtf-sampler-page" class="wtf-page">
-            <div class="row">
-              <div class="col-md-12">
+	      </div>
+	      <div class="col-md-4">
+		<div class="panel panel-primary wtf-input-panel">
+		  <div class="panel-heading"> FALSE NEGATIVES </div>
+		  <div class="panel-body">
+		    <form role="form">
+		      <div class="form-group"> <label> False negatives </label>
+			<input id="wtf-false-neg-pseudocount" class="form-control wtf-prior" type="text">
+			<p class="help-block">The number of times an active gene was incorrectly excluded from the active gene set.</p>
+		      </div>
+		      <div class="form-group"> <label> True positives </label>
+			<input id="wtf-true-pos-pseudocount" class="form-control wtf-prior" type="text">
+			<p class="help-block">The number of times an active gene was correctly excluded from the active gene set.</p>
+		      </div>
+		    </form>
+		  </div>
+		</div>
+	      </div>
+	    </div>
+	  </div>
+
+	  <!-- SAMPLER -->
+	  <div id="wtf-sampler-page" class="wtf-page">
+	    <div class="row">
+	      <div class="col-md-12">
 		<h1 class="page-head-line">SAMPLER <br>
 		</h1>
 		<h1 class="page-subhead-line">This page shows information about the MCMC sampling run. </h1>
-              </div>
-            </div>
-            <div class="row wtf-mcmc-status">
-              <div class="col-md-4">
+	      </div>
+	    </div>
+	    <div class="row wtf-mcmc-status">
+	      <div class="col-md-4">
 		<div class="alert alert-success text-center">
 		  <h1><span id="wtf-total-samples">0</span></h1>
 		  samples </div>
-              </div>
-              <div class="col-md-4">
+	      </div>
+	      <div class="col-md-4">
 		<div class="alert alert-danger text-center">
 		  <h1><span id="wtf-samples-per-term">0</span></h1>
 		  samples/term </div>
-              </div>
-              <div class="col-md-4">
+	      </div>
+	      <div class="col-md-4">
 		<div class="alert alert-warning text-center">
 		  <h1><span id="wtf-samples-per-sec">0</span></h1>
 		  samples/sec </div>
-              </div>
-            </div>
-            <div class="row wtf-mcmc-status">
-              <div class="col-md-12">
+	      </div>
+	    </div>
+	    <div class="row wtf-mcmc-status">
+	      <div class="col-md-12">
 		<div class="panel panel-info">
-                  <div class="panel-heading"> LOG-LIKELIHOOD TRACE </div>
-                  <div id="wtf-loglike-plot" class="panel-body">
-                  </div>
+		  <div class="panel-heading"> LOG-LIKELIHOOD TRACE </div>
+		  <div id="wtf-loglike-plot" class="panel-body">
+		  </div>
 		</div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-12">
+	      </div>
+	    </div>
+	    <div class="row">
+	      <div class="col-md-12">
 		<div class="panel panel-primary">
-                  <div class="panel-heading"> CONFIGURATION </div>
-                  <div class="panel-body">
+		  <div class="panel-heading"> CONFIGURATION </div>
+		  <div class="panel-body">
 		    <div class="col-md-12" style="padding-left:0px;padding-right:0px;">
 		      <div class="col-md-4 wtf-input-panel" style="padding-left:0px;">
 			<div class="form-group"> <label> Burn-in time </label>
@@ -311,7 +366,7 @@
 		      <div class="col-md-4" style="padding-left:0px;">
 			<button type="button" class="btn btn-lg btn-primary wtf-start">
 			  Start sampling</button>
-			</div>
+		      </div>
 		      <div class="col-md-4" style="padding-left:0px;">
 			<button type="button" class="btn btn-lg btn-danger wtf-reset">
 			  Reset sampler</button>
@@ -331,85 +386,80 @@
 		      </div>
 		    </div>
 
-                  </div>
+		  </div>
 		</div>
-              </div>
-            </div>
-          </div>
-          <div id="wtf-parameters-page" class="wtf-page">
-            <div class="row">
-              <div class="col-md-12">
-		<h1 class="page-head-line">PARAMETERS <br>
+	      </div>
+	    </div>
+	  </div>
+
+	  <!-- TERM REPORT -->
+	  <div id="wtf-term-report-page" class="wtf-page">
+	    <div class="row">
+	      <div class="col-md-12">
+		<h1 class="page-head-line">TERM REPORT <br>
+		</h1>
+		<h1 class="page-subhead-line">This page lists the terms proposed as explanations for the combination of genes in the active set. </h1>
+	      </div>
+	    </div>
+	    <div class="row wtf-results">
+	      <div class="col-md-12">
+		<div class="panel panel-info">
+		  <div class="panel-heading"> Explanatory terms </div>
+		  <div class="panel-body">
+		    <!-- Basic Table -->
+		    <div id="wtf-term-table-parent" class="table-responsive">
+		    </div>
+		  </div>
+		</div>
+	      </div>
+	    </div>
+	  </div>
+
+	  <!-- GENE REPORT -->
+	  <div id="wtf-gene-report-page" class="wtf-page">
+	    <div class="row">
+	      <div class="col-md-12">
+		<h1 class="page-head-line">GENE REPORT <br>
 		</h1>
 		<h1 class="page-subhead-line">
-		  In strict Bayesian terminology, these counts are actually hyperparameters.
-		  Probabilistically, they represent the number of previous occurrences of various stochastic outcomes,
-		  together constituting a prior belief about what kinds of outcomes are likely.
-		  They can be thought of as weights that influence the model's tendency to impute additional events of that kind.
-		  For example, increasing the "False positive" count will tend to encourage the model not to worry so much about predicting additional genes
-		  beyond those listed in the active set.
+		  This page summarizes the results of the analysis on the gene set.
 		</h1>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-4">
-		<div class="panel panel-primary wtf-input-panel">
-                  <div class="panel-heading"> TERMS </div>
-                  <div class="panel-body">
-                    <form role="form">
-                      <div class="form-group"> <label> Terms present </label>
-			<input id="wtf-term-present-pseudocount" class="form-control wtf-prior" type="text">
-			<p class="help-block">The number of times a term was activated, thereby activating all its associated genes.</p>
-                      </div>
-                      <div class="form-group"> <label> Terms absent</label>
-			<input id="wtf-term-absent-pseudocount" class="form-control wtf-prior" type="text">
-			<p class="help-block">The number of times a term was <i>not</i> activated.</p>
-                      </div>
-                    </form>
-                  </div>
+	      </div>
+	    </div>
+	    <div class="row wtf-results">
+	      <div class="col-md-12">
+		<div class="panel panel-info">
+		  <div class="panel-heading"> Unexplained Genes </div>
+		  <div class="panel-body">
+		    The genes in this table are potential false positives: they are part of the active set, but no terms were found to explain them.
+		    <!-- Basic Table -->
+		    <div id="wtf-false-pos-table-parent" class="table-responsive">
+		    </div>
+		  </div>
 		</div>
-              </div>
-              <div class="col-md-4">
-		<div class="panel panel-primary wtf-input-panel">
-                  <div class="panel-heading"> FALSE POSITIVES </div>
-                  <div class="panel-body">
-                    <form role="form">
-                      <div class="form-group"> <label> False positives </label>
-			<input id="wtf-false-pos-pseudocount" class="form-control wtf-prior" type="text">
-			<p class="help-block">The number of times an inactive gene was incorrectly included in the active gene set.</p>
-                      </div>
-                      <div class="form-group"> <label> True negatives </label>
-			<input id="wtf-true-neg-pseudocount" class="form-control wtf-prior" type="text">
-			<p class="help-block">The number of times an inactive gene was correctly excluded from the active gene set.</p>
-                      </div>
-                    </form>
-                  </div>
+	      </div>
+	    </div>
+	    <div class="row wtf-results">
+	      <div class="col-md-12">
+		<div class="panel panel-info">
+		  <div class="panel-heading"> Predicted Genes </div>
+		  <div class="panel-body">
+		    The genes in this table are potential false negatives: although they are not part of the active set, they are predicted to be so, by terms that explain other genes that are in the active set.
+		    <!-- Basic Table -->
+		    <div id="wtf-false-neg-table-parent" class="table-responsive">
+		    </div>
+		  </div>
 		</div>
-              </div>
-              <div class="col-md-4">
-		<div class="panel panel-primary wtf-input-panel">
-                  <div class="panel-heading"> FALSE NEGATIVES </div>
-                  <div class="panel-body">
-                    <form role="form">
-                      <div class="form-group"> <label> False negatives </label>
-			<input id="wtf-false-neg-pseudocount" class="form-control wtf-prior" type="text">
-			<p class="help-block">The number of times an active gene was incorrectly excluded from the active gene set.</p>
-                      </div>
-                      <div class="form-group"> <label> True positives </label>
-			<input id="wtf-true-pos-pseudocount" class="form-control wtf-prior" type="text">
-			<p class="help-block">The number of times an active gene was correctly excluded from the active gene set.</p>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+	      </div>
+	    </div>
+	  </div>
+
+
 	</div>
       </div>
       <div id="footer-sec"> <a href="http://github.com/ihh/wtfgenes">An Open Source project</a>
-        <!-- | Design By : <a
-             href="http://www.binarytheme.com/" target="_blank">BinaryTheme.com</a> -->
+	<!-- | Design By : <a
+	     href="http://www.binarytheme.com/" target="_blank">BinaryTheme.com</a> -->
       </div>
       <!-- /. FOOTER  -->
       <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
@@ -421,7 +471,7 @@
       <script src="assets/js/jquery.metisMenu.js"></script>
       <!-- CUSTOM SCRIPTS -->
       <script src="assets/js/custom.js"></script>
-      
+
       <!-- Plotly -->
       <script type="text/javascript" src="assets/js/plotly-latest.min.js"></script>
 
@@ -429,7 +479,7 @@
       <script type="text/javascript" src="assets/js/wtfgenes.js"></script>
       <script type="text/javascript">
 	$(function() {
-	  var wtf = new WTFgenes()
+	var wtf = new WTFgenes()
 	})
       </script>
 

@@ -3955,7 +3955,8 @@ arguments[4][1][0].apply(exports,arguments)
 		missing[g] = (missing[g] || 0) + 1
         })
 	var missingGeneNames = Object.keys(missing)
-        return { geneIndices: geneIndices,
+        return { geneNames: geneNames,
+		 resolvedGeneIndices: geneIndices,
                  missingGeneNames: missingGeneNames }
     }
     
@@ -3985,6 +3986,14 @@ arguments[4][1][0].apply(exports,arguments)
 			  return assocs.genesByTerm[term].length > 0
                               && assocs.termIsExemplar(term)
 		      })
+		  },
+		  'relevantTermsForGeneSet': function (geneSet) {
+		      var assocs = this
+		      return util.removeDups (geneSet.reduce (function(termList,g) {
+			  return termList.concat (assocs.termsByGene[g])
+		      }, [])).filter (function (term) {
+			  return assocs.termIsExemplar (term)
+		      }).sort(util.numCmp)
 		  },
                   'equivClassByTerm': [],
                   'termsInEquivClass': [],
@@ -4587,7 +4596,8 @@ arguments[4][1][0].apply(exports,arguments)
 	}))
     }
 
-    function hypergeometricSummary (mcmc, modelIndex, maxPValue) {
+    function hypergeometricSummary (modelIndex, maxPValue) {
+	var mcmc = this
 	maxPValue = maxPValue || .05  // default 95% significance
         var multiMaxPValue = maxPValue / mcmc.assocs.terms()  // Bonferroni correction
 	return { maxThreshold: maxPValue,
@@ -4609,7 +4619,7 @@ arguments[4][1][0].apply(exports,arguments)
 		     },
 		     summary: mcmc.models.map (function (model, modelIndex) {
 			 return {
-			     hypergeometricPValue: hypergeometricSummary (mcmc, modelIndex),
+			     hypergeometricPValue: hypergeometricSummary.call (mcmc, modelIndex),
 			     posteriorMarginal: {
 				 minThreshold: threshold,
 				 term: termSummary.bind(mcmc) (modelIndex, threshold),
@@ -4717,6 +4727,7 @@ arguments[4][1][0].apply(exports,arguments)
 		    stopLoggingTermPairs: stopLoggingTermPairs,
 
 		    run: run,
+		    hypergeometricSummary: hypergeometricSummary,
 		    termSummary: termSummary,
 		    geneFalsePosSummary: geneFalsePosSummary,
 		    geneFalseNegSummary: geneFalseNegSummary,
@@ -4919,22 +4930,15 @@ arguments[4][1][0].apply(exports,arguments)
         var validation = assocs.validateGeneNames (conf.geneSet)
 	if (validation.missingGeneNames.length > 0)
 	    console.warn ("Warning: the following genes were not found in the associations list: " + validation.missingGeneNames)
-        var geneSet = validation.geneIndices
+        var geneSet = validation.resolvedGeneIndices
 
 	if (conf.terms)
 	    conf.terms.forEach (function(term) { isActive[term] = true })
         var termState = termName.map (conf.termState || util.objPredicate(isActive))
 
         // "relevant" terms are ones which have at least one associated gene in the geneSet,
-        // excluding those which are indistinguishable from any of their children
-	// TODO: extend this test to "indistinguishable from any other terms in the ontology"
-	// (put upstream, in Assocs object?)
-        var relevantTerms = util.removeDups (geneSet.reduce (function(termList,g) {
-	    return termList.concat (assocs.termsByGene[g])
-	}, [])).filter (function (term) {
-            return assocs.termIsExemplar (term)
-        }).sort(util.numCmp)
-
+        // excluding those which are indistinguishable from other terms in the ontology
+        var relevantTerms = assocs.relevantTermsForGeneSet (geneSet)
         var isRelevant = util.listToCounts (relevantTerms)
         function relevantFilter(termList) {
             return termList.filter (util.objPredicate(isRelevant))
@@ -5343,9 +5347,9 @@ arguments[4][1][0].apply(exports,arguments)
 	return list
     }
 
-    function sortKeys (obj, sortFunc) {
+    function sortKeys (obj, sortFunc, keys) {
 	sortFunc = sortFunc || numCmp
-	return Object.keys(obj).sort (function(a,b) {
+	return (keys || Object.keys(obj)).sort (function(a,b) {
 	    return sortFunc (obj[a], obj[b])
 	})
     }
@@ -5547,10 +5551,12 @@ arguments[4][1][0].apply(exports,arguments)
             redrawLogLikelihood.call(wtf)
 	    if (wtf.redraw) {
 		var terms = showTermTable (wtf)
-		showGeneTable (wtf, $('#wtf-false-pos-table-parent'), wtf.mcmc.geneFalsePosSummary(0),
+		var falsePos = wtf.mcmc.geneFalsePosSummary(0)
+		var falseNeg = wtf.mcmc.geneFalseNegSummary(0)
+		showGeneTable (wtf, $('#wtf-false-pos-table-parent'), falsePos,
 			       "mislabeled")
-		showGeneTable (wtf, $('#wtf-false-neg-table-parent'), wtf.mcmc.geneFalseNegSummary(0),
-			       "mislabeled", terms)
+		showGeneTable (wtf, $('#wtf-false-neg-table-parent'), falseNeg,
+			       "mislabeled", "Predicted by terms", terms)
 		wtf.redraw = false
 	    }
 	    wtf.samplesPerRun = wtf.mcmc.nVariables()
@@ -5578,12 +5584,26 @@ arguments[4][1][0].apply(exports,arguments)
 	var wtf = this
 	return '<a target="_blank" href="' + wtf.termURL + term + '" title="' + wtf.ontology.getTermInfo(term) + '">' + term + '</a>'
     }
+
+    function tableHeader (list) {
+	return $('<thead><tr>'
+		 + list.map (function (text_mouseover_cols) {
+		     return text_mouseover_cols.length
+			 ? ('<th'
+			    + (text_mouseover_cols[2] ? (' colspan="' + text_mouseover_cols[2] + '"') : '')
+			    + '><span title="' + text_mouseover_cols[1] + '">'
+			    + text_mouseover_cols[0] + '</span></th>')
+		     : ""
+		 }).join('')
+		 + '</tr></thead>')
+    }
     
     var termPairProbThreshold = .05, termOddsRatioThreshold = 100
     function showTermTable (wtf) {
-	var termTable = $('<table class="table"/>')
+	var termTable = $('<table class="table table-responsive"/>')
 	var termProb = wtf.mcmc.termSummary(0)
 	var terms = util.sortKeys(termProb).reverse()
+	wtf.termProb = termProb
 
 	var bosons = terms.map (function() { return [] })
 	var fermions = terms.map (function() { return [] })
@@ -5614,26 +5634,20 @@ arguments[4][1][0].apply(exports,arguments)
 	}))
 	var gotEquivalents = terms.some (function(t) { return equivalents[t].length > 0 })
 
-	termTable.append ($('<thead><tr>'
-			    + [[gotEquivalents ? 'ID(s)' : 'ID', gotEquivalents ? 'IDs for ontology terms. (Terms that have exactly the same gene associations are collapsed into a single class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : 'ID of an ontology term.'],
-			       [gotEquivalents ? 'Term(s)' : 'Term', 'Name of ontology term.' + (gotEquivalents ? ' (Terms that have exactly the same gene associations are collapsed into a single equivalence class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : '')],
-			       ['P(Term)', 'The posterior probability that ' + (gotEquivalents ? 'one of the terms in the equivalence class' : 'the term') + ' is activated.'],
-			       ['Explains', 'Genes that are associated with ' + (gotEquivalents ? 'this class of terms' : 'the term') + ' and are in the active set.'],
-			       ['Also predicts', 'Genes that are associated with ' + (gotEquivalents ? 'this class of terms' : 'the term') + ' but are not in the active set.'],
-			       gotBosons ? ['Positively correlated with', 'Other terms from this table that often co-occur with ' + (gotEquivalents ? 'this class of terms' : 'this term') + '. An interpretation is that these terms collaborate to explain complementary/disjoint subsets of the active genes.'] : [],
-			       gotFermions ? ['Negatively correlated with', 'Other terms from this table that rarely co-occur with ' + (gotEquivalents ? 'this class of terms' : 'this term') + '. An interpretation is that these terms compete to explain similar/overlapping subsets of the active genes.'] : []]
-			    .map (function (text_mouseover) {
-				return text_mouseover.length == 2
-				    ? ('<th><span title="' + text_mouseover[1] + '">' + text_mouseover[0] + '</span></th>')
-				    : ""
-			    }).join('')
-			    + '</tr></thead>'))
+	termTable.append (tableHeader
+			  ([[gotEquivalents ? 'ID(s)' : 'ID', gotEquivalents ? 'IDs for ontology terms. (Terms that have exactly the same gene associations are collapsed into a single class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : 'ID of an ontology term.'],
+			    [gotEquivalents ? 'Term(s)' : 'Term', 'Name of ontology term.' + (gotEquivalents ? ' (Terms that have exactly the same gene associations are collapsed into a single equivalence class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : '')],
+			    ['P(Term)', 'The posterior probability that ' + (gotEquivalents ? 'one of the terms in the equivalence class' : 'the term') + ' is activated.'],
+			    ['Explains', 'Genes that are associated with ' + (gotEquivalents ? 'this class of terms' : 'the term') + ' and are in the active set.'],
+			    ['Also predicts', 'Genes that are associated with ' + (gotEquivalents ? 'this class of terms' : 'the term') + ' but are not in the active set.'],
+			    gotBosons ? ['Positively correlated with', 'Other terms from this table that often co-occur with ' + (gotEquivalents ? 'this class of terms' : 'this term') + '. An interpretation is that these terms collaborate to explain complementary/disjoint subsets of the active genes.'] : [],
+			    gotFermions ? ['Negatively correlated with', 'Other terms from this table that rarely co-occur with ' + (gotEquivalents ? 'this class of terms' : 'this term') + '. An interpretation is that these terms compete to explain similar/overlapping subsets of the active genes.'] : []]))
 	var termTableBody = $('<tbody/>')
+	var inGeneSet = util.objPredicate (wtf.mcmc.models[0].inGeneSet)
         terms.forEach (function (t,i) {
 	    var p = termProb[t]
 	    var pStyle = probStyle(p)
 	    var genes = wtf.assocs.genesByTerm[wtf.ontology.termIndex[t]]
-	    var inGeneSet = util.objPredicate (wtf.mcmc.models[0].inGeneSet)
 	    var explained = genes.filter (inGeneSet)
 		.map (function(g) { return wtf.assocs.geneName[g] })
 	    var predicted = genes.filter (util.negate (inGeneSet))
@@ -5646,15 +5660,14 @@ arguments[4][1][0].apply(exports,arguments)
 	    }
 	    equivalents[t].forEach (function (e, ei) {
 		termTableBody
-		    .append ($('<tr style="' + pStyle + '">'
-                               + (ei == 0 ? '<td>' : '<td style="border-top-style:none;">') + linkTerm.call(wtf,e) + '</td>'
-                               + (ei == 0 ? '<td>' : '<td style="border-top-style:none;">') + wtf.ontology.getTermInfo(e) + '</td>'
-			       + (ei == 0 ? eqtd(p.toPrecision(5)) : '')
-			       + (ei == 0 ? eqtd(explained.join(", ")) : '')
-			       + (ei == 0 ? eqtd(predicted.join(", ")) : '')
-			       + (ei == 0 && gotBosons ? eqtdsets(bosons[i]) : '')
-			       + (ei == 0 && gotFermions ? eqtdsets(fermions[i]) : '')
-			       + '</tr>'))
+		    .append ($('<tr style="' + pStyle + '"/>')
+			     .append (stacktd(ei,linkTerm.call(wtf,e)),
+				      stacktd(ei,wtf.ontology.getTermInfo(e)),
+				      (ei == 0 ? eqtd(p.toPrecision(5)) : ''),
+				      (ei == 0 ? eqtd(explained.join(", ")) : ''),
+				      (ei == 0 ? eqtd(predicted.join(", ")) : ''),
+				      (ei == 0 && gotBosons ? eqtdsets(bosons[i]) : ''),
+				      (ei == 0 && gotFermions ? eqtdsets(fermions[i]) : '')))
 	    })
         })
 	termTable.append (termTableBody)
@@ -5664,15 +5677,27 @@ arguments[4][1][0].apply(exports,arguments)
         return terms
     }
 
-    function showGeneTable (wtf, parent, geneProb, label, terms) {
-	var geneTable = $('<table class="table"/>')
+    function stacktd(i,content,title) {
+	var elt = (i == 0 ? $('<td/>') : $('<td style="border-top-style:none;"/>'))
+	elt.html (content)
+	if (title)
+	    elt.attr('title',title)
+	return elt
+    }
+
+    function showGeneTable (wtf, parent, geneProb, label, termsHeader, terms) {
+	var geneTable = $('<table class="table table-responsive"/>')
 	var genes = util.sortKeys(geneProb).reverse()
         var showTerm = terms ? util.listToCounts(terms) : {}
-	geneTable.append ($('<thead><tr><th>Gene name</th><th>P(' + label + ')</th>'
-                            + (terms ? '<th colspan="2">Predicted by terms</th>' : '')
-                            + '</tr></thead>'))
+	geneTable.append (tableHeader
+			  ([['Gene name', 'Name of the potential ' + label + ' gene.'],
+			    ['P(' + label + ')', 'Posterior probability that the gene is ' + label + '.'],
+			    terms ? ['Predicted by', 'A term that predicts this gene.', 2] : [],
+			    terms ? ['Explains', 'Number of genes in the active set that are explained by this term.'] : [],
+			    terms ? ['Also predicts', 'Number of genes that are NOT in the active set but are predicted by this term.'] : []]))
 	var geneTableBody = $('<tbody/>')
 	function pbtd(t,x) { return (t.length > 1 ? ('<td rowspan="' + t.length + '">') : '<td>') + x + '</td>' }
+	var inGeneSet = util.objPredicate (wtf.mcmc.models[0].inGeneSet)
         genes.forEach (function (g,i) {
 	    var p = geneProb[g]
 	    var pStyle = probStyle(p)
@@ -5683,26 +5708,86 @@ arguments[4][1][0].apply(exports,arguments)
 		    if (showTerm[wtf.ontology.termName[tx]])
 			predictedBy.push (wtf.ontology.termName[ti])
 		})
-	    else
+	    if (predictedBy.length == 0)
 		predictedBy = [null]
 
 	    predictedBy.forEach (function (t, ti) {
+
+		var genes = t ? wtf.assocs.genesByTerm[wtf.ontology.termIndex[t]] : []
+		var explained = genes.filter (inGeneSet)
+		    .map (function(g) { return wtf.assocs.geneName[g] })
+		var predicted = genes.filter (util.negate (inGeneSet))
+		    .map (function(g) { return wtf.assocs.geneName[g] })
+
 		geneTableBody
-		    .append ($('<tr style="' + pStyle + '">'
-			       + (ti == 0 ? pbtd(predictedBy,g) : '')
-			       + (ti == 0 ? pbtd(predictedBy,p.toPrecision(5)) : '')
-                               + (t
-				  ? ((ti == 0 ? '<td>' : '<td style="border-top-style:none;">')
-				     + linkTerm.call(wtf,t) + '</td>'
-				     + (ti == 0 ? '<td>' : '<td style="border-top-style:none;">')
-				     + wtf.ontology.getTermInfo(t) + '</td>')
-				  : '')
-			       + '</tr>'))
+		    .append ($('<tr style="' + pStyle + '"/>')
+			     .append (ti == 0 ? pbtd(predictedBy,g) : '',
+				      ti == 0 ? pbtd(predictedBy,p.toPrecision(5)) : '',
+				      t ? stacktd(ti,linkTerm.call(wtf,t)) : '',
+				      t ? stacktd(ti,wtf.ontology.getTermInfo(t)) : '',
+				      t ? stacktd(ti,explained.length,explained.join(', ')) : '',
+				      t ? stacktd(ti,predicted.length,predicted.join(', ')) : ''))
 	    })
         })
 	geneTable.append (geneTableBody)
 	parent.empty()
 	parent.append (geneTable)
+    }
+
+    var hypergeometricThreshold = .05
+    function makeQuickReport() {
+	var wtf = this
+	if (!wtf.madeQuickReport) {
+	    $('#wtf-hypergeometric-term-table-parent').empty()
+	    $('#wtf-quick-report').hide()
+
+	    getGeneSet(wtf)
+		.fail (function (msg) { modalAlert (msg) })
+		.done (function (validation) {
+		    var relevantTerms = wtf.assocs.relevantTermsForGeneSet (validation.resolvedGeneIndices)
+		    var hyperByTermIndex = wtf.assocs.hypergeometricPValues (validation.resolvedGeneIndices)
+		    var sidakThreshold = 1 - Math.pow (1 - hypergeometricThreshold, 1 / relevantTerms.length)
+		    var hyperByTerm = util.keyValListToObj (relevantTerms.map (function (ti) {
+			return [wtf.ontology.termName[ti], hyperByTermIndex[ti]]
+		    }).filter (function (tp) {
+			return tp[1] < sidakThreshold
+		    }))
+
+		    wtf.hyperByTermIndex = hyperByTermIndex
+		    wtf.hyperSidakThreshold = sidakThreshold
+
+		    var termTable = $('<table class="table table-striped"/>')
+		    var terms = util.sortKeys(hyperByTerm)
+		    var inGeneSet = util.objPredicate (util.listToCounts (validation.resolvedGeneIndices))
+
+		    termTable.append (tableHeader
+				      ([['ID', 'The ID of an ontology term.'],
+					['Name', 'The name of the term.'],
+					['P-value', 'The P-value of this term, according to a one-tailed Fisher\'s exact test. This is the probability that, if the genes in the gene-set had been selected at random, they would include at least as many genes annotated to this term as they in fact did.'],
+					['Explains', 'Number of genes in the specified gene-set that are explained by this term.'],
+					['Also predicts', 'Number of genes that are NOT in the specified gene-set but are associated with this term.']]))
+		    var termTableBody = $('<tbody/>')
+		    terms.forEach (function (t,i) {
+			var p = hyperByTerm[t]
+			var genes = wtf.assocs.genesByTerm[wtf.ontology.termIndex[t]]
+			var explained = genes.filter (inGeneSet)
+			    .map (function(g) { return wtf.assocs.geneName[g] })
+			var predicted = genes.filter (util.negate (inGeneSet))
+			    .map (function(g) { return wtf.assocs.geneName[g] })
+			termTableBody
+			    .append ($('<tr/>')
+				     .append ($('<td/>').html (linkTerm.call(wtf,t)),
+					      $('<td/>').text (wtf.ontology.getTermInfo(t)),
+					      $('<td/>').text (p.toPrecision(5)),
+					      $('<td/>').text (explained.length).attr ('title', explained.join(", ")),
+					      $('<td/>').text (predicted.length).attr ('title', predicted.join(", "))))
+		    })
+		    termTable.append (termTableBody)
+		    $('#wtf-hypergeometric-term-table-parent').append (termTable)
+		    $('#wtf-quick-report').show()
+		    wtf.madeQuickReport = true
+		})
+	}
     }
 
     function getLogLikeRange (wtf) {
@@ -5774,15 +5859,48 @@ arguments[4][1][0].apply(exports,arguments)
 	    }
 	}
     }
+
+    function modalAlert (msg) {
+        $("#wtf-modal-text").html (msg)
+        $("#wtf-modal").modal()
+    }
     
+    function modalConfirm (msg, noText, yesText, callback) {
+        $("#wtf-confirm-text").html (msg)
+        $("#wtf-confirm-no-button").text(noText)
+        $("#wtf-confirm-yes-button").text(yesText)
+	    .on ('click', function (evt) {
+		$("#wtf-confirm-yes-button").off ('click')
+		callback (evt)
+	    })
+        $("#wtf-confirm").modal()
+    }
+
     function cancelStart (wtf, msg) {
-	if (msg) {
-            $("#wtf-cancel-start-text").html (msg)
-            $("#wtf-cancel-start").modal()
-        }
+	if (msg)
+	    modalAlert (msg)
 	$('.wtf-reset').prop('disabled',false)
         $('.wtf-start').prop('disabled',false)
         enableInputControls()
+    }
+
+    function getGeneSet (wtf) {
+	var def = $.Deferred()
+        if (!wtf.assocs)
+	    def.reject ('Please select an organism and ontology, before starting analysis.')
+	else {
+	    var geneNames = $('#wtf-gene-set-textarea').val().split(/\s*\n\s*/)
+		.filter (function (sym) { return sym.length > 0 })
+            var valid = wtf.assocs.validateGeneNames (geneNames)
+	    if (valid.geneNames.length == 0)
+		def.reject ('Please provide some gene names, before starting analysis.')
+	    else if (valid.missingGeneNames.length > 0)
+		def.reject ('Please check the following gene names, which were not found in the associations list: '
+			    + '<i>' + valid.missingGeneNames.join(" ") + '</i>')
+	    else
+		def.resolve (valid)
+	}
+	return def
     }
 
     function startAnalysis (evt) {
@@ -5790,72 +5908,65 @@ arguments[4][1][0].apply(exports,arguments)
 	if (evt)
 	    evt.preventDefault()
 
-        if (!wtf.assocs) {
-	    cancelStart (wtf, "Please select an organism and ontology, before running the sampler.")
-            return
-        }
-        
 	$('.wtf-reset').prop('disabled',true)
         $('.wtf-start').prop('disabled',true)
         $('#wtf-gene-set-textarea').prop('disabled',true)
         $('#wtf-load-gene-set-button').prop('disabled',true)
 	$('.wtf-prior').prop('disabled',true)
         disableInputControls()
-        var geneNames = $('#wtf-gene-set-textarea').val().split(/\s*\n\s*/)
-            .filter (function (sym) { return sym.length > 0 })
-        var validation = wtf.assocs.validateGeneNames (geneNames)
-	if (geneNames.length == 0) {
-	    cancelStart (wtf, "Please provide some gene names, before running the sampler.")
-	} else if (validation.missingGeneNames.length > 0)
-	    cancelStart (wtf, "Please check the following gene names, which were not found in the associations list: <i>" + validation.missingGeneNames.join(" ") + '</i>')
-	else {
 
-	    var prior = {
-		succ: {
-		    t: parseInt ($('#wtf-term-present-pseudocount').val()),
-		    fp: parseInt ($('#wtf-false-pos-pseudocount').val()),
-		    fn: parseInt ($('#wtf-false-neg-pseudocount').val())
-		},
-		fail: {
-		    t: parseInt ($('#wtf-term-absent-pseudocount').val()),
-		    fp: parseInt ($('#wtf-true-neg-pseudocount').val()),
-		    fn: parseInt ($('#wtf-true-pos-pseudocount').val())
+	getGeneSet(wtf)
+	    .fail (function (msg) { cancelStart (wtf, msg) })
+	    .done (function (validation) {
+
+		var prior = {
+		    succ: {
+			t: parseInt ($('#wtf-term-present-pseudocount').val()),
+			fp: parseInt ($('#wtf-false-pos-pseudocount').val()),
+			fn: parseInt ($('#wtf-false-neg-pseudocount').val())
+		    },
+		    fail: {
+			t: parseInt ($('#wtf-term-absent-pseudocount').val()),
+			fp: parseInt ($('#wtf-true-neg-pseudocount').val()),
+			fn: parseInt ($('#wtf-true-pos-pseudocount').val())
+		    }
 		}
-	    }
 
-            wtf.mcmc = new MCMC ({ assocs: wtf.assocs,
-			           geneSets: [geneNames],
-				   prior: prior,
-                                   moveRate: {
-                                       flip: 1,
-                                       step: 1,
-                                       jump: 1
-                                   },
-				   seed: 123456789
-			         })
+		makeQuickReport.call (wtf)
 
-	    var samplesPerTerm = $('#wtf-target-samples-per-term').val()
-	    wtf.mcmc.burn = $('#wtf-burn-per-term').val() * wtf.mcmc.nVariables()
-	    wtf.milestone.targetSamples = wtf.mcmc.burn + samplesPerTerm * wtf.mcmc.nVariables()
-	    wtf.milestone.startOfRun = 0
+		wtf.mcmc = new MCMC ({ assocs: wtf.assocs,
+			               geneSets: [validation.geneNames],
+				       prior: prior,
+                                       moveRate: {
+					   flip: 1,
+					   step: 1,
+					   jump: 1
+                                       },
+				       seed: 123456789
+			             })
 
-            wtf.mcmc.logLogLikelihood (true)
+		var samplesPerTerm = $('#wtf-target-samples-per-term').val()
+		wtf.mcmc.burn = $('#wtf-burn-per-term').val() * wtf.mcmc.nVariables()
+		wtf.milestone.targetSamples = wtf.mcmc.burn + samplesPerTerm * wtf.mcmc.nVariables()
+		wtf.milestone.startOfRun = 0
 
-	    wtf.milestonePassed = {}
-            wtf.trackingTermPairs = false
+		wtf.mcmc.logLogLikelihood (true)
 
-	    $('.wtf-mcmc-status').show()
+		wtf.milestonePassed = {}
+		wtf.trackingTermPairs = false
 
-            $('.wtf-start').prop('disabled',false)
-            $('.wtf-reset').show()
+		$('.wtf-mcmc-status').show()
 
-	    $('.wtf-progress-header').show()
-	    $('.wtf-progress-bar').css('width','0%')
+		$('.wtf-start').prop('disabled',false)
+		$('.wtf-reset').show()
 
-            resumeAnalysis.call(wtf)
-            plotLogLikelihood.call(wtf)
-            runMCMC.call(wtf)
-        }
+		$('.wtf-progress-header').show()
+		$('.wtf-progress-bar').css('width','0%')
+
+		resumeAnalysis.call(wtf)
+		plotLogLikelihood.call(wtf)
+		runMCMC.call(wtf)
+            })
     }
 
     function pauseAnalysis (evt, type, reason) {
@@ -5965,11 +6076,17 @@ arguments[4][1][0].apply(exports,arguments)
 	return $('<input type="text" size="5"/>')
     }
 
-    function selectPage (id) {
+    function selectPage (wtf, id) {
         $('.wtf-page').hide()
         $('.wtf-link').removeClass('active-menu')
         $('.wtf-' + id + '-link').addClass('active-menu')
         $('#wtf-' + id + '-page').show()
+	if (id == 'quick-report')
+	    setTimeout (makeQuickReport.bind(wtf), 1)  // don't delay redraw
+	else if (id == 'term-report' || id == 'gene-report') {
+	    if (!wtf.mcmc)
+		modalAlert ("You won't see anything on this page until you start running the sampler.")
+	}
     }
 
     function makeAlert (type, text) {
@@ -6073,6 +6190,8 @@ arguments[4][1][0].apply(exports,arguments)
 		delete wtf.ontologyName
                 delete wtf.ontology
                 delete wtf.assocs
+		delete wtf.madeQuickReport
+		delete wtf.hyperByTermIndex
 
 		$('#wtf-select-organism-button-text').text (orgJson.name)
 		$('.wtf-organism-name').text (orgJson.name)
@@ -6109,6 +6228,8 @@ arguments[4][1][0].apply(exports,arguments)
 		
                 delete wtf.ontology
                 delete wtf.assocs
+		delete wtf.madeQuickReport
+		delete wtf.hyperByTermIndex
 
 		$('#wtf-select-ontology-button-text').text (ontoJson.name)
 		$('.wtf-ontology-name').text (ontoJson.name)
@@ -6141,11 +6262,11 @@ arguments[4][1][0].apply(exports,arguments)
 
         // set up sidebar menu
         $('.wtf-page').hide()
-        selectPage ('data')
+        selectPage (wtf, 'data')
         $('.wtf-page-inner').show()
         $('.wtf-link').click (function (evt) {
 	    evt.preventDefault()
-            selectPage (evt.target.getAttribute('data-target'))
+            selectPage (wtf, evt.target.getAttribute('data-target'))
         })
         
 	// set up data page
@@ -6154,7 +6275,11 @@ arguments[4][1][0].apply(exports,arguments)
         $('#wtf-example-gene-set-button').hide()
 	$('#wtf-sampler-controls').hide()
 
-        $('#wtf-gene-set-textarea').bind ('input propertychange', showOrHideSamplerControls.bind(wtf))
+        $('#wtf-gene-set-textarea').bind ('input propertychange', function() {
+	    showOrHideSamplerControls.bind(wtf)
+	    delete wtf.madeQuickReport
+	    delete wtf.hyperByTermIndex
+	})
 
 	$('#wtf-gene-set-file-selector').on ('change', function (fileSelectEvt) {
 	    var reader = new FileReader()
@@ -6171,7 +6296,9 @@ arguments[4][1][0].apply(exports,arguments)
 	    })
 
 	$('.wtf-reset')
-	    .on('click', reset.bind(wtf))
+	    .on('click', function() {
+		modalConfirm ("Do you really want to reset? This will erase all the statistics the sampler has accumulated (i.e. the Term and Gene reports).", "No, I've relented", "Yes, wipe it all", reset.bind(wtf))
+	    })
 
         // set up parameters page
 	$('#wtf-term-present-pseudocount').val(1)
