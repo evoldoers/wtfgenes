@@ -168,6 +168,13 @@
 		</h1>
               </div>
             </div>
+	    <div class="row wtf-mcmc-status">
+	      <div class="col-md-12">
+		<div class="alert alert-warning">
+		  The data input controls on this page are frozen once sampling begins. To modify them, first reset the sampler.
+		</div>
+	      </div>
+	    </div>
             <div class="row">
               <div class="col-md-12">
 		<div class="panel panel-primary">
@@ -266,7 +273,7 @@
 	      <div class="col-md-12">
 		<h1 class="page-head-line">QUICK TERM REPORT <br>
 		</h1>
-		<h1 class="page-subhead-line">This page lists the terms that are enriched according to Fisher's exact test analysis <a href="#" data-toggle="modal" data-target="#wtf-quick-report-help">(more info)</a>.</h1>
+		<h1 class="page-subhead-line">This page lists the terms that are enriched according to Fisher's exact test <a href="#" data-toggle="modal" data-target="#wtf-quick-report-help">(more info)</a>.</h1>
 	      </div>
 	    </div>
 	    <div id="wtf-quick-report" class="row">
@@ -292,6 +299,13 @@
 		<h1 class="page-subhead-line">
 		  Specify the prior over model parameters <a href="#" data-toggle="modal" data-target="#wtf-parameters-help">(more info)</a>.
 		</h1>
+	      </div>
+	    </div>
+	    <div class="row wtf-mcmc-status">
+	      <div class="col-md-12">
+		<div class="alert alert-warning">
+		  The parameter settings on this page are frozen once sampling begins. To modify them, first reset the sampler.
+		</div>
 	      </div>
 	    </div>
 	    <div class="row">
@@ -436,7 +450,7 @@
 		      <div class="col-md-4" style="padding-left:0px;">
 			<div class="form-group"> <label> Sampling time </label>
 			  <input id="wtf-target-samples-per-term" class="form-control" type="text">
-			  <p class="help-block">The number of samples per term that the sampler runs while statistics are gathered.</p>
+			  <p class="help-block">The target number of samples per term that the sampler will be run while statistics are gathered.</p>
 			</div>
 		      </div>
 

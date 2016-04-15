@@ -422,60 +422,62 @@
         $('.wtf-start').prop('disabled',true)
         disableInputControls()
 
-	getGeneSet(wtf)
-	    .fail (function (msg) { cancelStart (wtf, msg) })
-	    .done (function (validation) {
+        setTimeout (function() {  // give buttons a chance to update
+	    getGeneSet(wtf)
+	        .fail (function (msg) { cancelStart (wtf, msg) })
+	        .done (function (validation) {
 
-                wtf.userGeneName = validation.suppliedGeneName
-                
-		var prior = {
-		    succ: {
-			t: parseFloatAndSet ('wtf-term-present-pseudocount', 1),
-			fp: parseFloatAndSet ('wtf-false-pos-pseudocount', 1),
-			fn: parseFloatAndSet ('wtf-false-neg-pseudocount', 1)
-		    },
-		    fail: {
-			t: parseFloatAndSet ('wtf-term-absent-pseudocount', 1),
-			fp: parseFloatAndSet ('wtf-true-neg-pseudocount', 1),
-			fn: parseFloatAndSet ('wtf-true-pos-pseudocount', 1)
+                    wtf.userGeneName = validation.suppliedGeneName
+                    
+		    var prior = {
+		        succ: {
+			    t: parseFloatAndSet ('wtf-term-present-pseudocount', 1),
+			    fp: parseFloatAndSet ('wtf-false-pos-pseudocount', 1),
+			    fn: parseFloatAndSet ('wtf-false-neg-pseudocount', 1)
+		        },
+		        fail: {
+			    t: parseFloatAndSet ('wtf-term-absent-pseudocount', 1),
+			    fp: parseFloatAndSet ('wtf-true-neg-pseudocount', 1),
+			    fn: parseFloatAndSet ('wtf-true-pos-pseudocount', 1)
+		        }
 		    }
-		}
 
-		makeQuickReport.call (wtf)
+		    makeQuickReport.call (wtf)
 
-		wtf.mcmc = new MCMC ({ assocs: wtf.assocs,
-			               geneSets: [validation.geneNames],
-				       prior: prior,
-                                       moveRate: {
-					   flip: 1,
-					   step: 1,
-					   jump: 1
-                                       },
-				       seed: 123456789
-			             })
+		    wtf.mcmc = new MCMC ({ assocs: wtf.assocs,
+			                   geneSets: [validation.geneNames],
+				           prior: prior,
+                                           moveRate: {
+					       flip: 1,
+					       step: 1,
+					       jump: 1
+                                           },
+				           seed: 123456789
+			                 })
 
-		var samplesPerTerm = parseIntAndSet ('wtf-target-samples-per-term', 1)
-		wtf.mcmc.burn = parseIntAndSet ('wtf-burn-per-term', 1) * wtf.mcmc.nVariables()
-		wtf.milestone.targetSamples = wtf.mcmc.burn + samplesPerTerm * wtf.mcmc.nVariables()
-		wtf.milestone.startOfRun = 0
+		    var samplesPerTerm = parseIntAndSet ('wtf-target-samples-per-term', 1)
+		    wtf.mcmc.burn = parseIntAndSet ('wtf-burn-per-term', 1) * wtf.mcmc.nVariables()
+		    wtf.milestone.targetSamples = wtf.mcmc.burn + samplesPerTerm * wtf.mcmc.nVariables()
+		    wtf.milestone.startOfRun = 0
 
-		wtf.mcmc.logLogLikelihood (true)
+		    wtf.mcmc.logLogLikelihood (true)
 
-		wtf.milestonePassed = {}
-		wtf.trackingTermPairs = false
+		    wtf.milestonePassed = {}
+		    wtf.trackingTermPairs = false
 
-		$('.wtf-mcmc-status').show()
+		    $('.wtf-mcmc-status').show()
 
-		$('.wtf-start').prop('disabled',false)
-		$('.wtf-reset').show()
+		    $('.wtf-start').prop('disabled',false)
+		    $('.wtf-reset').show()
 
-		$('.wtf-progress-header').show()
-		$('.wtf-progress-bar').css('width','0%')
+		    $('.wtf-progress-header').show()
+		    $('.wtf-progress-bar').css('width','0%')
 
-		resumeAnalysis.call(wtf)
-		plotLogLikelihood.call(wtf)
-		runMCMC.call(wtf)
-            })
+		    resumeAnalysis.call(wtf)
+		    plotLogLikelihood.call(wtf)
+		    setTimeout (runMCMC.bind(wtf), 1)
+                })
+        }, 1)
     }
 
     function pauseAnalysis (evt, type, reason) {
