@@ -302,43 +302,51 @@
     
     function plotLogLikelihood() {
         var wtf = this
-	wtf.logLikeMinMax = []
-	wtf.logLikeMinMaxSlice = 0
-	getLogLikeRange (wtf)
-	wtf.targetX = [wtf.milestone.targetSamples, wtf.milestone.targetSamples]
-        Plotly.newPlot( $('#wtf-loglike-plot')[0],
-			[{ y: wtf.mcmc.logLikelihoodTrace,
-			   name: "Log-likelihood",
-			   showlegend: false },
-			 { x: [wtf.mcmc.burn, wtf.mcmc.burn],
-			   y: wtf.logLikeMinMax,
-			   name: "Burn-in",
-			   mode: 'lines',
-			   hoverinfo: 'name',
-			   line: { dash: 4 },
-			   showlegend: false },
-			 { x: wtf.targetX,
-			   y: wtf.logLikeMinMax,
-			   name: "End of run",
-			   mode: 'lines',
-			   hoverinfo: 'name',
-			   line: { dash: 4 },
-			   showlegend: false }],
-			{ margin: { t:10, b:100, r:0 },
-			  yaxis: { title: "Log-likelihood" },
-			  xaxis: { title: "Sample number" } },
-			{ autosizable: true,
-			  frameMargins: .05,
-			  displayModeBar: false })
+        if (wtf.mcmc) {
+	    wtf.logLikeMinMax = []
+	    wtf.logLikeMinMaxSlice = 0
+	    getLogLikeRange (wtf)
+	    wtf.targetX = [wtf.milestone.targetSamples, wtf.milestone.targetSamples]
 
-	$(window).on('resize',function() {
-	    redrawLogLikelihood.call(wtf)
-	})
+            $('#wtf-loglike-plot').empty()
+            Plotly.newPlot( $('#wtf-loglike-plot')[0],
+			    [{ y: wtf.mcmc.logLikelihoodTrace,
+			       name: "Log-likelihood" },
+			     { x: [wtf.mcmc.burn, wtf.mcmc.burn],
+			       y: wtf.logLikeMinMax,
+			       name: "Burn-in",
+			       mode: 'lines',
+			       hoverinfo: 'name',
+			       line: { dash: 4 } },
+			     { x: wtf.targetX,
+			       y: wtf.logLikeMinMax,
+			       name: "End of run",
+			       mode: 'lines',
+			       hoverinfo: 'name',
+			       line: { dash: 4 } }],
+			    { margin: { t:10, b:100, r:0 },
+			      yaxis: { title: "Log-likelihood" },
+			      xaxis: { title: "Sample number" },
+                              showlegend: false },
+			    { frameMargins: .05,
+			      displayModeBar: false })
+
+	    $(window).off('resize')
+	    $(window).on('resize', forceRedrawLogLikelihood.bind(wtf))
+        }
     }
 
+    function forceRedrawLogLikelihood() {
+        var wtf = this
+        if (wtf.mcmc) {
+            plotLogLikelihood.call(wtf)
+            Plotly.redraw( $('#wtf-loglike-plot')[0] )
+        }
+    }
+    
     function redrawLogLikelihood() {
         var wtf = this
-        if (!wtf.paused) {
+        if (wtf.mcmc && !wtf.paused) {
 	    getLogLikeRange (wtf)
             Plotly.redraw( $('#wtf-loglike-plot')[0] )
 	}
@@ -483,7 +491,8 @@
 		    $('.wtf-progress-bar').css('width','0%')
 
 		    resumeAnalysis.call(wtf)
-		    plotLogLikelihood.call(wtf)
+
+                    plotLogLikelihood.call(wtf)
 		    setTimeout (runMCMC.bind(wtf), 1)
                 })
         }, 1)
@@ -563,6 +572,8 @@
 	$("#wtf-target-samples-per-term").prop('disabled',false)
 
 	$('.wtf-progress-header').hide()
+
+        $(window).off('resize')  // cancel Plotly redraw
     }
 
     function inputControls() {
@@ -643,9 +654,19 @@
         $('.wtf-' + id + '-link').addClass('active-menu')
         $('#wtf-' + id + '-page').show()
         $('.wtf-no-report').hide()
-	if (id == 'quick-report')
+
+        switch (id) {
+        case 'quick-report':
+	    if (id == 'quick-report')
 	    setTimeout (makeQuickReport.bind(wtf), 1)  // don't delay redraw
-	else if (id == 'term-report' || id == 'gene-report') {
+            break
+
+        case 'sampler':
+            forceRedrawLogLikelihood.call(wtf)
+            break
+
+	case 'term-report':
+        case 'gene-report':
 	    if (!wtf.mcmc) {
                 $('.wtf-no-report-text').html ("You won't see any results on this page until you start running the sampler.")
                 $('.wtf-no-report').show()
@@ -653,6 +674,10 @@
                 $('.wtf-no-report-text').html ("You won't see any results on this page until the sampler has finished its burn-in period.")
                 $('.wtf-no-report').show()
             }
+            break
+
+        default:
+            break
 	}
     }
 
