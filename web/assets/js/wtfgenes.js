@@ -6438,9 +6438,9 @@ arguments[4][1][0].apply(exports,arguments)
 	    })
 
         // set up parameters page
-        var sliderProbs = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, .1, .2, .3, .4, .5, .6],
+        var sliderProbs = [0, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, .1, .2, .3, .4, .5, .6],
             sliderWeights = [0, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8],
-            initSliderProb = 4,
+            initSliderProb = 7,
             initSliderWeight = 4
         
         function sliderChangeCallback (probId, weightId, succId, failId, thisId) {
@@ -6451,6 +6451,7 @@ arguments[4][1][0].apply(exports,arguments)
                 $('#wtf-'+failId+'-pseudocount').val ((1 - prob) * weight)
                 $('.wtf-'+probId).text (prob)
                 $('.wtf-'+weightId).text (weight)
+                $('#wtf-'+probId+'-slider, #wtf-'+weightId+'-slider').fadeTo(0,1)
             }
         }
 
@@ -6472,6 +6473,16 @@ arguments[4][1][0].apply(exports,arguments)
                           stop: weightChange
                         })
             sliderChangeCallback (probId, weightId, succId, failId) ()
+            $('#wtf-'+succId+'-pseudocount, #wtf-'+failId+'-pseudocount')
+                .change (function() {
+                    var succ = parseFloatAndSet ('wtf-'+succId+'-pseudocount', 1)
+                    var fail = parseFloatAndSet ('wtf-'+failId+'-pseudocount', 1)
+                    $('.wtf-'+probId).text (succ / (succ + fail))
+                    $('.wtf-'+weightId).text (succ + fail)
+                    $('#wtf-'+probId+'-slider, #wtf-'+weightId+'-slider')
+                        .fadeTo(.5,.5)
+                    
+                })
         }
                                            
         initSliders ('term-prob', 'term-weight', 'term-present', 'term-absent')
