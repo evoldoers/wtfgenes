@@ -4322,6 +4322,7 @@ arguments[4][1][0].apply(exports,arguments)
 	this.postMoveCallback.push (function (mcmc, move) {
 	    console.warn ("Sample #" + move.sample
                           + ": log-likelihood " + mcmc.quickCollapsedLogLikelihood()
+                          + " (" + mcmc.collapsedLogLikelihood() + ")"
                           + ", state " + mcmc.models.map (function (model) {
 		              return JSON.stringify (model.toJSON())
 	                  }))
@@ -4724,7 +4725,8 @@ arguments[4][1][0].apply(exports,arguments)
 		    logActiveTerms: logActiveTerms,
 		    logMixing: logMixing,
 		    logLogLikelihood: logLogLikelihood,
-
+                    logRandomNumbers: function() { util.logRandomNumbers(this.generator) },
+                    
 		    logTermPairs: logTermPairs,
 		    stopLoggingTermPairs: stopLoggingTermPairs,
 
@@ -5928,6 +5930,24 @@ arguments[4][1][0].apply(exports,arguments)
 	return def
     }
 
+    function parseFloatAndSet (id, defaultVal) {
+        var elt = $('#'+id)
+        var val = parseFloat (elt.val())
+        if (isNaN(val))
+            val = defaultVal
+        elt.val(val)
+        return val
+    }
+
+    function parseIntAndSet (id, defaultVal) {
+        var elt = $('#'+id)
+        var val = parseInt (elt.val())
+        if (isNaN(val))
+            val = defaultVal
+        elt.val(val)
+        return val
+    }
+    
     function startAnalysis (evt) {
         var wtf = this
 	if (evt)
@@ -5946,14 +5966,14 @@ arguments[4][1][0].apply(exports,arguments)
 
 		var prior = {
 		    succ: {
-			t: parseInt ($('#wtf-term-present-pseudocount').val()),
-			fp: parseInt ($('#wtf-false-pos-pseudocount').val()),
-			fn: parseInt ($('#wtf-false-neg-pseudocount').val())
+			t: parseFloatAndSet ('wtf-term-present-pseudocount', 1),
+			fp: parseFloatAndSet ('wtf-false-pos-pseudocount', 1),
+			fn: parseFloatAndSet ('wtf-false-neg-pseudocount', 1)
 		    },
 		    fail: {
-			t: parseInt ($('#wtf-term-absent-pseudocount').val()),
-			fp: parseInt ($('#wtf-true-neg-pseudocount').val()),
-			fn: parseInt ($('#wtf-true-pos-pseudocount').val())
+			t: parseFloatAndSet ('wtf-term-absent-pseudocount', 1),
+			fp: parseFloatAndSet ('wtf-true-neg-pseudocount', 1),
+			fn: parseFloatAndSet ('wtf-true-pos-pseudocount', 1)
 		    }
 		}
 
@@ -5970,8 +5990,8 @@ arguments[4][1][0].apply(exports,arguments)
 				       seed: 123456789
 			             })
 
-		var samplesPerTerm = $('#wtf-target-samples-per-term').val()
-		wtf.mcmc.burn = $('#wtf-burn-per-term').val() * wtf.mcmc.nVariables()
+		var samplesPerTerm = parseIntAndSet ('wtf-target-samples-per-term', 1)
+		wtf.mcmc.burn = parseIntAndSet ('wtf-burn-per-term', 1) * wtf.mcmc.nVariables()
 		wtf.milestone.targetSamples = wtf.mcmc.burn + samplesPerTerm * wtf.mcmc.nVariables()
 		wtf.milestone.startOfRun = 0
 
@@ -6020,7 +6040,7 @@ arguments[4][1][0].apply(exports,arguments)
 
 	if (wtf.milestonePassed.targetSamples) {
 	    delete wtf.milestonePassed.targetSamples
-	    var samplesPerTerm = $('#wtf-target-samples-per-term').val()
+	    var samplesPerTerm = parseIntAndSet ('wtf-target-samples-per-term', 1)
 	    wtf.milestone.startOfRun = wtf.mcmc.samplesIncludingBurn
 	    wtf.milestone.targetSamples += samplesPerTerm * wtf.mcmc.nVariables()
 	    wtf.targetX[0] = wtf.targetX[1] = wtf.milestone.targetSamples
