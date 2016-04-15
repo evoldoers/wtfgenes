@@ -389,7 +389,7 @@
 	    modalAlert (msg)
 	$('.wtf-reset').prop('disabled',false)
         $('.wtf-start').prop('disabled',false)
-        enableInputControls()
+        enableInputControls (wtf)
     }
 
     function getGeneSet (wtf) {
@@ -414,19 +414,19 @@
 	return def
     }
 
-    function parseFloatAndSet (id, defaultVal) {
+    function parseCountAndSet (id, defaultVal) {
         var elt = $('#'+id)
         var val = parseFloat (elt.val())
-        if (isNaN(val))
+        if (isNaN(val) || val < 0)
             val = defaultVal
         elt.val(val)
         return val
     }
 
-    function parseIntAndSet (id, defaultVal) {
+    function parsePosIntAndSet (id, defaultVal) {
         var elt = $('#'+id)
         var val = parseInt (elt.val())
-        if (isNaN(val))
+        if (isNaN(val) || val < 0)
             val = defaultVal
         elt.val(val)
         return val
@@ -439,7 +439,7 @@
 
 	$('.wtf-reset').prop('disabled',true)
         $('.wtf-start').prop('disabled',true)
-        disableInputControls()
+        disableInputControls (wtf)
 
         setTimeout (function() {  // give buttons a chance to update
 	    getGeneSet(wtf)
@@ -448,14 +448,14 @@
                    
 		    var prior = {
 		        succ: {
-			    t: parseFloatAndSet ('wtf-term-present-pseudocount', 1),
-			    fp: parseFloatAndSet ('wtf-false-pos-pseudocount', 1),
-			    fn: parseFloatAndSet ('wtf-false-neg-pseudocount', 1)
+			    t: parseCountAndSet ('wtf-term-present-pseudocount', 1),
+			    fp: parseCountAndSet ('wtf-false-pos-pseudocount', 1),
+			    fn: parseCountAndSet ('wtf-false-neg-pseudocount', 1)
 		        },
 		        fail: {
-			    t: parseFloatAndSet ('wtf-term-absent-pseudocount', 1),
-			    fp: parseFloatAndSet ('wtf-true-neg-pseudocount', 1),
-			    fn: parseFloatAndSet ('wtf-true-pos-pseudocount', 1)
+			    t: parseCountAndSet ('wtf-term-absent-pseudocount', 1),
+			    fp: parseCountAndSet ('wtf-true-neg-pseudocount', 1),
+			    fn: parseCountAndSet ('wtf-true-pos-pseudocount', 1)
 		        }
 		    }
 
@@ -472,8 +472,8 @@
 				           seed: 123456789
 			                 })
 
-		    var samplesPerTerm = parseIntAndSet ('wtf-target-samples-per-term', 1)
-		    wtf.mcmc.burn = parseIntAndSet ('wtf-burn-per-term', 1) * wtf.mcmc.nVariables()
+		    var samplesPerTerm = parsePosIntAndSet ('wtf-target-samples-per-term', 1)
+		    wtf.mcmc.burn = parsePosIntAndSet ('wtf-burn-per-term', 1) * wtf.mcmc.nVariables()
 		    wtf.milestone.targetSamples = wtf.mcmc.burn + samplesPerTerm * wtf.mcmc.nVariables()
 		    wtf.milestone.startOfRun = 0
 
@@ -524,7 +524,7 @@
 
 	if (wtf.milestonePassed.targetSamples) {
 	    delete wtf.milestonePassed.targetSamples
-	    var samplesPerTerm = parseIntAndSet ('wtf-target-samples-per-term', 1)
+	    var samplesPerTerm = parsePosIntAndSet ('wtf-target-samples-per-term', 1)
 	    wtf.milestone.startOfRun = wtf.mcmc.samplesIncludingBurn
 	    wtf.milestone.targetSamples += samplesPerTerm * wtf.mcmc.nVariables()
 	    wtf.targetX[0] = wtf.targetX[1] = wtf.milestone.targetSamples
@@ -539,7 +539,7 @@
 	pairCheckboxClicked.call(wtf)
 	$('#wtf-track-term-pairs').on('click',pairCheckboxClicked.bind(wtf))
 
-        disableInputControls()
+        disableInputControls (wtf)
 	$("#wtf-target-samples-per-term").prop('disabled',true)
         $('.wtf-sampler-notifications').append (makeAlert ('success', 'The sampler was started at ' + Date() + '.'))
 
@@ -580,16 +580,17 @@
         return $('#wtf-select-organism-button, #wtf-select-ontology-button, #wtf-gene-set-textarea, #wtf-load-gene-set-button, #wtf-example-gene-set-button, .wtf-prior')
     }
     
-    function disableInputControls() {
+    function disableInputControls (wtf) {
         inputControls().prop('disabled',true)
 	$('.wtf-prior-slider').slider('disable')
         $('.wtf-input-panel').attr('title','These controls are disabled once sampling begins. To modify them, reset the sampler.')
     }
     
-    function enableInputControls() {
+    function enableInputControls (wtf) {
         inputControls().prop('disabled',false)
-	$('.wtf-prior-slider').slider('enable')
         $('.wtf-input-panel').attr('title','')
+	$('.wtf-prior-slider').slider('enable')
+        wtf.enableSliderReset()
     }
 
     function geneSetTextAreaChanged() {
@@ -662,7 +663,7 @@
             break
 
         case 'sampler':
-            forceRedrawLogLikelihood.call(wtf)
+            setTimeout (forceRedrawLogLikelihood.bind(wtf), 1)  // don't delay redraw
             break
 
 	case 'term-report':
@@ -888,19 +889,51 @@
         
         function sliderChangeCallback (probId, weightId, succId, failId, thisId) {
             return function (event, ui) {
-                var prob = sliderProbs[thisId==probId ? ui.value : $('#wtf-'+probId+'-slider').slider('value')]
-                var weight = sliderWeights[thisId==weightId ? ui.value : $('#wtf-'+weightId+'-slider').slider('value')]
+                var probVal = thisId==probId ? ui.value : $('#wtf-'+probId+'-slider').slider('value'),
+                    weightVal = thisId==weightId ? ui.value : $('#wtf-'+weightId+'-slider').slider('value'),
+                    prob = sliderProbs[probVal],
+                    weight = sliderWeights[weightVal]
                 $('#wtf-'+succId+'-pseudocount').val (prob * weight)
                 $('#wtf-'+failId+'-pseudocount').val ((1 - prob) * weight)
                 $('.wtf-'+probId).text (prob)
                 $('.wtf-'+weightId).text (weight)
                 $('#wtf-'+probId+'-slider, #wtf-'+weightId+'-slider').fadeTo(0,1)
+                $('#wtf-reset-'+probId)
+                    .prop('disabled',probVal == initSliderProb && weightVal == initSliderWeight)
             }
         }
 
+        function setSlider (id, target, values) {
+            var index = values.findIndex (function(x) { return x == target })
+            if (index >= 0) {
+                $('#wtf-'+id+'-slider').slider ('value', index)
+                $('#wtf-'+id+'-slider').fadeTo(0,1)
+            } else {
+                var nextIndex = values.findIndex (function(x) { return x > target })
+                $('#wtf-'+id+'-slider').slider ('value', nextIndex > 0 ? (nextIndex-1) : 0)
+                $('#wtf-'+id+'-slider').fadeTo(.5,.5)
+            }
+            return index
+        }
+
+        function pseudocountChangeCallback (probId, weightId, succId, failId) {
+            return function() {
+                var succ = parseCountAndSet ('wtf-'+succId+'-pseudocount', 1)
+                var fail = parseCountAndSet ('wtf-'+failId+'-pseudocount', 1)
+                var weight = succ + fail, prob = succ / weight
+                $('.wtf-'+probId).text (prob)
+                $('.wtf-'+weightId).text (weight)
+                var probVal = setSlider (probId, prob, sliderProbs)
+                var weightVal = setSlider (weightId, weight, sliderWeights)
+                $('#wtf-reset-'+probId)
+                    .prop('disabled',probVal == initSliderProb && weightVal == initSliderWeight)
+            }
+        }
+        
         function initSliders (probId, weightId, succId, failId) {
             var probChange = sliderChangeCallback (probId, weightId, succId, failId, probId)
             var weightChange = sliderChangeCallback (probId, weightId, succId, failId, weightId)
+            var pseudoChange = pseudocountChangeCallback (probId, weightId, succId, failId)
             $('#wtf-'+probId+'-slider')
                 .slider({ value: initSliderProb,
                           min: 0,
@@ -915,19 +948,22 @@
                           slide: weightChange,
                           stop: weightChange
                         })
-            sliderChangeCallback (probId, weightId, succId, failId) ()
             $('#wtf-'+succId+'-pseudocount, #wtf-'+failId+'-pseudocount')
-                .change (function() {
-                    var succ = parseFloatAndSet ('wtf-'+succId+'-pseudocount', 1)
-                    var fail = parseFloatAndSet ('wtf-'+failId+'-pseudocount', 1)
-                    $('.wtf-'+probId).text (succ / (succ + fail))
-                    $('.wtf-'+weightId).text (succ + fail)
-                    $('#wtf-'+probId+'-slider, #wtf-'+weightId+'-slider')
-                        .fadeTo(.5,.5)
-                    
-                })
+                .change (pseudoChange)
+            $('#wtf-reset-'+probId).click (function() {
+                $('#wtf-'+probId+'-slider').slider ('value', initSliderProb)
+                $('#wtf-'+weightId+'-slider').slider ('value', initSliderWeight)
+                sliderChangeCallback (probId, weightId, succId, failId) ()
+            })
+            var oldReset = wtf.enableSliderReset
+            wtf.enableSliderReset = function() {
+                pseudoChange()
+                oldReset()
+            }
+            sliderChangeCallback (probId, weightId, succId, failId) ()
         }
-                                           
+
+        wtf.enableSliderReset = function() { }
         initSliders ('term-prob', 'term-weight', 'term-present', 'term-absent')
         initSliders ('false-pos-prob', 'false-pos-weight', 'false-pos', 'true-neg')
         initSliders ('false-neg-prob', 'false-neg-weight', 'false-neg', 'true-pos')
