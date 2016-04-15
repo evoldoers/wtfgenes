@@ -38,7 +38,7 @@
 	</div>
 
 	<div class="header-right wtf-progress-header" style="width:20%;display:none;" title="Sampler progress">
-	  <div class="progress">
+	  <div class="progress" style="margin-top:4px;border-style:solid;border-width:1px;">
 	    <div class="progress-bar progress-bar-warning progress-bar-striped active wtf-progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
 	      <span class="wtf-progress-percent"></span>
 	    </div>
@@ -229,6 +229,12 @@
 			<ul id="wtf-example-list" class="dropdown-menu">
 			</ul>
 		      </div>
+		      <div class="alert alert-warning wtf-gene-names-invalid" style="margin-top:10px;margin-bottom:0px;display:none;">
+			  <span class="wtf-gene-names-invalid-text"></span>
+		      </div>
+		      <div class="alert alert-success wtf-gene-names-valid" style="margin-top:10px;margin-bottom:0px;display:none;">
+			  Recognized <span class="wtf-gene-names-valid-count"></span>. Looks good!
+		      </div>
 		    </form>
 		  </div>
 		</div>
@@ -249,7 +255,7 @@
 			  Reset sampler</button>
 		      </div>
 		      <div class="col-md-4 wtf-progress-header" style="padding-left:0px;padding-right:0px;" title="Sampler progress">
-			<div class="progress">
+			<div class="progress" style="margin-top:10px;margin-bottom:10px;">
 			  <div class="progress-bar progress-bar-warning progress-bar-striped active wtf-progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
 			    <span class="wtf-progress-percent"></span>
 			  </div>
@@ -482,7 +488,7 @@
 			  Reset sampler</button>
 		      </div>
 		      <div class="col-md-4 wtf-progress-header" style="padding-left:0px;padding-right:0px;" title="Sampler progress">
-			<div class="progress">
+			<div class="progress" style="margin-top:10px;margin-bottom:10px;">
 			  <div class="progress-bar progress-bar-warning progress-bar-striped active wtf-progress-bar" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
 			    <span class="wtf-progress-percent"></span>
 			  </div>
@@ -511,7 +517,7 @@
 		<h1 class="page-subhead-line">This page lists the terms proposed as explanations for the combination of genes in the active set. </h1>
 	      </div>
 	    </div>
-	    <div class="row wtf-no-report">
+	    <div class="row wtf-no-report wtf-burn-unfinished">
 	      <div class="col-md-12">
 		<div class="alert alert-warning">
 		  <span class="wtf-no-report-text"></span>
@@ -543,7 +549,7 @@
 		</h1>
 	      </div>
 	    </div>
-	    <div class="row wtf-no-report">
+	    <div class="row wtf-no-report wtf-burn-unfinished">
 	      <div class="col-md-12">
 		<div class="alert alert-warning">
 		  <span class="wtf-no-report-text"></span>

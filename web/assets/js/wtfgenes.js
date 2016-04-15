@@ -5452,6 +5452,11 @@ arguments[4][1][0].apply(exports,arguments)
 	assert (approxEqual(a,b,epsilon), message || ("Difference between a ("+a+") and b ("+b+") is too large"))
     }
     
+    function plural (count, singular, plural) {
+        plural = plural || (singular + 's')
+        return count + ' ' + (count == 1 ? singular : plural)
+    }
+    
     function toHHMMSS (milliseconds) {
 	var sec_num = Math.floor (milliseconds / 1000)
 	var hours   = Math.floor (sec_num / 3600)
@@ -5541,6 +5546,7 @@ arguments[4][1][0].apply(exports,arguments)
     module.exports.approxEqual = approxEqual
     module.exports.assertApproxEqual = assertApproxEqual
     module.exports.toHHMMSS = toHHMMSS
+    module.exports.plural = plural
     module.exports.progressLogger = progressLogger
     module.exports.logRandomNumbers = logRandomNumbers
     module.exports.HSVtoRGB = HSVtoRGB
@@ -5607,6 +5613,7 @@ arguments[4][1][0].apply(exports,arguments)
             if (!wtf.milestonePassed.burnIn && wtf.mcmc.finishedBurn()) {
                 $('.wtf-sampler-notifications').append (makeAlert ('info', 'The sampler finished its burn-in period. Results are now available on the Term Report and Gene Report pages, and will be continually updated while the sampler is running.'))
 		$('.wtf-results').show()
+                $('.wtf-burn-unfinished').hide()
                 wtf.milestonePassed.burnIn = true
             }
             
@@ -5713,6 +5720,8 @@ arguments[4][1][0].apply(exports,arguments)
 				      (ei == 0 && gotFermions ? eqtdsets(fermions[i]) : '')))
 	    })
         })
+        if (terms.length == 0)
+            termTableBody.append ($('<tr/>').append ($('<td>').html ('<i>None</i>')))
 	termTable.append (termTableBody)
 	$('#wtf-term-table-parent').empty()
 	    .append (termTable)
@@ -5772,6 +5781,8 @@ arguments[4][1][0].apply(exports,arguments)
 				      t ? stacktd(ti,predicted.length,predicted.join(', ')) : ''))
 	    })
         })
+        if (genes.length == 0)
+            geneTableBody.append ($('<tr/>').append ($('<td>').html ('<i>None</i>')))
 	geneTable.append (geneTableBody)
 	parent.empty()
 	parent.append (geneTable)
@@ -5939,11 +5950,12 @@ arguments[4][1][0].apply(exports,arguments)
 		.filter (function (sym) { return sym.length > 0 })
             var valid = wtf.assocs.validateGeneNames (geneNames)
 	    if (valid.geneNames.length == 0)
-		def.reject ('provide some gene names.')
-	    else if (valid.missingGeneNames.length > 0)
-		def.reject ('check the gene names for validity. <p/>The following gene names were not found in the gene-term associations database:<br/>'
-			    + '<i>' + valid.missingGeneNames.join(" ") + '</i>')
-	    else {
+		def.reject ('enter some gene symbols.')
+	    else if (valid.missingGeneNames.length > 0) {
+                var detail = 'The following gene symbols were not found in the gene-term associations database:<br/>'
+		    + '<i>' + valid.missingGeneNames.join(", ") + '</i>'
+		def.reject ('check the entered gene symbols for validity. <p/>' + detail, detail)
+	    } else {
                 wtf.userGeneName = valid.suppliedGeneName
 		def.resolve (valid)
             }
@@ -6126,15 +6138,45 @@ arguments[4][1][0].apply(exports,arguments)
         $('.wtf-input-panel').attr('title','')
     }
 
-    function geneSetTextAreaChanged (wtf) {
+    function geneSetTextAreaChanged() {
+        var wtf = this
+        
 	delete wtf.madeQuickReport
 	delete wtf.hyperByTermIndex
-        showOrHideSamplerControls.call(wtf)
+
+        if (wtf.geneSetValidateTimer) {
+            clearTimeout (wtf.geneSetValidateTimer)
+            delete wtf.geneSetValidateTimer
+        }
+
+        wtf.geneSetValidateTimer = setTimeout (function() {
+            delete wtf.geneSetValidateTimer
+            getGeneSet(wtf)
+                .done (function (valid) {
+                    if (!wtf.geneSetValidateTimer) {
+                        $('.wtf-gene-names-invalid').hide()
+                        $('.wtf-gene-names-valid').show()
+                        $('.wtf-gene-names-valid-count').text (util.plural (valid.resolvedGeneIndices.length, "valid gene symbol"))
+                        $('#wtf-sampler-controls').show()
+                    }
+
+                }).fail (function (msg, detail) {
+                    if (!wtf.geneSetValidateTimer) {
+                        $('#wtf-sampler-controls').hide()
+                        $('.wtf-gene-names-valid').hide()
+                        if (detail) {
+                            $('.wtf-gene-names-invalid-text').html (detail)
+                            $('.wtf-gene-names-invalid').show()
+                        } else
+                            $('.wtf-gene-names-invalid').hide()
+                    }
+                })
+        }, 500)
     }
 
     function setGeneSetTextArea (wtf, text) {
 	$('#wtf-gene-set-textarea').val (text)
-        geneSetTextAreaChanged (wtf)
+        geneSetTextAreaChanged.call (wtf)
     }
 
     function exampleLoader (wtf, exampleJson) {
@@ -6162,7 +6204,10 @@ arguments[4][1][0].apply(exports,arguments)
 	    setTimeout (makeQuickReport.bind(wtf), 1)  // don't delay redraw
 	else if (id == 'term-report' || id == 'gene-report') {
 	    if (!wtf.mcmc) {
-                $('.wtf-no-report-text').html ("You won't see anything on this page until you start running the sampler.")
+                $('.wtf-no-report-text').html ("You won't see any results on this page until you start running the sampler.")
+                $('.wtf-no-report').show()
+            } else if (!wtf.mcmc.finishedBurn()) {
+                $('.wtf-no-report-text').html ("You won't see any results on this page until the sampler has finished its burn-in period.")
                 $('.wtf-no-report').show()
             }
 	}
@@ -6242,7 +6287,7 @@ arguments[4][1][0].apply(exports,arguments)
 	// initialize form
 	assocsReady.done (function() {
 
-            showOrHideSamplerControls.call(wtf)
+            geneSetTextAreaChanged.call(wtf)
 
             var examples = wtf.organismExamples.concat (wtf.ontologyExamples)
 	    $('#wtf-example-list').empty()
@@ -6287,7 +6332,7 @@ arguments[4][1][0].apply(exports,arguments)
                 $('#wtf-example-gene-set-button').hide()
                 $('#wtf-ontology-notifications').empty()
 
-                showOrHideSamplerControls.call(wtf)
+                geneSetTextAreaChanged.call(wtf)
 
 	        reset.call (wtf)
             }
@@ -6314,21 +6359,13 @@ arguments[4][1][0].apply(exports,arguments)
 		$('.wtf-ontology-name').text (ontoJson.name)
                 $('#wtf-ontology-notifications').empty()
 
-                showOrHideSamplerControls.call(wtf)
+                geneSetTextAreaChanged.call (wtf)
 
 		initialize.call(wtf)
 	    }
 	}
     }
 
-    function showOrHideSamplerControls() {
-        var wtf = this
-        if (wtf.assocs && $('#wtf-gene-set-textarea').val().search(/\S/) >= 0)
-            $('#wtf-sampler-controls').show()
-        else
-            $('#wtf-sampler-controls').hide()
-    }
-    
     function WTFgenes (conf) {
         var wtf = this
 	conf = conf || {}
@@ -6354,9 +6391,7 @@ arguments[4][1][0].apply(exports,arguments)
         $('#wtf-example-gene-set-button').hide()
 	$('#wtf-sampler-controls').hide()
 
-        $('#wtf-gene-set-textarea').bind ('input propertychange', function() {
-            geneSetTextAreaChanged (wtf)
-	})
+        $('#wtf-gene-set-textarea').bind ('input propertychange', geneSetTextAreaChanged.bind (wtf))
 
 	$('#wtf-gene-set-file-selector').on ('change', function (fileSelectEvt) {
 	    var reader = new FileReader()
