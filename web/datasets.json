@@ -14,7 +14,23 @@
                         {
                             "name": "Yeast mating genes",
                             "genes": ["STE2","STE3","STE5","GPA1","SST2","STE11","STE50","STE20","STE4","STE18","FUS3","KSS1","PTP2","MSG5","DIG1","DIG2","STE12"]
-                        }
+                        },
+			{
+			    "name": "Yeast ascospore",
+			    "genes": ["ADE16","AMA1","AQY1","BMH1","BMH2","CPR1","EMI1","EMI2","ERV14","FMP45","GLC7","GPA2","GPB2","IML3","IRC19","LSG1","MCK1","MRE11","OSW1","PAU8","RAS2","RIM101","RIM11","RIM21","RIM9","SEC14","SET1","SET2","SGA1","SHC1","SHP1","SMC3","SPO16","SPO73","SPO74","SPO75","SPO77","SPR1","SPR3","SPR6","SPS1","SPS19","SPS2","SPS4","SPT3","SSO1","SSP2","SUR7","UBI4","VID28","YNL194C","YOR338W","IML3","CPR1","GLC7","AMA1","RIM101","SPO16","SMC3","SET2","MRE11","MCK1","BIG1","CWH41","DCW1","DFG5","FLC1","FLC2","LRG1","RIM101","RIM21","ROT1","ROT2","RPI1","SLT2","UTH1","AZF1","CBK1","MSG5","RHO1","RNT1","ROM2"]
+			},
+			{
+			    "name": "Yeast genes involved in phosphate and nitrogen utilization",
+			    "genes": ["AGP1","BAP2","BAP3","GNP1","TAT1","TAT2","GAP1","HIP1","MMP1","SAM3","CAN1","ALP1","LYP1","PUT4","DIP5","SSY1","AGP2","AGP3","MUP1","MUP3","UGA4","TPO5","HNM1","Bio5","MEP1","MEP2","MEP3","DAL5","yct1","TNA1","VHT1","FEN2","SEO1","fur4","dal4","fui1","thi7","thi72","net1","fcy2","tpn1","dur3","ptr2","opt1","opt2","aqr1","tpo1","BAT2","CAR1","DAL1","DAL2","DAL3","DAL7","DCG1","GDH2","GDH3","GLN1","PUT1","PUT2","UGA1","DAL80","GAT1","GZF3","PHO84","pho80","pho85","pho4","pho2","spl2","pho87","pho90","adk1","vip1","ado1","kcs1","ipk1","arg82","plc1","pho12","ppn1","vtc2","vtc1","vtc3","GPD1","plb1","PLB3","INM1","GIT1","KCS1","DDP1","TAX4","GDE1","PHM8","VIP1"]
+			},
+			{
+			    "name": "Yeast genes involved in pheromone response",
+			    "genes": ["CLA4","FPK1","KIN82","PRM1","YPP1","AXL1","KEX2","RAM2","RCE1","STE13","STE14","STE23","STE24","FAR1","GRR1","OPY2","STE6","CLN2","FAR10","FAR11","FAR3","FAR7","FAR8","POG1","VPS64","AKR1","DSE1","ADF1","AFR1","CDC42","FAR1","FUS3","FYV5","GET3","GPA1","KSS1","MDG1","MF(ALPHA)1","MF(ALPHA)2","MFA1","MFA2","PTC1","RGA1","RGA2","SCP160","STE11","STE18","STE2","STE20","STE3","STE4","STE5","STE50","BAR1","CMP2","CNA1","CNB1","CSI1","CSN9","GPA1","MSG5","RRI1","RRI2","SST2","YJR084W","STE7","DIG1","DIG2","HOG1","ITC1","KAR4","PRR1","PRR2","STE12","CRZ1","KAR4","PCC1","PLP1","PLP2","STE12"]
+			},
+			{
+			    "name": "Yeast genes involved in sulfate assimilation and nitrogen utilization",
+			    "genes": ["MET10","MET1","MET14","MET22","MET3","MET5","MET8","TRX1","SUL1","FZF1","SUL2","OAC1","ATF1","ATF2","ADY2","ATO2","ATO3","MEP1","MEP2","MEP3","UGA1","UGA3","YGR125W","YPR003C","YIL165C","MKS1","NPR1","RSP5","URE2","VID30","AGC1","CPS1","GDH2","DAL80","GZF3","PPH3","GAT1","RTG2","UME6"]
+			}
                     ]
 		}
 	    ]
