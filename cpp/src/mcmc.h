@@ -30,6 +30,7 @@ struct MCMC {
     BernoulliCounts prior;
     MoveRate moveRate;
     vguard<GeneSetSummary> geneSetSummary;
+    map<TermName,list<TermName> > termEquivalents;
     string toJSON() const;
   };
 

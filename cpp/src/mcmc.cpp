@@ -76,13 +76,18 @@ MCMC::Summary MCMC::summary (double postProbThreshold, double pValueThreshold) c
   summ.params = params;
   summ.prior = prior;
   summ.moveRate = moveRate;
+  const auto equiv = assocs.termEquivalents();
   for (ModelIndex m = 0; m < models.size(); ++m) {
     auto& model = models[m];
     GeneSetSummary gss;
     for (auto t: model.relevantTerms) {
       const double p = termStateOccupancy[m][t] / (double) samples;
-      if (p >= postProbThreshold)
-	gss.termPosterior[assocs.ontology.termName[t]] = p;
+      if (p >= postProbThreshold) {
+	auto& tn = assocs.ontology.termName[t];
+	gss.termPosterior[tn] = p;
+	if (equiv.count(tn) && !summ.termEquivalents.count(tn))
+	  summ.termEquivalents[tn] = equiv.at(tn);
+      }
     }
     for (Assocs::GeneIndex g = 0; g < assocs.genes(); ++g) {
       GeneProb& geneProb (model.inGeneSet[g] ? gss.geneFalsePosPosterior : gss.geneFalseNegPosterior);
@@ -114,5 +119,12 @@ string MCMC::Summary::toJSON() const {
   vguard<string> summJson;
   for (auto& gss: geneSetSummary)
     summJson.push_back (gss.toJSON());
-  return string("{\"summary\":[") + join(summJson,",") + "]}";
+  list<string> eqJson;
+  for (auto& te: termEquivalents) {
+    list<string> s;
+    for (auto& e: te.second)
+      s.push_back (string("\"") + e + "\"");
+    eqJson.push_back (string("\"") + te.first + "\":[" + join(s,",") + "]");
+  }
+  return string("{\"termEquivalents\":{" + join(eqJson,",") + "},\"summary\":[") + join(summJson,",") + "]}";
 }

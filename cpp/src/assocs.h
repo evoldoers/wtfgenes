@@ -52,6 +52,17 @@ struct Assocs {
 	relevant.push_back (t);
     return relevant;
   }
+  map<TermName,list<TermName> > termEquivalents() const {
+    map<TermName,list<TermName> > termEquiv;
+    for (auto& ec: termsInEquivClass)
+      if (ec.size() > 1) {
+	list<TermName> equivs;
+	for (size_t n = 1; n < ec.size(); ++n)
+	  equivs.push_back (ontology.termName[ec[n]]);
+	termEquiv[ontology.termName[ec[0]]] = equivs;
+      }
+    return termEquiv;
+  }
 
   void init (GeneTermList& geneTermList);
   void parseGOA (istream& in);

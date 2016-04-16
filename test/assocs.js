@@ -88,6 +88,7 @@ describe('Assocs', function() {
         it('should identify equivalence classes', function() {
             assert.deepEqual (transAssocs.termsInEquivClass, [[5],[6],[4],[3,1],[2],[0],[8],[7]])  // reverse topsort order
             assert.deepEqual (transAssocs.equivClassByTerm, [5,3,4,3,2,0,1,7,6])
+            assert.deepEqual (transAssocs.termEquivalents(), { primate: ["mammal"] })
         })
     })
 
