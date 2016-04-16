@@ -44,11 +44,12 @@ var opt = getopt.create([
     ['S',  'step-rate=N'      , 'relative rate of term-stepping moves (default='+defaultMoveRate.step+')'],
     ['J',  'jump-rate=N'      , 'relative rate of term-jumping moves (default='+defaultMoveRate.jump+')'],
     ['R',  'randomize-rate=N' , 'relative rate of term-randomizing moves (default='+defaultMoveRate.randomize+')'],
-    ['l',  'log=TAG+'         , 'log various extra things (e.g. "move", "state", "mixing")'],
+    ['l',  'log=TAG+'         , 'log extra things (e.g. "move", "state", "mixing")'],
     ['q' , 'quiet'            , 'don\'t log the usual things ("data", "progress")'],
     ['r' , 'rnd-seed=N'       , 'seed random number generator (default=' + defaultSeed + ')'],
     ['m' , 'simulate=N'       , 'instead of doing inference, simulate N gene sets'],
     ['x' , 'exclude-redundant', 'exclude redundant terms from simulation'],
+    ['A' , 'active-terms=N'   , 'specify number of active terms in simulation'],
     ['b' , 'benchmark'        , 'benchmark by running inference on simulated data'],
     ['B' , 'bench-reps=N'     , 'number of repetitions of benchmark (default='+defaultBenchReps+')'],
     ['h' , 'help'             , 'display this help message']
@@ -169,6 +170,7 @@ function runSimulation() {
     var sim = new Simulator ({ assocs: assocs,
 			       generator: generator(),
 			       prior: prior,
+			       nActiveTerms: opt.options['active-terms'],
 			       excludeRedundantTerms: opt.options['exclude-redundant'] })
 
     return sim.sampleGeneSets (parseInt (opt.options['simulate'] || '1'))

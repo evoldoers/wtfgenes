@@ -4476,15 +4476,11 @@ arguments[4][1][0].apply(exports,arguments)
 		    return occ / mcmc.samples
 		})
 		var termPrecision = termProb.map (function (p) { return 1 / (p - p*p) })
-//		console.log ("termStateOccupancy["+m+"]="+mcmc.termStateOccupancy[m])
-//		console.log ("termProb="+termProb)
 		var dynamicTerms = model.relevantTerms.filter (function (term) {
 		    var p = termProb[term]
 		    return p > 0 && p < 1
 		})
 		var isDynamic = util.objPredicate (util.listToCounts (dynamicTerms))
-//		console.log ("dynamicTerms="+dynamicTerms)
-//		console.log ("termPrecision[dynamicTerms]="+dynamicTerms.map(function(t){return termPrecision[t]}))
 		var nTermsHit = dynamicTerms.length
 
 		// t = time, T = term, tmax = max time, Tmax = number of terms
@@ -4505,10 +4501,8 @@ arguments[4][1][0].apply(exports,arguments)
 			var commonTerms = util.commonElements (activeTermTrace[i], activeTermTrace[i+tau])
 			    .filter (isDynamic)
 			var sum = util.sumList (commonTerms.map (function (term) { return termPrecision[term] }))
-//			console.log("tau="+tau+" i="+i+" common="+commonTerms+" sum="+sum)
 			R_tau.push (sum)
 		    }
-//		    console.log("tau="+tau+" R_tau="+R_tau)
 		    termAuto[tau] = (jStat.mean(R_tau) - baseline) / nTermsHit
 		})
 		summ.mcmc.termAutoCorrelation.push (termAuto)
@@ -5621,7 +5615,7 @@ arguments[4][1][0].apply(exports,arguments)
 	    }
 	    wtf.lastRun = now
 	    $('#wtf-total-samples').text (wtf.mcmc.samplesIncludingBurn.toString())
-	    $('#wtf-samples-per-term').text ((wtf.mcmc.samplesIncludingBurn / wtf.mcmc.nVariables()).toString())
+	    $('#wtf-samples-per-term').text (Math.round(wtf.mcmc.samplesIncludingBurn / wtf.mcmc.nVariables()).toString())
 
             redrawLogLikelihood.call(wtf)
 	    if (wtf.redraw) {

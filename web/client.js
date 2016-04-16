@@ -38,7 +38,7 @@
 	    }
 	    wtf.lastRun = now
 	    $('#wtf-total-samples').text (wtf.mcmc.samplesIncludingBurn.toString())
-	    $('#wtf-samples-per-term').text ((wtf.mcmc.samplesIncludingBurn / wtf.mcmc.nVariables()).toString())
+	    $('#wtf-samples-per-term').text (Math.round(wtf.mcmc.samplesIncludingBurn / wtf.mcmc.nVariables()).toString())
 
             redrawLogLikelihood.call(wtf)
 	    if (wtf.redraw) {
