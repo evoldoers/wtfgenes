@@ -3983,11 +3983,14 @@ arguments[4][1][0].apply(exports,arguments)
                 { 'ontology': ontology,
                   'geneName': [],
                   'geneIndex': {},
+
                   'genesByTerm': [],
                   'termsByGene': [],
 		  'geneHasTerm': {},
+
                   'genes': function() { return this.geneName.length },
                   'terms': function() { return this.ontology.terms() },
+
 		  'relevantTerms': function() {
 		      var assocs = this
 		      return util.iota(assocs.terms()).filter (function(term) {
@@ -4003,6 +4006,7 @@ arguments[4][1][0].apply(exports,arguments)
 			  return assocs.termIsExemplar (term)
 		      }).sort(util.numCmp)
 		  },
+
                   'equivClassByTerm': [],
                   'termsInEquivClass': [],
 		  'getExemplar': function(termIndex) {
@@ -4011,6 +4015,16 @@ arguments[4][1][0].apply(exports,arguments)
                   'termIsExemplar': function(termIndex) {
                       return this.getExemplar(termIndex) == termIndex
                   },
+                  'termEquivalents': function() {
+                      var assocs = this
+                      return util.keyValListToObj (assocs.termsInEquivClass.filter (function(l) {
+                          return l.length > 1
+                      }).map (function(l) {
+                          var n = l.map (function(ti) { return assocs.ontology.termName[ti] })
+                          return [n[0], n.slice(1)]
+                      }))
+                  },
+                  
 		  'nAssocs': 0,
 		  'hypergeometricPValues': hypergeometricPValues,
                   'validateGeneNames': validateGeneNames,
@@ -4631,6 +4645,7 @@ arguments[4][1][0].apply(exports,arguments)
 	var mcmc = this
         threshold = threshold || .01
 	var summ = { model: { prior: mcmc.prior.toJSON() },
+                     termEquivalents: {},
 	             mcmc: {
 			 samples: mcmc.samples,
 			 burn: mcmc.burn,
@@ -4653,6 +4668,12 @@ arguments[4][1][0].apply(exports,arguments)
 	mcmc.summaryCallback.forEach (function(callback) {
 	    callback (mcmc, summ)
 	})
+        var equiv = mcmc.assocs.termEquivalents()
+        summ.summary.forEach (function (s) {
+            Object.keys(s.posteriorMarginal.term).forEach (function (t) {
+                summ.termEquivalents[t] = equiv[t]
+            })
+        })
 	return summ
     }
 
