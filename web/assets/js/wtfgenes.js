@@ -4691,12 +4691,14 @@ arguments[4][1][0].apply(exports,arguments)
 	    ? new BernoulliCounts(conf.prior,parameterization.paramSet)
 	    : parameterization.paramSet.laplacePrior()
 	var generator = conf.generator || new MersenneTwister (conf.seed)
+        var initTerms = conf.initTerms || []
         var models = conf.models
-            || (conf.geneSets || [conf.geneSet]).map (function(geneSet) {
+            || (conf.geneSets || [conf.geneSet]).map (function(geneSet,n) {
                 return new Model ({ assocs: assocs,
                                     geneSet: geneSet,
                                     parameterization: parameterization,
                                     prior: prior,
+                                    initTerms: initTerms[n],
 				    generator: generator })
             })
 	var geneSets = models.map (function(model) { return model.geneSet })
@@ -4961,7 +4963,6 @@ arguments[4][1][0].apply(exports,arguments)
     
     function Model (conf) {
         var model = this
-	var isActive = {}
 
 	var assocs = conf.assocs
 	var termName = assocs.ontology.termName
@@ -4971,11 +4972,7 @@ arguments[4][1][0].apply(exports,arguments)
 	if (validation.missingGeneNames.length > 0)
 	    console.warn ("Warning: the following genes were not found in the associations list: " + validation.missingGeneNames)
         var geneSet = validation.resolvedGeneIndices
-
-	if (conf.terms)
-	    conf.terms.forEach (function(term) { isActive[term] = true })
-        var termState = termName.map (conf.termState || util.objPredicate(isActive))
-
+        
         // "relevant" terms are ones which have at least one associated gene in the geneSet,
         // excluding those which are indistinguishable from other terms in the ontology
         var relevantTerms = assocs.relevantTermsForGeneSet (geneSet)
@@ -4986,6 +4983,18 @@ arguments[4][1][0].apply(exports,arguments)
         var relevantParents = assocs.ontology.parents.map (relevantFilter)
         var relevantChildren = assocs.ontology.children.map (relevantFilter)
 
+        // initial state
+        var termState = termName.map (function() { return false })
+	if (conf.initTerms)
+            conf.initTerms.forEach (function (initTermName) {
+                if (initTermName in assocs.ontology.termIndex) {
+                    var initTerm = assocs.ontology.termIndex[initTermName]
+                    if (isRelevant[initTerm])
+                        termState[initTerm] = true
+                }
+            })
+
+        // parameterization
         var parameterization = conf.parameterization || new Parameterization (conf)
 
         // this object encapsulates both the graphical model itself,
