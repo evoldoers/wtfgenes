@@ -5617,18 +5617,24 @@ arguments[4][1][0].apply(exports,arguments)
 	    $('#wtf-total-samples').text (wtf.mcmc.samplesIncludingBurn.toString())
 	    $('#wtf-samples-per-term').text (Math.round(wtf.mcmc.samplesIncludingBurn / wtf.mcmc.nVariables()).toString())
 
-            redrawLogLikelihood.call(wtf)
-	    if (wtf.redraw) {
-		var terms = showTermTable (wtf)
-		var falsePos = wtf.mcmc.geneFalsePosSummary(0)
-		var falseNeg = wtf.mcmc.geneFalseNegSummary(0)
-		showGeneTable (wtf, $('#wtf-false-pos-table-parent'), falsePos,
-			       "mislabeled")
-		showGeneTable (wtf, $('#wtf-false-neg-table-parent'), falseNeg,
-			       "mislabeled", "Predicted by terms", terms)
-		wtf.redraw = false
-	    }
-	    wtf.samplesPerRun = wtf.mcmc.nVariables()
+            var currentSample = wtf.mcmc.samplesIncludingBurn,
+                lastSample = wtf.logLikeSampleTimes.length ? wtf.logLikeSampleTimes[wtf.logLikeSampleTimes.length-1] : 0
+
+            if (currentSample - lastSample > wtf.logLikeTracePeriod) {
+                wtf.logLikeTrace.push (wtf.mcmc.quickCollapsedLogLikelihood())
+                wtf.logLikeSampleTimes.push (currentSample)
+                wtf.stateTrace.push (wtf.mcmc.models[0].activeTerms().map (function(t) {
+                    return wtf.ontology.termName[t]
+                }).join(", "))
+                if (wtf.logLikeTrace.length > 2000) {
+                    wtf.stateTrace = wtf.stateTrace.filter (function(x,i) { return i % 2 == 0 })
+                    wtf.logLikeTrace = wtf.logLikeTrace.filter (function(x,i) { return i % 2 == 0 })
+                    wtf.logLikeSampleTimes = wtf.logLikeSampleTimes.filter (function(x,i) { return i % 2 == 0 })
+                    wtf.logLikeTracePeriod *= 2
+                    forceRedrawLogLikelihood.call(wtf)
+                } else
+                    redrawLogLikelihood.call(wtf)
+            }
 
             if (!wtf.milestonePassed.burnIn && wtf.mcmc.finishedBurn()) {
                 $('.wtf-sampler-notifications').append (makeAlert ('info', 'The sampler finished its burn-in period. Results are now available on the Term Report and Gene Report pages, and will be continually updated while the sampler is running.'))
@@ -5636,11 +5642,19 @@ arguments[4][1][0].apply(exports,arguments)
                 $('.wtf-burn-unfinished').hide()
                 wtf.milestonePassed.burnIn = true
             }
-            
+
+            var justFinished = false
 	    if (!wtf.milestonePassed.targetSamples && wtf.mcmc.samplesIncludingBurn >= wtf.milestone.targetSamples) {
 		pauseAnalysis.call (wtf, null, 'success', 'the target of ' + wtf.milestone.targetSamples + ' samples was reached')
 		wtf.milestonePassed.targetSamples = true
 		$("#wtf-target-samples-per-term").prop('disabled',false)
+                justFinished = true
+	    }
+            
+	    if (justFinished || (wtf.redraw && (wtf.currentPage == 'term-report' || wtf.currentPage == 'gene-report'))) {
+                showTables (wtf)
+		wtf.redraw = false
+	        setTimeout (setRedraw.bind(wtf), 1000)
 	    }
 
 	    var percent = Math.round (100 * (wtf.mcmc.samplesIncludingBurn - wtf.milestone.startOfRun) / (wtf.milestone.targetSamples - wtf.milestone.startOfRun)) + '%'
@@ -5666,6 +5680,16 @@ arguments[4][1][0].apply(exports,arguments)
 		     : ""
 		 }).join('')
 		 + '</tr></thead>')
+    }
+
+    function showTables (wtf) {
+    	var terms = showTermTable (wtf)
+	var falsePos = wtf.mcmc.geneFalsePosSummary(0)
+	var falseNeg = wtf.mcmc.geneFalseNegSummary(0)
+	showGeneTable (wtf, $('#wtf-false-pos-table-parent'), falsePos,
+		       "mislabeled")
+	showGeneTable (wtf, $('#wtf-false-neg-table-parent'), falseNeg,
+		       "mislabeled", "Predicted by terms", terms)
     }
     
     var termPairProbThreshold = .05, termOddsRatioThreshold = 100
@@ -5705,11 +5729,12 @@ arguments[4][1][0].apply(exports,arguments)
 	var gotEquivalents = terms.some (function(t) { return equivalents[t].length > 0 })
 
 	termTable.append (tableHeader
-			  ([[gotEquivalents ? 'ID(s)' : 'ID', gotEquivalents ? 'IDs for ontology terms. (Terms that have exactly the same gene associations are collapsed into a single class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : 'ID of an ontology term.'],
+			  ([['Rank', 'Rank of this ' + (gotEquivalents ? ' class of terms.' : 'term.')],
+                            [gotEquivalents ? 'ID(s)' : 'ID', gotEquivalents ? 'IDs for ontology terms. (Terms that have exactly the same gene associations are collapsed into a single class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : 'ID of an ontology term.'],
 			    [gotEquivalents ? 'Term(s)' : 'Term', 'Name of ontology term.' + (gotEquivalents ? ' (Terms that have exactly the same gene associations are collapsed into a single equivalence class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : '')],
 			    ['P(Term)', 'The posterior probability that ' + (gotEquivalents ? 'one of the terms in the equivalence class' : 'the term') + ' is activated.'],
-			    ['Explains', 'Genes that are associated with ' + (gotEquivalents ? 'this class of terms' : 'the term') + ' and are in the active set.'],
-			    ['Also predicts', 'Genes that are associated with ' + (gotEquivalents ? 'this class of terms' : 'the term') + ' but are not in the active set.'],
+			    ['Explains', 'Number of genes that are associated with ' + (gotEquivalents ? 'this class of terms' : 'the term') + ' and are in the active set.'],
+			    ['Also predicts', 'Number of genes that are associated with ' + (gotEquivalents ? 'this class of terms' : 'the term') + ' but are not in the active set.'],
 			    gotBosons ? ['Positively correlated with', 'Other terms from this table that often co-occur with ' + (gotEquivalents ? 'this class of terms' : 'this term') + '. An interpretation is that these terms collaborate to explain complementary/disjoint subsets of the active genes.'] : [],
 			    gotFermions ? ['Negatively correlated with', 'Other terms from this table that rarely co-occur with ' + (gotEquivalents ? 'this class of terms' : 'this term') + '. An interpretation is that these terms compete to explain similar/overlapping subsets of the active genes.'] : []]))
 	var termTableBody = $('<tbody/>')
@@ -5718,10 +5743,8 @@ arguments[4][1][0].apply(exports,arguments)
 	    var p = termProb[t]
 	    var pStyle = probStyle(p)
 	    var genes = wtf.assocs.genesByTerm[wtf.ontology.termIndex[t]]
-	    var explained = genes.filter (inGeneSet)
-		.map (function(g) { return wtf.userGeneName[g] })
-	    var predicted = genes.filter (util.negate (inGeneSet))
-		.map (function(g) { return wtf.userGeneName[g] })
+	    var explained = genes.filter(inGeneSet).length
+	    var predicted = genes.length - explained
 	    function eqtd(x) {
 		return '<td rowspan="' + equivalents[t].length + '">' + x + '</td>'
 	    }
@@ -5731,11 +5754,12 @@ arguments[4][1][0].apply(exports,arguments)
 	    equivalents[t].forEach (function (e, ei) {
 		termTableBody
 		    .append ($('<tr style="' + pStyle + '"/>')
-			     .append (stacktd(ei,linkTerm.call(wtf,e)),
+			     .append (ei == 0 ? eqtd(i+1) : '',
+                                      stacktd(ei,linkTerm.call(wtf,e)),
 				      stacktd(ei,wtf.ontology.getTermInfo(e)),
 				      (ei == 0 ? eqtd(p.toPrecision(5)) : ''),
-				      (ei == 0 ? eqtd(explained.join(", ")) : ''),
-				      (ei == 0 ? eqtd(predicted.join(", ")) : ''),
+				      (ei == 0 ? eqtd(explained) : ''),
+				      (ei == 0 ? eqtd(predicted) : ''),
 				      (ei == 0 && gotBosons ? eqtdsets(bosons[i]) : ''),
 				      (ei == 0 && gotFermions ? eqtdsets(fermions[i]) : '')))
 	    })
@@ -5786,10 +5810,8 @@ arguments[4][1][0].apply(exports,arguments)
 	    predictedBy.forEach (function (t, ti) {
 
 		var genes = t ? wtf.assocs.genesByTerm[wtf.ontology.termIndex[t]] : []
-		var explained = genes.filter (inGeneSet)
-		    .map (function(g) { return wtf.userGeneName[g] })
-		var predicted = genes.filter (util.negate (inGeneSet))
-		    .map (function(g) { return wtf.userGeneName[g] })
+		var explained = genes.filter(inGeneSet).length
+		var predicted = genes.length - explained
 
 		geneTableBody
 		    .append ($('<tr style="' + pStyle + '"/>')
@@ -5797,8 +5819,8 @@ arguments[4][1][0].apply(exports,arguments)
 				      ti == 0 ? pbtd(predictedBy,p.toPrecision(5)) : '',
 				      t ? stacktd(ti,linkTerm.call(wtf,t)) : '',
 				      t ? stacktd(ti,wtf.ontology.getTermInfo(t)) : '',
-				      t ? stacktd(ti,explained.length,explained.join(', ')) : '',
-				      t ? stacktd(ti,predicted.length,predicted.join(', ')) : ''))
+				      t ? stacktd(ti,explained) : '',
+				      t ? stacktd(ti,predicted) : ''))
 	    })
         })
         if (genes.length == 0)
@@ -5837,7 +5859,8 @@ arguments[4][1][0].apply(exports,arguments)
 		    var inGeneSet = util.objPredicate (util.listToCounts (validation.resolvedGeneIndices))
 
 		    termTable.append (tableHeader
-				      ([['ID', 'The ID of an ontology term.'],
+				      ([['Rank', 'The rank of this term.'],
+                                        ['ID', 'The ID of an ontology term.'],
 					['Name', 'The name of the term.'],
 					['P-value', 'The P-value of this term, according to a one-tailed Fisher\'s exact test. This is the probability that, if the genes in the gene-set had been selected at random, they would include at least as many genes annotated to this term as they in fact did.'],
 					['Explains', 'Number of genes in the specified gene-set that are explained by this term.'],
@@ -5846,17 +5869,16 @@ arguments[4][1][0].apply(exports,arguments)
 		    terms.forEach (function (t,i) {
 			var p = hyperByTerm[t]
 			var genes = wtf.assocs.genesByTerm[wtf.ontology.termIndex[t]]
-			var explained = genes.filter (inGeneSet)
-			    .map (function(g) { return wtf.userGeneName[g] })
-			var predicted = genes.filter (util.negate (inGeneSet))
-			    .map (function(g) { return wtf.userGeneName[g] })
+			var explained = genes.filter(inGeneSet).length
+			var predicted = genes.length - explained
 			termTableBody
 			    .append ($('<tr/>')
-				     .append ($('<td/>').html (linkTerm.call(wtf,t)),
+				     .append ($('<td/>').text (i + 1),
+                                              $('<td/>').html (linkTerm.call(wtf,t)),
 					      $('<td/>').text (wtf.ontology.getTermInfo(t)),
 					      $('<td/>').text (p.toPrecision(5)),
-					      $('<td/>').text (explained.length).attr ('title', explained.join(", ")),
-					      $('<td/>').text (predicted.length).attr ('title', predicted.join(", "))))
+					      $('<td/>').text (explained),
+					      $('<td/>').text (predicted)))
 		    })
 		    termTable.append (termTableBody)
 		    $('#wtf-hypergeometric-term-table-parent').append (termTable)
@@ -5868,9 +5890,9 @@ arguments[4][1][0].apply(exports,arguments)
     }
 
     function getLogLikeRange (wtf) {
-	var len = wtf.mcmc.logLikelihoodTrace.length
+	var len = wtf.logLikeTrace.length
 	if (len > 0) {
-	    var slice = wtf.mcmc.logLikelihoodTrace.slice(wtf.logLikeMinMaxSlice).concat (wtf.logLikeMinMax)
+	    var slice = wtf.logLikeTrace.slice(wtf.logLikeMinMaxSlice).concat (wtf.logLikeMinMax)
 	    wtf.logLikeMinMax[0] = Math.min (...slice)
 	    wtf.logLikeMinMax[1] = Math.max (...slice)
 	    wtf.logLikeMinMaxSlice = len
@@ -5887,23 +5909,26 @@ arguments[4][1][0].apply(exports,arguments)
 
             $('#wtf-loglike-plot').empty()
             Plotly.newPlot( $('#wtf-loglike-plot')[0],
-			    [{ y: wtf.mcmc.logLikelihoodTrace,
-			       name: "Log-likelihood" },
+			    [{ x: wtf.logLikeSampleTimes,
+                               y: wtf.logLikeTrace,
+                               text: wtf.stateTrace,
+                               mode: 'lines',
+			       name: 'Log-likelihood' },
 			     { x: [wtf.mcmc.burn, wtf.mcmc.burn],
 			       y: wtf.logLikeMinMax,
-			       name: "Burn-in",
+			       name: 'Burn-in',
 			       mode: 'lines',
 			       hoverinfo: 'name',
 			       line: { dash: 4 } },
 			     { x: wtf.targetX,
 			       y: wtf.logLikeMinMax,
-			       name: "End of run",
+			       name: 'End of run',
 			       mode: 'lines',
 			       hoverinfo: 'name',
 			       line: { dash: 4 } }],
 			    { margin: { t:10, b:100, r:0 },
-			      yaxis: { title: "Log-likelihood" },
-			      xaxis: { title: "Sample number" },
+			      yaxis: { title: 'Log-likelihood' },
+			      xaxis: { title: 'Sample number' },
                               showlegend: false },
 			    { frameMargins: .05,
 			      displayModeBar: false })
@@ -6023,54 +6048,64 @@ arguments[4][1][0].apply(exports,arguments)
 	        .fail (function (msg) { cancelStart (wtf, 'Before starting analysis, please ' + msg) })
 	        .done (function (validation) {
                    
-		    var prior = {
-		        succ: {
-			    t: parseCountAndSet ('wtf-term-present-pseudocount', 1),
-			    fp: parseCountAndSet ('wtf-false-pos-pseudocount', 1),
-			    fn: parseCountAndSet ('wtf-false-neg-pseudocount', 1)
-		        },
-		        fail: {
-			    t: parseCountAndSet ('wtf-term-absent-pseudocount', 1),
-			    fp: parseCountAndSet ('wtf-true-neg-pseudocount', 1),
-			    fn: parseCountAndSet ('wtf-true-pos-pseudocount', 1)
+                    $('.wtf-sampler-notifications').append (makeAlert ('info', 'Initializing MCMC sampler.'))
+
+                    setTimeout (function() {
+		        var prior = {
+		            succ: {
+			        t: parseCountAndSet ('wtf-term-present-pseudocount', 1),
+			        fp: parseCountAndSet ('wtf-false-pos-pseudocount', 1),
+			        fn: parseCountAndSet ('wtf-false-neg-pseudocount', 1)
+		            },
+		            fail: {
+			        t: parseCountAndSet ('wtf-term-absent-pseudocount', 1),
+			        fp: parseCountAndSet ('wtf-true-neg-pseudocount', 1),
+			        fn: parseCountAndSet ('wtf-true-pos-pseudocount', 1)
+		            }
 		        }
-		    }
 
-		    makeQuickReport.call (wtf)
+		        makeQuickReport.call (wtf)
 
-		    wtf.mcmc = new MCMC ({ assocs: wtf.assocs,
-			                   geneSets: [validation.geneNames],
-				           prior: prior,
-                                           moveRate: {
-					       flip: 1,
-					       step: 1,
-					       jump: 1
-                                           },
-				           seed: 123456789
-			                 })
+		        wtf.mcmc = new MCMC ({ assocs: wtf.assocs,
+			                       geneSets: [validation.geneNames],
+				               prior: prior,
+                                               moveRate: {
+					           flip: 1,
+					           step: 1,
+					           jump: 1
+                                               },
+				               seed: 123456789
+			                     })
 
-		    var samplesPerTerm = parsePosIntAndSet ('wtf-target-samples-per-term', 1)
-		    wtf.mcmc.burn = parsePosIntAndSet ('wtf-burn-per-term', 1) * wtf.mcmc.nVariables()
-		    wtf.milestone.targetSamples = wtf.mcmc.burn + samplesPerTerm * wtf.mcmc.nVariables()
-		    wtf.milestone.startOfRun = 0
+	                wtf.samplesPerRun = 100
+                        wtf.logLikeSampleTimes = []
+                        wtf.logLikeTrace = []
+                        wtf.stateTrace = []
+	                wtf.logLikeTracePeriod = wtf.samplesPerRun
 
-		    wtf.mcmc.logLogLikelihood (true)
+		        var samplesPerTerm = parsePosIntAndSet ('wtf-target-samples-per-term', 1)
+		        wtf.mcmc.burn = parsePosIntAndSet ('wtf-burn-per-term', 1) * wtf.mcmc.nVariables()
+		        wtf.milestone.targetSamples = wtf.mcmc.burn + samplesPerTerm * wtf.mcmc.nVariables()
+		        wtf.milestone.startOfRun = 0
 
-		    wtf.milestonePassed = {}
-		    wtf.trackingTermPairs = false
+		        wtf.milestonePassed = {}
+		        wtf.trackingTermPairs = false
 
-		    $('.wtf-mcmc-status').show()
+		        $('.wtf-mcmc-status').show()
 
-		    $('.wtf-start').prop('disabled',false)
-		    $('.wtf-reset').show()
+		        $('.wtf-start').prop('disabled',false)
+		        $('.wtf-reset').show()
 
-		    $('.wtf-progress-header').show()
-		    $('.wtf-progress-bar').css('width','0%')
+		        $('.wtf-progress-header').show()
+		        $('.wtf-progress-bar').css('width','0%')
 
-		    resumeAnalysis.call(wtf)
+		        resumeAnalysis.call(wtf)
 
-                    plotLogLikelihood.call(wtf)
-		    setTimeout (runMCMC.bind(wtf), 1)
+                        plotLogLikelihood.call(wtf)
+
+                        wtf.redraw = true
+                        setTimeout (runMCMC.bind(wtf), 1)
+                    }, 100)
                 })
         }, 1)
     }
@@ -6188,7 +6223,7 @@ arguments[4][1][0].apply(exports,arguments)
                     if (!wtf.geneSetValidateTimer) {
                         $('.wtf-gene-names-invalid').hide()
                         $('.wtf-gene-names-valid').show()
-                        $('.wtf-gene-names-valid-count').text (util.plural (valid.resolvedGeneIndices.length, "valid gene symbol"))
+                        $('.wtf-gene-names-valid-count').text (util.plural (valid.geneNames.length, "valid gene symbol"))
                         $('#wtf-sampler-controls').show()
                     }
 
@@ -6233,6 +6268,7 @@ arguments[4][1][0].apply(exports,arguments)
         $('#wtf-' + id + '-page').show()
         $('.wtf-no-report').hide()
 
+        wtf.currentPage = id
         switch (id) {
         case 'quick-report':
 	    if (id == 'quick-report')
@@ -6550,9 +6586,6 @@ arguments[4][1][0].apply(exports,arguments)
 	$('#wtf-target-samples-per-term').val(100)
         reset.call (wtf)
         
-	// create the timer that sets the 'redraw' flag. Leave this running forever
-	wtf.redrawTimer = setInterval (setRedraw.bind(wtf), 1000)
-
         // load dataset file
         wtf.log ("Loading datasets...")
         $.get(wtf.datasetsURL)

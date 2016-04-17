@@ -14,6 +14,14 @@ pombe: gene_association.pombase.json
 
 basic: go-basic.json
 
+# Aliases
+yeast.txt:
+	curl -O http://www.uniprot.org/docs/yeast.txt
+
+# crude hack to get aliases out of SGD file (first 128 chars of lines 59-6784, remove semicolons, strip hyphens because THEY ARE NOT IDENTIFIERS)
+aliases.txt: yeast.txt
+	cat yeast.txt | sed -n '59,6784p' | cut -c 1-128 | sed -e 's/;//g' | sed -e 's/ \- / /g' | sed -e 's/ \-$$//g' >$@
+
 # GAF files
 %: %.gz
 	gunzip $<
@@ -21,8 +29,8 @@ basic: go-basic.json
 gene_association.%.gz:
 	curl -O http://geneontology.org/gene-associations/$@
 
-gene_association.%.json: gene_association.%
-	$(GAF2JSON) $< >$@
+gene_association.%.json: gene_association.% aliases.txt
+	$(GAF2JSON) -d -m -a aliases.txt gene_association.$* >$@
 
 # GO-basic
 go-basic.obo: 

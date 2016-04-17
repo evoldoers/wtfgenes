@@ -7,6 +7,8 @@ var fs = require('fs'),
 
 var opt = getopt.create([
     ['d' , 'database-id'      , 'use database ID, rather than gene symbol'],
+    ['m' , 'merge-duplicates' , 'merge aliases in >1 set, instead of discarding'],
+    ['a' , 'aliases=PATH'     , 'file of aliases (synonyms on same line)'],
     ['h' , 'help'             , 'display this help message']
 ])              // create Getopt instance
 .bindHelp()     // bind option 'help' to default action
@@ -27,5 +29,11 @@ opt.argv.forEach (function (filename) {
     text += data.toString()
 })
 
+var aliases
+if ('aliases' in opt.options)
+    aliases = fs.readFileSync(opt.options.aliases).toString()
+
 console.log (JSON.stringify (gaf2json ({ gaf: text,
+                                         aliases: aliases,
+                                         mergeDuplicates: opt.options['merge-duplicates'],
 					 useDatabaseID: useDatabaseID })))
