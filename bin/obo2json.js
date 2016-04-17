@@ -36,25 +36,25 @@ var ontologyJSON = obo2json ({ obo: text,
 			       compress: !expand,
 			       includeTermInfo: includeTermInfo })
 
+var ontology = new Ontology (ontologyJSON)
+
 if ('root-names' in opt.options) {
-    var ontology = new Ontology(ontologyJSON)
     var info2id = {}
     ontology.termInfo.forEach (function (info, index) {
         info2id[info] = ontology.termName[index]
     })
-    ontologyJSON = ontology.subgraphRootedAt(opt.options['root-names'].split(',')
-                                             .map (function(info) {
-                                                 if (!(info in info2id))
-                                                     console.warn ("Warning: term not found: " + info)
-                                                 return info2id[info]
-                                             })).toJSON()
+    ontology = ontology.subgraphRootedAt(opt.options['root-names'].split(',')
+                                         .map (function(info) {
+                                             if (!(info in info2id))
+                                                 console.warn ("Warning: term not found: " + info)
+                                             return info2id[info]
+                                         }))
 }
 
 if ('root-ids' in opt.options) {
-    var ontology = new Ontology(ontologyJSON)
-    ontologyJSON = ontology.subgraphRootedAt(opt.options['root-ids'].split(',')).toJSON()
+    ontology = ontology.subgraphRootedAt(opt.options['root-ids'].split(','))
 }
 
-console.log (JSON.stringify (ontologyJSON,
+console.log (JSON.stringify (ontology.toJSON(),
 			     null,
 			     expand ? 2 : undefined))

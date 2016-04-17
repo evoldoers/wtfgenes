@@ -198,4 +198,13 @@ describe('Ontology', function() {
                                                                                         ["kingkong", "primate"]]})
         })
     })
+
+    describe('#subgraphWithAncestors', function() {
+        it('should return the subgraph including ancestors of a term', function() {
+            assert.deepEqual (onto.subgraphWithAncestors(['man']).toJSON(), {termParents:[["mammal", "animal"],
+                                                                                          ["primate", "mammal"],
+                                                                                          ["man", "primate"],
+                                                                                          ["animal"]]})
+        })
+    })
 })
