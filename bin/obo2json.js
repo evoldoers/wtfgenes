@@ -3,14 +3,19 @@
 var fs = require('fs'),
     path = require('path'),
     getopt = require('node-getopt'),
-    obo2json = require('../lib/converters').obo2json,
-    Ontology = require('../lib/ontology')
+    converters = require('../lib/converters'),
+    obo2json = converters.obo2json,
+    gaf2json = converters.gaf2json
+    Ontology = require('../lib/ontology'),
+    Assocs = require('../lib/assocs')
 
 var opt = getopt.create([
     ['e' , 'expand'           , 'do not compress output'],
     ['n' , 'names'            , 'include term names'],
     ['r' , 'root-ids=LIST'    , 'return subgraph rooted at terms (comma-separated ID list)'],
     ['R' , 'root-names=LIST'  , 'as --root, but specify term name(s)'],
+    ['s' , 'slim=FILE'        , 'make a slim ontology for given GAF file'],
+    ['a' , 'aliases=PATH'     , 'file of aliases for GAF file'],
     ['h' , 'help'             , 'display this help message']
 ])              // create Getopt instance
 .bindHelp()     // bind option 'help' to default action
@@ -53,6 +58,23 @@ if ('root-names' in opt.options) {
 
 if ('root-ids' in opt.options) {
     ontology = ontology.subgraphRootedAt(opt.options['root-ids'].split(','))
+}
+
+if ('slim' in opt.options) {
+    var aliases
+    if ('aliases' in opt.options)
+        aliases = fs.readFileSync(opt.options.aliases).toString()
+
+    var assocsJson = gaf2json ({ gaf: fs.readFileSync(opt.options.slim).toString(),
+                                 aliases: aliases,
+                                 mergeDuplicates: true })
+    
+    var assocs = new Assocs ({ idAliasTerm: assocsJson.idAliasTerm,
+                               ontology: ontology,
+                               ignoreMissingTerms: true,
+                               closure: true })
+
+    ontology = ontology.subgraphWithAncestors (assocs.relevantTerms().map (ontology.getTermName.bind(ontology)))
 }
 
 console.log (JSON.stringify (ontology.toJSON(),
