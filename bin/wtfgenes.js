@@ -18,8 +18,8 @@ var defaultSeed = 123456789
 var defaultSamplesPerTerm = 100
 var defaultBurnPerTerm = 10
 
-var defaultPriorMode = .01
-var defaultPriorCount = 100
+var defaultPriorMode = .5
+var defaultPriorCount = 0
 
 var defaultMoveRate = { flip: 1, step: 1, jump: 1, randomize: 0 }
 var defaultBenchReps = 1

@@ -439,11 +439,11 @@
 	return def
     }
 
-    function parseCountAndSet (id, defaultVal) {
+    function parseCountAndSet (id) {
         var elt = $('#'+id)
         var val = parseFloat (elt.val())
         if (isNaN(val) || val < 0)
-            val = defaultVal
+            val = 0
         elt.val(val)
         return val
     }
@@ -476,14 +476,14 @@
                     setTimeout (function() {
 		        var prior = {
 		            succ: {
-			        t: parseCountAndSet ('wtf-term-present-pseudocount', 1),
-			        fp: parseCountAndSet ('wtf-false-pos-pseudocount', 1),
-			        fn: parseCountAndSet ('wtf-false-neg-pseudocount', 1)
+			        t: parseCountAndSet ('wtf-term-present-pseudocount'),
+			        fp: parseCountAndSet ('wtf-false-pos-pseudocount'),
+			        fn: parseCountAndSet ('wtf-false-neg-pseudocount')
 		            },
 		            fail: {
-			        t: parseCountAndSet ('wtf-term-absent-pseudocount', 1),
-			        fp: parseCountAndSet ('wtf-true-neg-pseudocount', 1),
-			        fn: parseCountAndSet ('wtf-true-pos-pseudocount', 1)
+			        t: parseCountAndSet ('wtf-term-absent-pseudocount'),
+			        fp: parseCountAndSet ('wtf-true-neg-pseudocount'),
+			        fn: parseCountAndSet ('wtf-true-pos-pseudocount')
 		            }
 		        }
 
@@ -918,10 +918,16 @@
 	    })
 
         // set up parameters page
-        var sliderProbs = [0, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, .1, .2, .3, .4, .5, .6],
+        function findIndexEq (list, val) {
+            return list.findIndex (function(x) { return x == val })
+        }
+
+        var sliderProbs = [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, .1, .2, .3, .4, .5, .6, .7, .8, .9, .99, .999, .9999, .99999, .999999, 1],
             sliderWeights = [0, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8],
-            initSliderProb = 7,
-            initSliderWeight = 4
+            initSliderProb = .5,
+            initSliderWeight = 0,
+            initSliderProbVal = findIndexEq(sliderProbs,initSliderProb),
+            initSliderWeightVal = findIndexEq(sliderWeights,initSliderWeight)
         
         function sliderChangeCallback (probId, weightId, succId, failId, thisId) {
             return function (event, ui) {
@@ -935,12 +941,12 @@
                 $('.wtf-'+weightId).text (weight)
                 $('#wtf-'+probId+'-slider, #wtf-'+weightId+'-slider').fadeTo(0,1)
                 $('#wtf-reset-'+probId)
-                    .prop('disabled',probVal == initSliderProb && weightVal == initSliderWeight)
+                    .prop('disabled',probVal == initSliderProbVal && weightVal == initSliderWeightVal)
             }
         }
 
         function setSlider (id, target, values) {
-            var index = values.findIndex (function(x) { return x == target })
+            var index = findIndexEq(values,target)
             if (index >= 0) {
                 $('#wtf-'+id+'-slider').slider ('value', index)
                 $('#wtf-'+id+'-slider').fadeTo(0,1)
@@ -954,15 +960,15 @@
 
         function pseudocountChangeCallback (probId, weightId, succId, failId) {
             return function() {
-                var succ = parseCountAndSet ('wtf-'+succId+'-pseudocount', 1)
-                var fail = parseCountAndSet ('wtf-'+failId+'-pseudocount', 1)
-                var weight = succ + fail, prob = succ / weight
+                var succ = parseCountAndSet ('wtf-'+succId+'-pseudocount')
+                var fail = parseCountAndSet ('wtf-'+failId+'-pseudocount')
+                var weight = succ + fail, prob = weight > 0 ? (succ / weight) : .5
                 $('.wtf-'+probId).text (prob)
                 $('.wtf-'+weightId).text (weight)
                 var probVal = setSlider (probId, prob, sliderProbs)
                 var weightVal = setSlider (weightId, weight, sliderWeights)
                 $('#wtf-reset-'+probId)
-                    .prop('disabled',probVal == initSliderProb && weightVal == initSliderWeight)
+                    .prop('disabled',probVal == initSliderProbVal && weightVal == initSliderWeightVal)
             }
         }
         
@@ -971,14 +977,14 @@
             var weightChange = sliderChangeCallback (probId, weightId, succId, failId, weightId)
             var pseudoChange = pseudocountChangeCallback (probId, weightId, succId, failId)
             $('#wtf-'+probId+'-slider')
-                .slider({ value: initSliderProb,
+                .slider({ value: initSliderProbVal,
                           min: 0,
                           max: sliderProbs.length - 1,
                           slide: probChange,
                           stop: probChange
                         })
             $('#wtf-'+weightId+'-slider')
-                .slider({ value: initSliderWeight,
+                .slider({ value: initSliderWeightVal,
                           min: 0,
                           max: sliderWeights.length - 1,
                           slide: weightChange,
@@ -987,8 +993,8 @@
             $('#wtf-'+succId+'-pseudocount, #wtf-'+failId+'-pseudocount')
                 .change (pseudoChange)
             $('#wtf-reset-'+probId).click (function() {
-                $('#wtf-'+probId+'-slider').slider ('value', initSliderProb)
-                $('#wtf-'+weightId+'-slider').slider ('value', initSliderWeight)
+                $('#wtf-'+probId+'-slider').slider ('value', initSliderProbVal)
+                $('#wtf-'+weightId+'-slider').slider ('value', initSliderWeightVal)
                 sliderChangeCallback (probId, weightId, succId, failId) ()
             })
             var oldReset = wtf.enableSliderReset
