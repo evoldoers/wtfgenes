@@ -189,4 +189,13 @@ describe('Ontology', function() {
             assert.deepEqual (onto._closure, closure)
         })
     })
+
+    describe('#subgraphRootedAt', function() {
+        it('should return the subgraph rooted at a term', function() {
+            assert.deepEqual (onto.subgraphRootedAt(['mammal']).toJSON(), {termParents:[["mammal"],
+                                                                                        ["primate", "mammal"],
+                                                                                        ["man", "primate"],
+                                                                                        ["kingkong", "primate"]]})
+        })
+    })
 })
