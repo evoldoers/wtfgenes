@@ -55,6 +55,8 @@ if ('ignore' in opt.options) {
 var ontology = new Ontology (ontologyJSON)
 
 if ('root-names' in opt.options) {
+    if (!includeTermInfo)
+        throw new Error ("Can't specify --root-names option without --names option")
     var info2id = {}
     ontology.termInfo.forEach (function (info, index) {
         info2id[info] = ontology.termName[index]
