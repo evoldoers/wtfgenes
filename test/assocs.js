@@ -93,18 +93,18 @@ describe('Assocs', function() {
     })
 
     describe('#toJSON', function() {
-        var assocsJson = assocs.toJSON()
+        var assocsJson = assocs.toJSON({shortForm:true})
         it('should serialize and deserialize idempotently', function() {
             assert.deepEqual (assocsJson, gt)
         })
-        var dupAssocsJson = dupAssocs.toJSON()
+        var dupAssocsJson = dupAssocs.toJSON({shortForm:true})
         it('should generate same output with duplicate associations', function() {
             assert.deepEqual (dupAssocsJson, gt)
         })
     })
 
     describe('#constructor with transitive closure', function() {
-        var transAssocsJson = transAssocs.toJSON()
+        var transAssocsJson = transAssocs.toJSON({shortForm:true})
         it('should form transitive associations', function() {
             assert.deepEqual (transAssocsJson, gtTrans)
         })
