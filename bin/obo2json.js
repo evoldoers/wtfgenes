@@ -12,9 +12,11 @@ var fs = require('fs'),
 var opt = getopt.create([
     ['e' , 'expand'           , 'do not compress output'],
     ['n' , 'names'            , 'include term names'],
-    ['r' , 'root-ids=LIST'    , 'return subgraph rooted at terms (comma-separated ID list)'],
+    ['d' , 'discard-missing'  , 'do not add implicit parent terms'],
+    ['i' , 'ignore=OBOFILE'   , 'ignore (do not annotate) terms'],
+    ['r' , 'root-ids=LIST'    , 'return subgraph rooted at terms (comma-separated list)'],
     ['R' , 'root-names=LIST'  , 'as --root, but specify term name(s)'],
-    ['s' , 'slim=FILE'        , 'make a slim ontology for given GAF file'],
+    ['s' , 'slim=GAFFILE'     , 'make a slim ontology for given annotations'],
     ['a' , 'aliases=PATH'     , 'file of aliases for GAF file'],
     ['h' , 'help'             , 'display this help message']
 ])              // create Getopt instance
@@ -39,7 +41,16 @@ opt.argv.forEach (function (filename) {
 
 var ontologyJSON = obo2json ({ obo: text,
 			       compress: !expand,
+                               discardMissingParents: opt.options['discard-missing'],
 			       includeTermInfo: includeTermInfo })
+
+if ('ignore' in opt.options) {
+    var ignoreOntology = new Ontology (obo2json ({ obo: fs.readFileSync(opt.options.ignore).toString(),
+			                           compress: false,
+                                                   discardMissingParents: true,
+			                           includeTermInfo: false }))
+    ontologyJSON.doNotAnnotate = ignoreOntology.termName
+}
 
 var ontology = new Ontology (ontologyJSON)
 

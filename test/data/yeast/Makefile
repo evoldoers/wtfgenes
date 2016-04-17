@@ -39,6 +39,10 @@ go-basic.obo:
 go-basic.json: go-basic.obo
 	$(OBO2JSON) -n $< >$@
 
+# Do not annotate
+gocheck_do_not_annotate.obo:
+	curl -O http://geneontology.org/ontology/subsets/$@
+
 # Cerevisiae mating pathway
 cerevisiae-test: go-basic.json gene_association.sgd.json
 	$(WTFGENES) -o go-basic.json -a gene_association.sgd.json -g cerevisiae-mating.json -s 100 -l data
