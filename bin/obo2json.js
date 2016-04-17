@@ -3,11 +3,14 @@
 var fs = require('fs'),
     path = require('path'),
     getopt = require('node-getopt'),
-    obo2json = require('../lib/converters').obo2json
+    obo2json = require('../lib/converters').obo2json,
+    Ontology = require('../lib/ontology')
 
 var opt = getopt.create([
     ['e' , 'expand'           , 'do not compress output'],
     ['n' , 'names'            , 'include term names'],
+    ['r' , 'root-ids=LIST'    , 'return subgraph rooted at terms (comma-separated ID list)'],
+    ['R' , 'root-names=LIST'  , 'as --root, but specify term name(s)'],
     ['h' , 'help'             , 'display this help message']
 ])              // create Getopt instance
 .bindHelp()     // bind option 'help' to default action
@@ -29,8 +32,29 @@ opt.argv.forEach (function (filename) {
     text += data.toString()
 })
 
-console.log (JSON.stringify (obo2json ({ obo: text,
-					 compress: !expand,
-					 includeTermInfo: includeTermInfo }),
+var ontologyJSON = obo2json ({ obo: text,
+			       compress: !expand,
+			       includeTermInfo: includeTermInfo })
+
+if ('root-names' in opt.options) {
+    var ontology = new Ontology(ontologyJSON)
+    var info2id = {}
+    ontology.termInfo.forEach (function (info, index) {
+        info2id[info] = ontology.termName[index]
+    })
+    ontologyJSON = ontology.subgraphRootedAt(opt.options['root-names'].split(',')
+                                             .map (function(info) {
+                                                 if (!(info in info2id))
+                                                     console.warn ("Warning: term not found: " + info)
+                                                 return info2id[info]
+                                             })).toJSON()
+}
+
+if ('root-ids' in opt.options) {
+    var ontology = new Ontology(ontologyJSON)
+    ontologyJSON = ontology.subgraphRootedAt(opt.options['root-ids'].split(',')).toJSON()
+}
+
+console.log (JSON.stringify (ontologyJSON,
 			     null,
 			     expand ? 2 : undefined))
