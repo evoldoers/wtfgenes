@@ -5221,6 +5221,28 @@ arguments[4][1][0].apply(exports,arguments)
 	    return onto.termInfo[onto.termIndex[name]]
 	return undefined
     }
+
+    function subgraphRootedAt (rootTermList) {
+        var onto = this
+        var inSubgraph = {}
+        var inSubFunc = util.objPredicate(inSubgraph)
+        rootTermList.forEach (function (tn) {
+            if (tn in onto.termIndex)
+                inSubgraph[onto.termIndex[tn]] = true
+        })
+        var termParents = [],
+            termInfo = onto.termInfo ? [] : undefined
+        onto.toposortTermIndex().forEach (function (t) {
+            var parents = onto.parents[t]
+            inSubgraph[t] = inSubgraph[t] || (parents.length ? parents.every(inSubFunc) : false)
+            if (inSubgraph[t]) {
+                termParents.push ([onto.termName[t]].concat (parents.filter(inSubFunc).map (function(p) { return onto.termName[p] })))
+                if (termInfo)
+                    termInfo.push (onto.termInfo[t])
+            }
+        })
+        return new Ontology ({ termParents: termParents, termInfo: termInfo })
+    }
     
     function Ontology (conf) {
         var onto = this
@@ -5239,7 +5261,8 @@ arguments[4][1][0].apply(exports,arguments)
                   'toposortTermIndex': function() { return toposortTermIndexOrDie(this) },
                   'equals': equals,
                   'transitiveClosure': transitiveClosure,
-		  'getTermInfo': getTermInfo })
+		  'getTermInfo': getTermInfo,
+                  'subgraphRootedAt': subgraphRootedAt })
 
         if (Object.prototype.toString.call(conf) === '[object Array]')
             conf = { 'termParents': conf }
@@ -6509,7 +6532,7 @@ arguments[4][1][0].apply(exports,arguments)
         }
 
         var sliderProbs = [0, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, .1, .2, .3, .4, .5, .6, .7, .8, .9, .99, .999, .9999, .99999, .999999, 1],
-            sliderWeights = [0, .1, 1, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8],
+            sliderWeights = [0, .01, .1, .5, 1, 2, 5, 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8],
             initSliderProb = .5,
             initSliderWeight = 0,
             initSliderProbVal = findIndexEq(sliderProbs,initSliderProb),
