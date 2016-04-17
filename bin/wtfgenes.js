@@ -18,12 +18,8 @@ var defaultSeed = 123456789
 var defaultSamplesPerTerm = 100
 var defaultBurnPerTerm = 10
 
-var defaultTermPseudocount = 1
-var defaultAbsentTermPseudocount = 99
-var defaultFalseNegPseudocount = 1
-var defaultTruePosPseudocount = 99
-var defaultFalsePosPseudocount = 1
-var defaultTrueNegPseudocount = 99
+var defaultPriorMode = .01
+var defaultPriorCount = 100
 
 var defaultMoveRate = { flip: 1, step: 1, jump: 1, randomize: 0 }
 var defaultBenchReps = 1
@@ -34,12 +30,12 @@ var opt = getopt.create([
     ['g' , 'genes=PATH+'      , 'path to gene-set file(s)'],
     ['s' , 'samples=N'        , 'number of samples per term (default='+defaultSamplesPerTerm+')'],
     ['u' , 'burn=N'           , 'number of burn-in samples per term (default='+defaultBurnPerTerm+')'],
-    ['T',  'terms=N'          , 'pseudocount: active terms (default='+defaultTermPseudocount+')'],
-    ['t',  'absent-terms=N'   , 'pseudocount: inactive terms (default='+defaultAbsentTermPseudocount+')'],
-    ['N',  'false-negatives=N', 'pseudocount: false negatives (default='+defaultFalseNegPseudocount+')'],
-    ['p',  'true-positives=N' , 'pseudocount: true positives (default='+defaultTruePosPseudocount+')'],
-    ['P',  'false-positives=N', 'pseudocount: false positives (default='+defaultFalsePosPseudocount+')'],
-    ['n',  'true-negatives=N' , 'pseudocount: true negatives (default='+defaultTrueNegPseudocount+')'],
+    ['t',  'term-prob=N'      , 'mode of term probability prior (default='+defaultPriorMode+')'],
+    ['T',  'term-count=N'     , '#pseudocounts of term probability prior (default='+defaultPriorCount+')'],
+    ['n',  'false-neg-prob=N' , 'mode of false negative prior (default='+defaultPriorMode+')'],
+    ['N',  'false-neg-count=N', '#pseudocounts of false negative prior (default='+defaultPriorCount+')'],
+    ['p',  'false-pos-prob=N' , 'mode of false positive prior (default='+defaultPriorMode+')'],
+    ['P',  'false-pos-count=N', '#pseudocounts of false positive prior (default='+defaultPriorCount+')'],
     ['F',  'flip-rate=N'      , 'relative rate of term-toggling moves (default='+defaultMoveRate.flip+')'],
     ['S',  'step-rate=N'      , 'relative rate of term-stepping moves (default='+defaultMoveRate.step+')'],
     ['J',  'jump-rate=N'      , 'relative rate of term-jumping moves (default='+defaultMoveRate.jump+')'],
@@ -101,18 +97,16 @@ var assocs = new Assocs ({ ontology: ontology,
 if (logging('data'))
     console.warn("Read " + assocs.nAssocs + " associations (" + assocs.genes() + " genes, " + assocs.relevantTerms().length + " terms) from " + assocPath)
 
-var prior = {
-    succ: {
-	t: parseInt(opt.options['terms']) || defaultTermPseudocount,
-	fp: parseInt(opt.options['false-positives']) || defaultFalsePosPseudocount,
-	fn: parseInt(opt.options['false-negatives']) || defaultFalseNegPseudocount
-    },
-    fail: {
-	t: parseInt(opt.options['absent-terms']) || defaultAbsentTermPseudocount,
-	fp: parseInt(opt.options['true-negatives']) || defaultTrueNegPseudocount,
-	fn: parseInt(opt.options['true-positives']) || defaultTruePosPseudocount
-    }
-}
+var prior = { succ:{}, fail:{} }
+var paramArg = { t: 'term', fp: 'false-pos', fn: 'false-neg' }
+Object.keys(paramArg).forEach (function(param) {
+    var arg = paramArg[param]
+    var probArg = arg + '-prob', countArg = arg + '-count'
+    var prob = (probArg in opt.options) ? opt.options[probArg] : defaultPriorMode
+    var count = (countArg in opt.options) ? opt.options[countArg] : defaultPriorCount
+    prior.succ[param] = prob * count
+    prior.fail[param] = (1 - prob) * count
+})
 
 var moveRate = util.extend ({}, defaultMoveRate)
 Object.keys(defaultMoveRate).forEach (function(r) {

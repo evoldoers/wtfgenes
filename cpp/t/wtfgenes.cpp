@@ -22,16 +22,16 @@ int main (int argc, char** argv) {
       ("genes,g", po::value<vector<string> >(), "path to gene-set file(s)")
       ("samples,s", po::value<int>()->default_value(100), "number of samples per term")
       ("burn,u", po::value<int>()->default_value(10), "burn-in samples per term")
-      ("terms,T", po::value<int>()->default_value(1), "pseudocount: active terms")
-      ("absent-terms,t", po::value<int>()->default_value(99), "pseudocount: inactive terms")
-      ("false-negatives,N", po::value<int>()->default_value(1), "pseudocount: false negatives")
-      ("true-positives,p", po::value<int>()->default_value(99), "pseudocount: true positives")
-      ("false-positives,P", po::value<int>()->default_value(1), "pseudocount: false positives")
-      ("true-negatives,n", po::value<int>()->default_value(99), "pseudocount: true negatives")
-      ("flip-rate,F", po::value<int>()->default_value(1), "relative rate of term-toggling moves")
-      ("step-rate,S", po::value<int>()->default_value(1), "relative rate of term-stepping moves")
-      ("jump-rate,J", po::value<int>()->default_value(1), "relative rate of term-jumping moves")
-      ("randomize-rate,R", po::value<int>()->default_value(0), "relative rate of term-randomizing moves")
+      ("term-prob,t", po::value<double>()->default_value(.01), "mode of term probability prior")
+      ("term-count,T", po::value<double>()->default_value(100), "#pseudocounts of term probability prior")
+      ("false-neg-prob,n", po::value<double>()->default_value(.01), "mode of false negative prior")
+      ("false-neg-count,N", po::value<double>()->default_value(100), "#pseudocounts of false negative prior")
+      ("false-pos-prob,p", po::value<double>()->default_value(.01), "mode of false positive prior")
+      ("false-pos-count,P", po::value<double>()->default_value(100), "#pseudocounts of false positive prior")
+      ("flip-rate,F", po::value<double>()->default_value(1), "relative rate of term-toggling moves")
+      ("step-rate,S", po::value<double>()->default_value(1), "relative rate of term-stepping moves")
+      ("jump-rate,J", po::value<double>()->default_value(1), "relative rate of term-jumping moves")
+      ("randomize-rate,R", po::value<double>()->default_value(0), "relative rate of term-randomizing moves")
       ("rnd-seed,r", po::value<int>()->default_value(123456789), "seed random number generator")
       ("verbose,v", po::value<int>()->default_value(1), "verbosity level")
       ;
@@ -88,20 +88,20 @@ int main (int argc, char** argv) {
     BernoulliParamSet& params (parameterization.params);
     
     BernoulliCounts prior (params.nParams());
-    prior.succ[params.paramIndex["t"]] = vm["terms"].as<int>();
-    prior.fail[params.paramIndex["t"]] = vm["absent-terms"].as<int>();
-    prior.succ[params.paramIndex["fn"]] = vm["false-negatives"].as<int>();
-    prior.fail[params.paramIndex["fn"]] = vm["true-positives"].as<int>();
-    prior.succ[params.paramIndex["fp"]] = vm["false-positives"].as<int>();
-    prior.fail[params.paramIndex["fp"]] = vm["true-negatives"].as<int>();
+    prior.succ[params.paramIndex["t"]] = vm["term-prob"].as<double>() * vm["term-count"].as<double>();
+    prior.fail[params.paramIndex["t"]] = (1 - vm["term-prob"].as<double>()) * vm["term-count"].as<double>();
+    prior.succ[params.paramIndex["fn"]] = vm["false-neg-prob"].as<double>() * vm["false-neg-count"].as<double>();
+    prior.fail[params.paramIndex["fn"]] = (1 - vm["false-neg-prob"].as<double>()) * vm["false-neg-count"].as<double>();
+    prior.succ[params.paramIndex["fp"]] = vm["false-pos-prob"].as<double>() * vm["false-pos-count"].as<double>();
+    prior.fail[params.paramIndex["fp"]] = (1 - vm["false-pos-prob"].as<double>()) * vm["false-pos-count"].as<double>();
     
     Model::RandomGenerator generator (vm["rnd-seed"].as<int>());
 
     MCMC mcmc (assocs, parameterization.params, prior);
-    mcmc.moveRate[Model::Flip] = vm["flip-rate"].as<int>();
-    mcmc.moveRate[Model::Step] = vm["step-rate"].as<int>();
-    mcmc.moveRate[Model::Jump] = vm["jump-rate"].as<int>();
-    mcmc.moveRate[Model::Randomize] = vm["randomize-rate"].as<int>();
+    mcmc.moveRate[Model::Flip] = vm["flip-rate"].as<double>();
+    mcmc.moveRate[Model::Step] = vm["step-rate"].as<double>();
+    mcmc.moveRate[Model::Jump] = vm["jump-rate"].as<double>();
+    mcmc.moveRate[Model::Randomize] = vm["randomize-rate"].as<double>();
     
     mcmc.initModels (geneSets);
 

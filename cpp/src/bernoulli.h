@@ -15,7 +15,7 @@ typedef vguard<double> BernoulliParams;
 
 class BernoulliCounts {
 public:
-  vguard<int> succ, fail;
+  vguard<double> succ, fail;
 
   BernoulliCounts() { }
   BernoulliCounts (size_t nParams) : succ(nParams), fail(nParams) { }
@@ -39,7 +39,7 @@ public:
   string toJSON (const vguard<BernoulliParamName>& params) const;
   
 private:
-  static string countsToJSON (const vguard<BernoulliParamName>& params, const vguard<int>& c);
+  static string countsToJSON (const vguard<BernoulliParamName>& params, const vguard<double>& c);
 };
 
 struct BernoulliParamSet {
