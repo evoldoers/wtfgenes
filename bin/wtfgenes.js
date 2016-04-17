@@ -40,6 +40,7 @@ var opt = getopt.create([
     ['S',  'step-rate=N'      , 'relative rate of term-stepping moves (default='+defaultMoveRate.step+')'],
     ['J',  'jump-rate=N'      , 'relative rate of term-jumping moves (default='+defaultMoveRate.jump+')'],
     ['R',  'randomize-rate=N' , 'relative rate of term-randomizing moves (default='+defaultMoveRate.randomize+')'],
+    ['i',  'init-terms=LIST'  , 'specify initial state as comma-separated term list'],
     ['l',  'log=TAG+'         , 'log extra things (e.g. "move", "state", "mixing")'],
     ['q' , 'quiet'            , 'don\'t log the usual things ("data", "progress")'],
     ['r' , 'rnd-seed=N'       , 'seed random number generator (default=' + defaultSeed + ')'],
@@ -175,6 +176,7 @@ function runInference (genesJson) {
 			   geneSets: genesJson,
 			   generator: generator(),
 			   prior: prior,
+                           initTerms: ('init-terms' in opt.options) ? [opt.options['init-terms'].split(',')] : undefined,
 			   moveRate: moveRate
 			 })
 

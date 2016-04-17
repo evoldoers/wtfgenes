@@ -183,7 +183,7 @@ describe('Model', function() {
             mutantModel.setTermStates (inv)
         })
         it('should correctly identify new false negatives', function() {
-	    var m2 = new Model ({ assocs: assocs, geneSet: mutants, terms: ['arachnid','primate','gorilla'] })
+	    var m2 = new Model ({ assocs: assocs, geneSet: mutants, initTerms: ['arachnid','primate','gorilla'] })
 	    var c2 = m2.getCounts()
 	    assert.deepEqual (c2.toJSON(), {succ:{t:3,fn:2},fail:{t:4,fn:3}})
 	    var d2 = m2.getCountDelta({0:0})
