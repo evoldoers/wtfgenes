@@ -127,7 +127,7 @@ if (logging('rnd'))
 if (opt.options['benchmark'] || opt.options['bench-reps']) {
     var benchReps = opt.options['bench-reps'] ? parseInt(opt.options['bench-reps']) : defaultBenchReps
     var benchResults = { model: null, mcmc: null, benchmark: [] }
-    var benchmarker = new Benchmarker ({ terms: ontology.terms })
+    var benchmarker = new Benchmarker ({ terms: ontology.terms() })
     for (var benchRep = 0; benchRep < benchReps; ++benchRep) {
 
 	if (logging('progress'))

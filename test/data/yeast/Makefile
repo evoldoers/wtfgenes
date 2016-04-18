@@ -55,4 +55,4 @@ hypergeometric.csv model.csv: sim.json
 	node -e 'fs=require("fs");d=JSON.parse(fs.readFileSync("$<"));["hypergeometric","model"].map(function(method){f=d.analysis[method].map(function(row){return[row.threshold,row.recall.mean,row.specificity.mean,row.precision.mean,row.fpr.mean,row.precision.n]});text="threshold,recall,specificity,precision,fpr,precision_n\n";f.forEach(function(row){text+=row.join(",")+"\n"});fs.writeFileSync(method+".csv",text)})'
 
 %.reanalyzed: %
-	node -e 'fs=require("fs");benchmarker=require("../../../lib/benchmarker");o=JSON.parse(fs.readFileSync("go-basic.json"));terms=o.length;d=JSON.parse(fs.readFileSync("$<"));b=new benchmarker({results:d,terms:terms});b.analyze();console.log(JSON.stringify(b.results,null,2))' >$@
+	node -e 'fs=require("fs");benchmarker=require("../../../lib/benchmarker");o=JSON.parse(fs.readFileSync("go-basic.json"));terms=o.termParents.length;d=JSON.parse(fs.readFileSync("$<"));b=new benchmarker({results:d,terms:terms});b.analyze();console.log(JSON.stringify(b.results,null,2))' >$@
