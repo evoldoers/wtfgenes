@@ -46,7 +46,9 @@ var opt = getopt.create([
     ['r' , 'rnd-seed=N'       , 'seed random number generator (default=' + defaultSeed + ')'],
     ['m' , 'simulate=N'       , 'instead of doing inference, simulate N gene sets'],
     ['x' , 'exclude-redundant', 'exclude redundant terms from simulation'],
-    ['A' , 'active-terms=N'   , 'specify number of active terms in simulation'],
+    ['A' , 'active-terms=N'   , 'specify number of active terms for simulation'],
+    ['O' , 'false-pos=P'      , 'specify false positive probability for simulation'],
+    ['E' , 'false-neg=P'      , 'specify false negative probability for simulation'],
     ['b' , 'benchmark'        , 'benchmark by running inference on simulated data'],
     ['B' , 'bench-reps=N'     , 'number of repetitions of benchmark (default='+defaultBenchReps+')'],
     ['h' , 'help'             , 'display this help message']
@@ -162,10 +164,19 @@ if (opt.options['benchmark'] || opt.options['bench-reps']) {
 }
 
 function runSimulation() {
+    var simParams = {}
+    function addSimParam (arg, param) {
+	if (arg in opt.options)
+	    simParams[param] = parseFloat (opt.options[arg])
+    }
+    addSimParam ('false-pos', 'fp')
+    addSimParam ('false-neg', 'fn')
+
     var sim = new Simulator ({ assocs: assocs,
 			       generator: generator(),
 			       prior: prior,
 			       nActiveTerms: opt.options['active-terms'],
+			       simParams: simParams,
 			       excludeRedundantTerms: opt.options['exclude-redundant'] })
 
     return sim.sampleGeneSets (parseInt (opt.options['simulate'] || '1'))
