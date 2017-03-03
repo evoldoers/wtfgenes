@@ -17,21 +17,26 @@ Usage: node wtfgenes.js
   -a, --assoc=PATH         path to gene-term association file
   -g, --genes=PATH+        path to gene-set file(s)
   -s, --samples=N          number of samples per term (default=100)
-  -T, --terms=N            pseudocount: active terms (default=1)
-  -t, --absent-terms=N     pseudocount: inactive terms (default=#terms)
-  -N, --false-negatives=N  pseudocount: false negatives (default=1)
-  -p, --true-positives=N   pseudocount: true positives (default=#genes)
-  -P, --false-positives=N  pseudocount: false positives (default=1)
-  -n, --true-negatives=N   pseudocount: true negatives (default=#genes)
+  -u, --burn=N             number of burn-in samples per term (default=10)
+  -t, --term-prob=N        mode of term probability prior (default=0.5)
+  -T, --term-count=N       #pseudocounts of term probability prior (default=0)
+  -n, --false-neg-prob=N   mode of false negative prior (default=0.5)
+  -N, --false-neg-count=N  #pseudocounts of false negative prior (default=0)
+  -p, --false-pos-prob=N   mode of false positive prior (default=0.5)
+  -P, --false-pos-count=N  #pseudocounts of false positive prior (default=0)
   -F, --flip-rate=N        relative rate of term-toggling moves (default=1)
   -S, --step-rate=N        relative rate of term-stepping moves (default=1)
-  -J, --jump-rate=N        relative rate of term-jumping moves (default=0)
+  -J, --jump-rate=N        relative rate of term-jumping moves (default=1)
   -R, --randomize-rate=N   relative rate of term-randomizing moves (default=0)
-  -l, --log=TAG+           log various extra things (e.g. "move", "state", "mixing")
+  -i, --init-terms=LIST+   specify initial state as comma-separated term list
+  -l, --log=TAG+           log extra things (e.g. "move", "state", "mixing")
   -q, --quiet              don't log the usual things ("data", "progress")
   -r, --rnd-seed=N         seed random number generator (default=123456789)
   -m, --simulate=N         instead of doing inference, simulate N gene sets
   -x, --exclude-redundant  exclude redundant terms from simulation
+  -A, --active-terms=N     specify number of active terms for simulation
+  -O, --false-pos=P        specify false positive probability for simulation
+  -E, --false-neg=P        specify false negative probability for simulation
   -b, --benchmark          benchmark by running inference on simulated data
   -B, --bench-reps=N       number of repetitions of benchmark (default=1)
   -h, --help               display this help message
