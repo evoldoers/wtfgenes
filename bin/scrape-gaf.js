@@ -78,6 +78,7 @@ init_promise
          })
      }))
   }).then (function (organisms) {
+    organisms = organisms.sort (function (a, b) { return a.name < b.name ? -1 : +1 })
     fs.writeFileSync (deploy_dir + '/datasets.json', JSON.stringify ({ organisms }))
     console.log ("done")
   })
