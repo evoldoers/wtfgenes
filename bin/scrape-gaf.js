@@ -52,7 +52,7 @@ init_promise
     var resources = metadata.resources
     return Promise.all
     (resources
-     .filter (resource => !skip_id[resource.id])
+     .filter (resource => !skip_id[resource.id] && resource.id.indexOf("_complex") == -1)
      .map (function (resource) {
        var gaf_filename = resource.gaf_filename
        var gaf_url = gaf_url_prefix + gaf_filename
