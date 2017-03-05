@@ -9,7 +9,7 @@ var exec = Promise.promisify (require('child_process').exec)
 var gaf2json = require('../lib/converters').gaf2json
 var obo2json = require('../lib/converters').obo2json
 
-var metadata_url = "http://viewvc.geneontology.org/viewvc/GO-SVN/trunk/gene-associations/go_annotation_metadata.all.js";
+var metadata_url = "http://geneontology.org/gene-associations/go_annotation_metadata.all.js";
 var go_url_prefix = "http://geneontology.org/ontology/"
 var go_url_suffix = "go-basic.obo"
 var gaf_url_prefix = "http://geneontology.org/gene-associations/"
