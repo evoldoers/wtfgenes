@@ -106,7 +106,7 @@ OutIter write_quoted_escaped(std::string const& s, OutIter out) {
   return out;
 }
 
-/* keys and values */
+/* extract_keys */
 template<typename TK, typename TV>
 std::vector<TK> extract_keys(std::map<TK, TV> const& input_map) {
   std::vector<TK> retval;
@@ -116,6 +116,7 @@ std::vector<TK> extract_keys(std::map<TK, TV> const& input_map) {
   return retval;
 }
 
+/* extract_values */
 template<typename TK, typename TV>
 std::vector<TV> extract_values(std::map<TK, TV> const& input_map) {
   std::vector<TV> retval;
@@ -125,16 +126,19 @@ std::vector<TV> extract_values(std::map<TK, TV> const& input_map) {
   return retval;
 }    
 
+/* random_double */
 template<class Generator>
 double random_double (Generator& generator) {
   return generator() / (((double) std::numeric_limits<typename Generator::result_type>::max()) + 1);
 }
 
+/* random_element */
 template<class T,class Generator>
 const T& random_element (const std::vector<T>& v, Generator& generator) {
   return v[(int) (random_double(generator) * v.size())];
 }
 
+/* random_index */
 template<class T,class Generator>
 size_t random_index (const std::vector<T>& weights, Generator& generator) {
   const T norm = std::accumulate (weights.begin(), weights.end(), 0);
