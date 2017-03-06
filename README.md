@@ -14,7 +14,7 @@ The wtfgenes software also implements Frequentist TEA (a.k.a. Fisher's ["lady ta
 
 ## Demo
 
-A demo of the wtfgenes web client for the published annotated genomes of the Gene Ontology consortium can be found at https://evoldoers.github.io/wtfgo/
+A demo of the wtfgenes web client for the [annotated genomes](http://www.geneontology.org/page/download-annotations) of the GO consortium can be found at https://evoldoers.github.io/wtfgo/
 
 ## Repository structure
 
