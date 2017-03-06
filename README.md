@@ -2,15 +2,15 @@
 
 # wtfgenes
 
-What is The Function of these genes?
+**What is The Function of these genes?**
 
-Implements Bayesian [Term Enrichment Analysis](https://en.wikipedia.org/wiki/Gene_Ontology_Term_Enrichment) (TEA) using MCMC,
+Answer this question with Bayesian [Term Enrichment Analysis](https://en.wikipedia.org/wiki/Gene_Ontology_Term_Enrichment) (TEA)
 using a model described [here](https://github.com/ihh/wtfgenes-appnote)
 and loosely based on the following method:
 
 - Nucleic Acids Res. 2010. [GOing Bayesian: model-based gene set analysis of genome-scale data.](http://www.ncbi.nlm.nih.gov/pubmed/20172960) Bauer S, Gagneur J, Robinson PN.
 
-The software also implements Frequentist TEA (a.k.a. Fisher's ["lady tasting tea"](https://en.wikipedia.org/wiki/Lady_tasting_tea) test).
+The wtfgenes software also implements Frequentist TEA (a.k.a. Fisher's ["lady tasting tea"](https://en.wikipedia.org/wiki/Lady_tasting_tea) test).
 
 ## Demo
 
@@ -39,7 +39,7 @@ The GAF converter can optionally accept a file of gene name aliases.
 ## Basic operation (node client)
 
 The basic sequence of operations is described [here](https://github.com/ihh/wtfgenes-appnote).
-Essentially, you run the sampler for a while, and then you get a report on which terms are enriched in the dataset.
+Essentially, you run the [MCMC sampler](https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo) for a while, and then you get a report on which terms are enriched in the dataset.
 
 ## Basic operation (web client)
 
