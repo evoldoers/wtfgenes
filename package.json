@@ -52,6 +52,7 @@
     "url": "https://github.com/evoldoers/wtfgenes/issues"
   },
   "scripts": {
-    "update-docs": "git checkout gh-pages && git pull && git merge master && gulp doc && git commit -a -m 'bump docs' && git push && git checkout master"
+    "update-docs": "git checkout gh-pages && git pull && git merge master && gulp doc && git commit -a -m 'bump docs' && git push && git checkout master",
+    "test": "mocha"
   }
 }
