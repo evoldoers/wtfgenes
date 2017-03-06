@@ -36,14 +36,14 @@ The software requires several data files:
 The OBO and GAF files can be pre-converted to a more compact JSON format for setting up a static website.
 The GAF converter can optionally accept a file of gene name aliases.
 
-## Basic operation (node client)
+## Basic operation (node script)
 
 The basic sequence of operations is described [here](https://github.com/ihh/wtfgenes-appnote).
 Essentially, you run the [MCMC sampler](https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo) for a while, and then you get a report on which terms are enriched in the dataset.
 
 ## Basic operation (web client)
 
-The web client is pretty much the same, except it comes pre-loaded with data.
+The web client is pretty much the same as the node script, except it comes pre-loaded with data, and you can visualize the MCMC sampling run using [plot.ly](https://plot.ly/).
 You can see a demo of the web client [here](https://evoldoers.github.io/wtfgo/).
 
 ### Setting up the web client
