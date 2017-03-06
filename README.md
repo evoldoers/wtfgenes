@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/evoldoers/wtfgenes.svg?branch=master)](https://travis-ci.org/evoldoers/wtfgenes)
+
 # wtfgenes
 
 What is The Function of these genes?
