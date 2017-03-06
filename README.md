@@ -2,7 +2,7 @@
 
 What is The Function of these genes?
 
-Implements MCMC term enrichment, loosely based on the following model:
+Implements Bayesian Term Enrichment Analysis (TEA) using MCMC, loosely based on the following model:
 
 Nucleic Acids Res. 2010 Jun;38(11):3523-32. doi: 10.1093/nar/gkq045.
 GOing Bayesian: model-based gene set analysis of genome-scale data.
@@ -12,6 +12,19 @@ http://www.ncbi.nlm.nih.gov/pubmed/20172960
 
 A full description of the model can be found in [this paper](https://github.com/ihh/wtfgenes-appnote).
 
+Also implements Frequentist TEA (a.k.a. Fisher's ["lady tasting tea"](https://en.wikipedia.org/wiki/Lady_tasting_tea) test).
+
+## Repository structure
+
+The repository contains two implementations of Bayesian and Frequentist TEA:
+- a JavaScript implementation in the `lib` and `bin` directories, which can be used either with [node](https://nodejs.org/), or via a web client in the `web` directory
+- a C++11 implementation in the `cpp` directory
+
+The two implementations should be identical at the level of numerical output,
+although the C++ version is about twice as fast.
+This guide focuses on the JavaScript implementation.
+
+## Command-line usage (node)
 
 <pre><code>
 Usage: node wtfgenes.js
