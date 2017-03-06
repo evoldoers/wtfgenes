@@ -48,11 +48,12 @@ You can see a demo of the web client [here](https://evoldoers.github.io/wtfgo/).
 
 ### Setting up the web client
 
-At the moment, to set up the web client, you need to manually do the following steps:
+At the moment, to set up the web client, you need to manually perform the following steps:
 - run the [bin/obo2json.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/obo2json.js) script to convert OBO-format ontology file(s) to JSON
 - run the [bin/gaf2json.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/gaf2json.js) script to convert GAF-format gene-term association file(s) to JSON
 - save the output of the above two steps to files in the `web/` directory with appropriate (unique) filenames
 - hand-edit the [web/datasets.json](https://github.com/evoldoers/wtfgenes/blob/master/web/datasets.json) file to point to the JSON ontology and gene-term association files
+- hand-edit the [web/index.html](https://github.com/evoldoers/wtfgenes/blob/master/web/index.html) file to include any additional text you want to include
 - move the `web/` directory to someplace your webserver can see (it's OK to rename it)
 
 ## Command-line usage (node)
