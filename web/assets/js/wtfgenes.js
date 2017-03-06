@@ -6324,7 +6324,7 @@ arguments[4][8][0].apply(exports,arguments)
 		      ([['Rank', 'Rank of this ' + (gotEquivalents ? ' class of terms.' : 'term.')],
                         [gotEquivalents ? 'ID(s)' : 'ID', gotEquivalents ? 'IDs for ontology terms. (Terms that have exactly the same gene associations are collapsed into a single class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : 'ID of an ontology term.'],
 			[gotEquivalents ? 'Term(s)' : 'Term', 'Name of ontology term.' + (gotEquivalents ? ' (Terms that have exactly the same gene associations are collapsed into a single equivalence class and their probabilities aggregated, since they are statistically indistinguishable under this model.)' : '')],
-			['P(Term)', 'The posterior probability that ' + (gotEquivalents ? 'one of the terms in the equivalence class' : 'the term') + ' is activated.'],
+			['P(Term|Data)', 'The posterior probability that ' + (gotEquivalents ? 'one of the terms in the equivalence class' : 'the term') + ' is activated.'],
 			['Explains', 'Number of genes that are associated with ' + (gotEquivalents ? 'this class of terms' : 'the term') + ' and are in the active set.'],
 			['Also predicts', 'Number of genes that are associated with ' + (gotEquivalents ? 'this class of terms' : 'the term') + ' but are not in the active set.'],
 			gotBosons ? ['Positively correlated with', 'Other terms from this table that often co-occur with ' + (gotEquivalents ? 'this class of terms' : 'this term') + '. An interpretation is that these terms collaborate to explain complementary/disjoint subsets of the active genes.'] : [],
