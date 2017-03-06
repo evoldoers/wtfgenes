@@ -7003,11 +7003,13 @@ arguments[4][8][0].apply(exports,arguments)
 	$('#wtf-select-ontology-button').show()
 	$('#wtf-select-ontology-button-text').text('Select ontology')
 
-	$('#wtf-ontology-list').empty()
-	$('#wtf-ontology-list').append (orgJson.ontologies.map (function (ontoJson) {
+        var ontologyMenu = orgJson.ontologies.map (function (ontoJson) {
 	  return $('<li><a href="#">' + ontoJson.name + '</a></li>')
 	    .click (ontologySelector(wtf,ontoJson))
-	}))
+	})
+        
+	$('#wtf-ontology-list').empty()
+	$('#wtf-ontology-list').append (ontologyMenu)
 
         $('#wtf-example-gene-set-button').hide()
         $('#wtf-ontology-notifications').empty()
@@ -7015,6 +7017,9 @@ arguments[4][8][0].apply(exports,arguments)
         geneSetTextAreaChanged.call(wtf)
 
 	reset.call (wtf)
+
+        if (ontologyMenu.length === 1)
+          ontologyMenu[0].click()
       }
     }
   }
