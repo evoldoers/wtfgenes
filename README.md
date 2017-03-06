@@ -5,7 +5,7 @@
 **What's The Function of these genes?**
 
 Answer this question with Bayesian [Term Enrichment Analysis](https://en.wikipedia.org/wiki/Gene_Ontology_Term_Enrichment) (TEA)
-using a model described [here](https://github.com/ihh/wtfgenes-appnote)
+using a model described [here](https://github.com/ihh/wtfgenes-appnote/blob/master/main.pdf)
 and loosely based on the following method:
 
 - Nucleic Acids Res. 2010. [GOing Bayesian: model-based gene set analysis of genome-scale data.](http://www.ncbi.nlm.nih.gov/pubmed/20172960) Bauer S, Gagneur J, Robinson PN.
