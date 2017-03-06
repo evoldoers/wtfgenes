@@ -10,6 +10,9 @@ Bauer S, Gagneur J, Robinson PN.
 
 http://www.ncbi.nlm.nih.gov/pubmed/20172960
 
+A full description of the model can be found in [this paper](https://github.com/ihh/wtfgenes-appnote).
+
+
 <pre><code>
 Usage: node wtfgenes.js
 
