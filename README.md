@@ -12,6 +12,10 @@ and loosely based on the following method:
 
 The software also implements Frequentist TEA (a.k.a. Fisher's ["lady tasting tea"](https://en.wikipedia.org/wiki/Lady_tasting_tea) test).
 
+## Demo
+
+A demo of the wtfgenes web client for the published annotated genomes of the Gene Ontology consortium can be found at https://evoldoers.github.io/wtfgo/
+
 ## Repository structure
 
 The repository contains two implementations of Bayesian and Frequentist TEA:
@@ -40,6 +44,7 @@ Essentially, you run the sampler for a while, and then you get a report on which
 ## Basic operation (web client)
 
 The web client is pretty much the same, except it comes pre-loaded with data.
+You can see a demo of the web client [here](https://evoldoers.github.io/wtfgo/).
 
 ### Setting up the web client
 
