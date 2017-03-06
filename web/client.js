@@ -1032,11 +1032,13 @@
       .done (function (datasetsJson) {
 	wtf.datasets = datasetsJson
 	wtf.log ("Loaded " + wtf.datasets.organisms.length + " organisms")
-	wtf.datasets.organisms.forEach (function (orgJson) {
-	  $('#wtf-organism-list').append
-	  ($('<li><a href="#">' + orgJson.name + '</a></li>')
-	   .click (organismSelector(wtf,orgJson)))
+	var organismMenu = wtf.datasets.organisms.map (function (orgJson) {
+	  return $('<li><a href="#">' + orgJson.name + '</a></li>')
+	    .click (organismSelector(wtf,orgJson))
 	})
+	$('#wtf-organism-list').append (organismMenu)
+	if (organismMenu.length == 1)
+	  organismMenu[0].click()
 
       }).fail (function() {
 	wtf.log("Problem loading " + wtf.datasetsURL)
