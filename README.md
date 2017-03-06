@@ -38,6 +38,7 @@ The GAF converter can optionally accept a file of gene name aliases.
 
 ## Basic operation (node script)
 
+The node script is [bin/wtfgenes.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/wtfgenes.js).
 The basic sequence of operations is described [here](https://github.com/ihh/wtfgenes-appnote).
 Essentially, you run the [MCMC sampler](https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo) for a while, and then you get a report on which terms are enriched in the dataset.
 
