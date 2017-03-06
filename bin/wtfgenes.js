@@ -46,6 +46,8 @@ var opt = getopt.create([
     ['r' , 'rnd-seed=N'       , 'seed random number generator (default=' + defaultSeed + ')'],
     ['m' , 'simulate=N'       , 'instead of doing inference, simulate N gene sets'],
     ['x' , 'exclude-redundant', 'exclude redundant terms from simulation'],
+    ['X' , 'exclude-ancestral', 'exclude ancestral terms from simulation'],
+    ['w' , 'exclude-with=N'   , 'exclude terms with >=N gene associations from simulation'],
     ['A' , 'active-terms=N'   , 'specify number of active terms for simulation'],
     ['O' , 'false-pos=P'      , 'specify false positive probability for simulation'],
     ['E' , 'false-neg=P'      , 'specify false negative probability for simulation'],
@@ -177,7 +179,9 @@ function runSimulation() {
 			       prior: prior,
 			       nActiveTerms: opt.options['active-terms'],
 			       simParams: simParams,
-			       excludeRedundantTerms: opt.options['exclude-redundant'] })
+			       excludeRedundantTerms: opt.options['exclude-redundant'],
+			       excludeAncestralTerms: opt.options['exclude-ancestral'],
+			       termAssociationCutoff: opt.options['exclude-with'] })
 
     return sim.sampleGeneSets (parseInt (opt.options['simulate'] || '1'))
 }
