@@ -4,17 +4,13 @@
 
 What is The Function of these genes?
 
-Implements Bayesian Term Enrichment Analysis (TEA) using MCMC, loosely based on the following model:
+Implements Bayesian Term Enrichment Analysis (TEA) using MCMC,
+using a model described [here](https://github.com/ihh/wtfgenes-appnote)
+and loosely based on the following method:
 
-Nucleic Acids Res. 2010 Jun;38(11):3523-32. doi: 10.1093/nar/gkq045.
-GOing Bayesian: model-based gene set analysis of genome-scale data.
-Bauer S, Gagneur J, Robinson PN.
+- Nucleic Acids Res. 2010 Jun;38(11):3523-32. doi: 10.1093/nar/gkq045. [GOing Bayesian: model-based gene set analysis of genome-scale data.](http://www.ncbi.nlm.nih.gov/pubmed/20172960) Bauer S, Gagneur J, Robinson PN.
 
-http://www.ncbi.nlm.nih.gov/pubmed/20172960
-
-A full description of the model can be found in [this paper](https://github.com/ihh/wtfgenes-appnote).
-
-Also implements Frequentist TEA (a.k.a. Fisher's ["lady tasting tea"](https://en.wikipedia.org/wiki/Lady_tasting_tea) test).
+The software also implements Frequentist TEA (a.k.a. Fisher's ["lady tasting tea"](https://en.wikipedia.org/wiki/Lady_tasting_tea) test).
 
 ## Repository structure
 
@@ -24,7 +20,35 @@ The repository contains two implementations of Bayesian and Frequentist TEA:
 
 The two implementations should be identical at the level of numerical output,
 although the C++ version is about twice as fast.
-This guide focuses on the JavaScript implementation.
+This guide focuses on the JavaScript implementation; the C++ version is similar but does not use JSON files.
+
+## Input and output formats
+
+The software requires several data files:
+- An *ontology file* in [OBO format](http://owlcollab.github.io/oboformat/doc/GO.format.obo-1_2.html)
+- A *gene-term association file* in [GAF format](http://www.geneontology.org/page/go-annotation-file-format-20)
+- A *gene-set file* that is just a flatfile containing a list of gene names
+
+The OBO and GAF files can be pre-converted to a more compact JSON format for setting up a static website.
+The GAF converter can optionally accept a file of gene name aliases.
+
+## Basic operation (node client)
+
+The basic sequence of operations is described [here](https://github.com/ihh/wtfgenes-appnote).
+Essentially, you run the sampler for a while, and then you get a report on which terms are enriched in the dataset.
+
+## Basic operation (web client)
+
+The web client is pretty much the same, except it comes pre-loaded with data.
+
+### Setting up the web client
+
+At the moment, to set up the web client, you need to manually do the following steps:
+- run the [bin/obo2json.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/obo2json.js) script to convert OBO-format ontology file(s) to JSON
+- run the [bin/gaf2json.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/gaf2json.js) script to convert GAF-format gene-term association file(s) to JSON
+- save the output of the above two steps to files in the `web/` directory with appropriate (unique) filenames
+- hand-edit the [web/datasets.json](https://github.com/evoldoers/wtfgenes/blob/master/web/datasets.json) file to point to the JSON ontology and gene-term association files
+- move the `web/` directory to someplace your webserver can see (it's OK to rename it)
 
 ## Command-line usage (node)
 
