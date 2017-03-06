@@ -86,6 +86,8 @@ Usage: node wtfgenes.js
   -r, --rnd-seed=N         seed random number generator (default=123456789)
   -m, --simulate=N         instead of doing inference, simulate N gene sets
   -x, --exclude-redundant  exclude redundant terms from simulation
+  -X, --exclude-ancestral  exclude ancestral terms from simulation
+  -w, --exclude-with=N     exclude terms with &gt;=N gene associations from simulation
   -A, --active-terms=N     specify number of active terms for simulation
   -O, --false-pos=P        specify false positive probability for simulation
   -E, --false-neg=P        specify false negative probability for simulation
