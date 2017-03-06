@@ -56,6 +56,9 @@ At the moment, to set up the web client as a [static site](https://en.wikipedia.
 - hand-edit the [web/index.html](https://github.com/evoldoers/wtfgenes/blob/master/web/index.html) file to include any additional text you want to include
 - move the `web/` directory to someplace your webserver can see (it's OK to rename it)
 
+Since the web client consists of web-browsable files and does not need to execute any code on a server,
+you can serve it up from any static web hosting service; for example, [Amazon S3](https://aws.amazon.com/s3/) or [GitHub pages](https://pages.github.com/).
+
 ## Command-line usage (node)
 
 <pre><code>
