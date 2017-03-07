@@ -81,6 +81,9 @@ To set up the web client as a [static site](https://en.wikipedia.org/wiki/Static
 - hand-edit the [index.html](https://github.com/evoldoers/wtfgenes/blob/master/web/index.html) file in the static site directory to include any additional text you want to include
 - move the static site directory to someplace your webserver can see (it's OK to rename it)
 
+Since the web client consists of web-browsable files and does not need to execute any code on a server,
+you can serve it up from any static web hosting service; for example, [Amazon S3](https://aws.amazon.com/s3/) or [GitHub pages](https://pages.github.com/).
+
 For example, to set up a static site for yeast:
 
     curl -O http://geneontology.org/ontology/go-basic.obo
@@ -92,9 +95,6 @@ For example, to set up a static site for yeast:
     bin/add-to-site.js yeast -e "Sulfate assimilation and nitrogen utilization" -i "MET10 MET1 MET14 MET22 MET3 MET5 MET8 TRX1 SUL1 FZF1 SUL2 OAC1 ATF1 ATF2 ADY2 ATO2 ATO3 MEP1 MEP2 MEP3 UGA1 UGA3 YGR125W YPR003C YIL165C MKS1 NPR1 RSP5 URE2 VID30 AGC1 CPS1 GDH2 DAL80 GZF3 PPH3 GAT1 RTG2 UME6"
 
 The `create-site.js` and `add-to-site.js` scripts should be self-documenting (use the `-h` option to show a brief help message).
-
-Since the web client consists of web-browsable files and does not need to execute any code on a server,
-you can serve it up from any static web hosting service; for example, [Amazon S3](https://aws.amazon.com/s3/) or [GitHub pages](https://pages.github.com/).
 
 Behind the scenes, the `create-site.js` script simply makes a copy of the `web/` directory.
 Subsequently running `add-to-site.js` is roughly equivalent to performing the following steps, which can be done manually:
