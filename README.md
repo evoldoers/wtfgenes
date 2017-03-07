@@ -55,6 +55,8 @@ To set up the web client as a [static site](https://en.wikipedia.org/wiki/Static
 - hand-edit the [index.html](https://github.com/evoldoers/wtfgenes/blob/master/web/index.html) file in the static site directory to include any additional text you want to include
 - move the static site directory to someplace your webserver can see (it's OK to rename it)
 
+The `create-site.js` and `add-to-site.js` scripts should be self-documenting (use the `-h` option to show a brief help message).
+
 Since the web client consists of web-browsable files and does not need to execute any code on a server,
 you can serve it up from any static web hosting service; for example, [Amazon S3](https://aws.amazon.com/s3/) or [GitHub pages](https://pages.github.com/).
 

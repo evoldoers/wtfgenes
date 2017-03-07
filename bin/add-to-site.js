@@ -40,8 +40,14 @@ function inputError (err, showHelp) {
 opt.argv.length || inputError ("Please specify a directory", true)
 opt.argv.length === 1 || inputError ("Too many arguments", true)
 
-opt.options.obo || inputError ("Please specify an OBO file")
-opt.options.gaf || inputError ("Please specify a GAF file")
+var dir = opt.argv[0]
+var datasetsPath = "datasets.json"
+function dirPath (filename) { return dir + "/" + filename }
+
+fs.existsSync(dirPath(datasetsPath)) || inputError ("Can't find " + dirPath(datasetsPath))
+
+opt.options.obo || inputError ("Please specify an OBO file", true)
+opt.options.gaf || inputError ("Please specify a GAF file", true)
 
 fs.existsSync(opt.options.obo) || inputError ("OBO file not found")
 fs.existsSync(opt.options.gaf) || inputError ("GAF file not found")
@@ -50,24 +56,21 @@ var examples
 if (opt.options.example || opt.options.ids) {
   var exampleName = opt.options.example || []
   var exampleIds = opt.options.ids || []
-  exampleName.length === exampleIds.length || inputError ("Please supply as many example gene-set names as example gene-sets")
+  exampleName.length === exampleIds.length || inputError ("Please supply as many example gene-set names as example gene-sets", true)
   examples = exampleName.map (function (name, n) { return { name: name, genes: exampleIds[n].split(" ") } })
 }
 
-var dir = opt.argv[0]
-function dirPath (filename) { return dir + "/" + filename }
 function readJson (filename) {
   var path = dirPath(filename)
   fs.existsSync (path) || inputError ("Can't find " + path)
   return JSON.parse (fs.readFileSync(path).toString())
 }
+
 function writeJson (filename, json) {
   fs.writeFileSync (dirPath(filename), JSON.stringify (json))
 }
 
-var datasetsPath = "datasets.json"
 var datasets = readJson (datasetsPath)
-
 var oboText = fs.readFileSync(opt.options.obo).toString()
 var gafText = fs.readFileSync(opt.options.gaf).toString()
 
