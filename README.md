@@ -51,7 +51,7 @@ You can see a demo of the web client [here](https://evoldoers.github.io/wtfgo/).
 
 To set up the web client as a [static site](https://en.wikipedia.org/wiki/Static_web_page), you need to perform the following steps:
 - run the [bin/create-site.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/create-site.js) script to create a static site directory
-- run the [bin/add-to-site.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/add-to-site.js) script as many times as you want to add gene-term association files (and the accompanying ontologies) to the site
+- run the [bin/add-to-site.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/add-to-site.js) script as many times as you want to add GAF-format gene-term association files (and the accompanying OBO-format ontologies) to the site, optionally with example gene sets
 - hand-edit the [index.html](https://github.com/evoldoers/wtfgenes/blob/master/web/index.html) file in the static site directory to include any additional text you want to include
 - move the static site directory to someplace your webserver can see (it's OK to rename it)
 
