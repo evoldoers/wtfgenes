@@ -2,7 +2,7 @@
 
 # wtfgenes
 
-**What's The Function of these genes?**
+**"What's The Function of these genes?"**
 
 Answer this question with Bayesian [Term Enrichment Analysis](https://en.wikipedia.org/wiki/Gene_Ontology_Term_Enrichment) (TEA)
 using a model described [here](https://github.com/ihh/wtfgenes-appnote/blob/master/main.pdf)
@@ -24,7 +24,29 @@ The repository contains two implementations of Bayesian and Frequentist TEA:
 
 The two implementations should be identical at the level of numerical output,
 although the C++ version is about twice as fast.
-This guide focuses on the JavaScript implementation; the C++ version is similar but does not use JSON files.
+This guide focuses mostly on the JavaScript implementation; the C++ version is similar but does not use JSON files.
+
+## Installation
+
+### JavaScript version
+
+Prerequisites:
+- node v6.0.0+
+
+    cd wtfgenes
+    npm install
+    bin/wtfgenes.js --help
+
+### C++11 version
+
+Prerequisites:
+- clang (Apple LLVM version 7.3.0+)
+- gsl (version 2.2.1+)
+- boost (version 1.63.0+)
+
+    cd wtfgenes/cpp
+    make
+    bin/wtfgenes --help
 
 ## Input and output formats
 
@@ -51,9 +73,19 @@ You can see a demo of the web client [here](https://evoldoers.github.io/wtfgo/).
 
 To set up the web client as a [static site](https://en.wikipedia.org/wiki/Static_web_page), you need to perform the following steps:
 - run the [bin/create-site.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/create-site.js) script to create a static site directory
-- run the [bin/add-to-site.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/add-to-site.js) script as many times as you want to add GAF-format gene-term association files (and the accompanying OBO-format ontologies) to the site, optionally with example gene sets
+- run the [bin/add-to-site.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/add-to-site.js) script as many times as you want to add GAF-format gene-term association files (and the accompanying OBO-format ontologies) to the site, optionally with gene ID aliases and example sets
 - hand-edit the [index.html](https://github.com/evoldoers/wtfgenes/blob/master/web/index.html) file in the static site directory to include any additional text you want to include
 - move the static site directory to someplace your webserver can see (it's OK to rename it)
+
+For example, to set up a static site for yeast:
+
+    curl -O http://geneontology.org/ontology/go-basic.obo
+    curl -O http://geneontology.org/gene-associations/gene_association.sgd.gz
+    gunzip gene_association.sgd.gz
+    bin/create-site.js yeast
+    bin/add-to-site.js yeast -s "S.cerevisiae" -n "Gene ontology" -o go-basic.obo -g gene_association.sgd
+    bin/add-to-site.js yeast -e "Mating genes" -i "STE2 STE3 STE5 GPA1 SST2 STE11 STE50 STE20 STE4 STE18 FUS3 KSS1 PTP2 MSG5 DIG1 DIG2 STE12"
+    bin/add-to-site.js yeast -e "Sulfate assimilation and nitrogen utilization" -i "MET10 MET1 MET14 MET22 MET3 MET5 MET8 TRX1 SUL1 FZF1 SUL2 OAC1 ATF1 ATF2 ADY2 ATO2 ATO3 MEP1 MEP2 MEP3 UGA1 UGA3 YGR125W YPR003C YIL165C MKS1 NPR1 RSP5 URE2 VID30 AGC1 CPS1 GDH2 DAL80 GZF3 PPH3 GAT1 RTG2 UME6"
 
 The `create-site.js` and `add-to-site.js` scripts should be self-documenting (use the `-h` option to show a brief help message).
 
