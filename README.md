@@ -33,9 +33,11 @@ This guide focuses mostly on the JavaScript implementation; the C++ version is s
 Prerequisites:
 - node v6.0.0+
 
+~~~~
     cd wtfgenes
     npm install
     bin/wtfgenes.js --help
+~~~~
 
 ### C++11 version
 
@@ -44,9 +46,11 @@ Prerequisites:
 - gsl (version 2.2.1+)
 - boost (version 1.63.0+)
 
+~~~~
     cd wtfgenes/cpp
     make
     bin/wtfgenes --help
+~~~~
 
 ## Input and output formats
 
