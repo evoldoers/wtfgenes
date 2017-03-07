@@ -97,7 +97,7 @@ For example, to set up a static site for yeast:
 The `create-site.js` and `add-to-site.js` scripts should be self-documenting (use the `-h` option to show a brief help message).
 
 Behind the scenes, the `create-site.js` script simply makes a copy of the `web/` directory.
-Subsequently running `add-to-site.js` is roughly equivalent to performing the following steps, which can be done manually:
+Subsequently running `add-to-site.js` is roughly equivalent to manually performing the following steps:
 - run the [bin/obo2json.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/obo2json.js) script to convert OBO-format ontology file(s) to JSON
 - run the [bin/gaf2json.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/gaf2json.js) script to convert GAF-format gene-term association file(s) to JSON
 - save the output of the above two steps to files in your static site directory with appropriate (unique) filenames
