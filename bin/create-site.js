@@ -26,10 +26,8 @@ var dir = opt.argv[0]
 fs.existsSync(dir) && inputError ("Directory " + dir + " already exists - can't create")
 exec ("cp -r " + path.resolve(__dirname + "/../web") + " " + dir,
       () => {
-	fs.mkdirSync (dir + "/organism")
+	fs.mkdirSync (dir + "/json")
 	fs.writeFileSync (dir + "/datasets.json",
 			  JSON.stringify ({ organisms: [] }))
-	fs.writeFileSync (dir + "/ontologies.json",
-			  JSON.stringify ({}))
 	console.log ("created empty site in " + dir)
       })
