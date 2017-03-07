@@ -49,16 +49,21 @@ You can see a demo of the web client [here](https://evoldoers.github.io/wtfgo/).
 
 ### Setting up the web client
 
-At the moment, to set up the web client as a [static site](https://en.wikipedia.org/wiki/Static_web_page), you need to manually perform the following steps:
-- run the [bin/obo2json.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/obo2json.js) script to convert OBO-format ontology file(s) to JSON
-- run the [bin/gaf2json.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/gaf2json.js) script to convert GAF-format gene-term association file(s) to JSON
-- save the output of the above two steps to files in the `web/` directory with appropriate (unique) filenames
-- hand-edit the [web/datasets.json](https://github.com/evoldoers/wtfgenes/blob/master/web/datasets.json) file to point to the JSON ontology and gene-term association files you just generated, and any example gene sets you want to include
-- hand-edit the [web/index.html](https://github.com/evoldoers/wtfgenes/blob/master/web/index.html) file to include any additional text you want to include
-- move the `web/` directory to someplace your webserver can see (it's OK to rename it)
+To set up the web client as a [static site](https://en.wikipedia.org/wiki/Static_web_page), you need to perform the following steps:
+- run the [bin/create-site.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/create-site.js) script to create a static site directory
+- run the [bin/add-to-site.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/add-to-site.js) script as many times as you want to add gene-term association files (and the accompanying ontologies) to the site
+- hand-edit the [index.html](https://github.com/evoldoers/wtfgenes/blob/master/web/index.html) file in the static site directory to include any additional text you want to include
+- move the static site directory to someplace your webserver can see (it's OK to rename it)
 
 Since the web client consists of web-browsable files and does not need to execute any code on a server,
 you can serve it up from any static web hosting service; for example, [Amazon S3](https://aws.amazon.com/s3/) or [GitHub pages](https://pages.github.com/).
+
+Behind the scenes, the `create-site.js` script simply makes a copy of the `web/` directory.
+Subsequently running `add-to-site.js` is roughly equivalent to performing the following steps, which can be done manually:
+- run the [bin/obo2json.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/obo2json.js) script to convert OBO-format ontology file(s) to JSON
+- run the [bin/gaf2json.js](https://github.com/evoldoers/wtfgenes/blob/master/bin/gaf2json.js) script to convert GAF-format gene-term association file(s) to JSON
+- save the output of the above two steps to files in your static site directory with appropriate (unique) filenames
+- hand-edit the copied [web/datasets.json](https://github.com/evoldoers/wtfgenes/blob/master/web/datasets.json) file to point to the JSON ontology and gene-term association files you just generated, and any example gene sets you want to include
 
 ## Command-line usage (node)
 
