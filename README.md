@@ -10,7 +10,7 @@ and loosely based on the following method:
 
 - Nucleic Acids Res. 2010. [GOing Bayesian: model-based gene set analysis of genome-scale data.](http://www.ncbi.nlm.nih.gov/pubmed/20172960) Bauer S, Gagneur J, Robinson PN.
 
-The wtfgenes software also implements Frequentist TEA (a.k.a. Fisher's ["lady tasting tea"](https://en.wikipedia.org/wiki/Lady_tasting_tea) test).
+The wtfgenes software also implements Frequentist TEA (a.k.a. Fisher's [tea-tasting test](https://en.wikipedia.org/wiki/Lady_tasting_tea)).
 
 ## Demo
 
