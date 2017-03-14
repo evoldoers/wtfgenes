@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 var fs = require('fs'),
-    path = require('path'),
     getopt = require('node-getopt'),
     converters = require('../lib/converters'),
     obo2json = converters.obo2json,
